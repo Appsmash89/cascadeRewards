@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Gift, LogOut, User as UserIcon, RotateCcw } from "lucide-react"
 import type { User } from "@/lib/types";
 import { useDevTools } from "../floating-dev-tools";
+import { useRouter } from "next/navigation";
 
 type DashboardHeaderProps = {
   user: User;
@@ -22,6 +23,11 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
     return name.split(' ').map(n => n[0]).join('');
   }
   const devTools = useDevTools();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    router.push('/');
+  };
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 z-10">
@@ -61,7 +67,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
               </>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>
