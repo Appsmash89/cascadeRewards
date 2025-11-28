@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -9,9 +10,8 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleGuestLogin = () => {
-    // In a real app, you'd set some guest state
-    // For now, we just navigate to the dashboard
-    router.push('/dashboard');
+    // For prototyping, we'll use a query param to signify guest mode
+    router.push('/dashboard?mode=guest');
   };
 
   const handleGoogleSignIn = () => {
