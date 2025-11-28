@@ -1,3 +1,4 @@
+
 'use client';
 import {
   DropdownMenu,
@@ -13,21 +14,47 @@ import { Gift, LogOut, User as UserIcon, RotateCcw } from "lucide-react"
 import type { User } from "@/lib/types";
 import { useDevTools } from "../floating-dev-tools";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
 
 type DashboardHeaderProps = {
-  user: User;
+  user: User | null;
 }
 
 export default function DashboardHeader({ user }: DashboardHeaderProps) {
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('');
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
   const devTools = useDevTools();
   const router = useRouter();
+  const auth = useAuth();
+  const { toast } = useToast();
 
-  const handleLogout = () => {
-    router.push('/');
+  const handleLogout = async () => {
+    if (auth) {
+      try {
+        await signOut(auth);
+        router.push('/');
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Logout Failed",
+          description: "Could not log out. Please try again.",
+        });
+      }
+    } else {
+        router.push('/');
+    }
   };
+
+  if (!user) {
+    // Or a loading skeleton
+    return (
+        <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 z-10">
+        </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 z-10">

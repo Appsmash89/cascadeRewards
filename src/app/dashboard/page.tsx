@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Card,
@@ -6,30 +7,75 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { usePathname } from 'next/navigation';
-
-import { currentUser, referrals, tasks as initialTasksData } from '@/lib/data';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { referrals, tasks as initialTasksData } from '@/lib/data';
 import DashboardHeader from "@/components/dashboard/header";
 import StatsCards from "@/components/dashboard/stats-cards";
 import TasksList from "@/components/dashboard/tasks-list";
 import BottomNav from "@/components/dashboard/bottom-nav";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { useUser } from "@/firebase";
+import { Loader2 } from "lucide-react";
+import type { User } from "@/lib/types";
 
 export default function DashboardPage() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isGuestMode = searchParams.get('mode') === 'guest';
+  const { user, isUserLoading } = useUser();
   const isDashboard = pathname === '/dashboard';
   const [tasks, setTasks] = useState(initialTasksData);
+
+  const [displayUser, setDisplayUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    if (isGuestMode) {
+      const guestUser: User = {
+        name: 'Guest User',
+        avatarUrl: `https://picsum.photos/seed/guest/100/100`,
+        points: 1250,
+        referralCode: 'CASC-GUEST',
+        referralLevel: 0,
+      };
+      setDisplayUser(guestUser);
+    } else if (user) {
+      const appUser: User = {
+        name: user.displayName || 'User',
+        avatarUrl: user.photoURL || `https://picsum.photos/seed/user/100/100`,
+        points: 1250, // This would come from your database
+        referralCode: 'CASC-A9B3X2', // This would come from your database
+        referralLevel: 2, // This would come from your database
+      };
+      setDisplayUser(appUser);
+    }
+  }, [isGuestMode, user]);
+
+
+  useEffect(() => {
+    if (!isUserLoading && !user && !isGuestMode) {
+      router.push('/');
+    }
+  }, [user, isUserLoading, isGuestMode, router]);
+
 
   const resetTasks = () => {
     setTasks(initialTasksData.map(t => ({...t, isCompleted: false})));
   }
 
+  if (isUserLoading || !displayUser) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <DashboardHeader user={currentUser} />
+      <DashboardHeader user={displayUser} />
       <main className="flex flex-1 flex-col gap-4 p-4 pb-20">
-        <StatsCards user={currentUser} referrals={referrals} />
+        <StatsCards user={displayUser} referrals={referrals} />
         <div className="grid gap-4">
           <Card>
             <CardHeader>

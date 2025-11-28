@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import FloatingDevTools from '@/components/floating-dev-tools';
 import { useState } from 'react';
 import { tasks as initialTasksData } from '@/lib/data';
+import { FirebaseClientProvider } from '@/firebase';
 
 // This is a workaround to make metadata work with client components
 // export const metadata: Metadata = {
@@ -38,11 +39,13 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
       <body className="font-body antialiased bg-stone-900 flex justify-center">
-        <div className="relative w-full max-w-md bg-background min-h-screen flex flex-col">
-          {children}
-          <FloatingDevTools onResetTasks={handleResetTasks} />
-          <Toaster />
-        </div>
+        <FirebaseClientProvider>
+          <div className="relative w-full max-w-md bg-background min-h-screen flex flex-col">
+            {children}
+            <FloatingDevTools onResetTasks={handleResetTasks} />
+            <Toaster />
+          </div>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
