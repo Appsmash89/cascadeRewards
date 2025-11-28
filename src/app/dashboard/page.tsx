@@ -12,7 +12,6 @@ import { currentUser, referrals, tasks } from '@/lib/data';
 import DashboardHeader from "@/components/dashboard/header";
 import StatsCards from "@/components/dashboard/stats-cards";
 import TasksList from "@/components/dashboard/tasks-list";
-import ReferralSection from "@/components/dashboard/referral-section";
 import BottomNav from "@/components/dashboard/bottom-nav";
 
 
@@ -37,7 +36,6 @@ export default function DashboardPage() {
               <TasksList initialTasks={tasks} />
             </CardContent>
           </Card>
-          <ReferralSection user={currentUser} referrals={referrals} />
         </div>
       </main>
       {isDashboard && <BottomNav />}
