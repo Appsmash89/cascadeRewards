@@ -29,7 +29,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
   const devTools = useDevTools();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const auth = useAuth();
+  const { auth } = useAuth();
   const { toast } = useToast();
 
   const handleLogout = async () => {
@@ -45,6 +45,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         });
       }
     } else {
+        // If for some reason auth is not available, still try to navigate to login
         router.push('/');
     }
   };
