@@ -27,13 +27,14 @@ export default function FloatingDevTools() {
     }
   }, []);
 
-
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (dragRef.current) {
       setIsDragging(true);
+      const dragRect = dragRef.current.getBoundingClientRect();
+      const parentRect = parentRef.current?.getBoundingClientRect();
       offsetRef.current = {
-        x: e.clientX - dragRef.current.getBoundingClientRect().left,
-        y: e.clientY - dragRef.current.getBoundingClientRect().top,
+        x: e.clientX - dragRect.left,
+        y: e.clientY - (parentRect?.top ?? 0),
       };
       // Prevent text selection while dragging
       e.preventDefault();
@@ -45,18 +46,18 @@ export default function FloatingDevTools() {
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging && dragRef.current && parentRef.current) {
-      const parentRect = parentRef.current.getBoundingClientRect();
-      
-      let y = e.clientY - parentRect.top - offsetRef.current.y;
+    if (!isDragging || !dragRef.current || !parentRef.current) return;
 
-      // Constrain vertical movement within the parent
-      y = Math.max(0, Math.min(y, parentRect.height - dragRef.current.offsetHeight));
+    const parentRect = parentRef.current.getBoundingClientRect();
+    
+    let y = e.clientY - parentRect.top - offsetRef.current.y + parentRect.top;
 
-      setPosition(currentPos => ({ x: currentPos.x, y }));
-    }
+    // Constrain vertical movement within the parent
+    y = Math.max(0, Math.min(y, parentRect.height - dragRef.current.offsetHeight));
+
+    setPosition(currentPos => ({ ...currentPos, y }));
   };
-
+  
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
