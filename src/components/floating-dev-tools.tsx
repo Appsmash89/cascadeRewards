@@ -25,6 +25,7 @@ export default function FloatingDevTools({ onResetTasks }: FloatingDevToolsProps
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const isGuestMode = searchParams.get('mode') === 'guest';
+  const isLoginPage = pathname === '/';
 
   const [isDragging, setIsDragging] = useState(false);
   const [positionY, setPositionY] = useState(0);
@@ -36,15 +37,6 @@ export default function FloatingDevTools({ onResetTasks }: FloatingDevToolsProps
     resetTasks: onResetTasks,
   }), [isGuestMode, onResetTasks]);
 
-
-  if (pathname === '/' || !isGuestMode) {
-    return (
-      <DevToolsContext.Provider value={contextValue}>
-        <></>
-      </DevToolsContext.Provider>
-    );
-  }
-  
   const handleDragStart = (e: MouseEvent<HTMLDivElement> | TouchEvent<HTMLDivElement>) => {
     setIsDragging(true);
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
@@ -52,7 +44,6 @@ export default function FloatingDevTools({ onResetTasks }: FloatingDevToolsProps
       startY: clientY,
       initialY: positionY,
     };
-    // To prevent text selection while dragging
     e.preventDefault();
   };
 
@@ -67,7 +58,6 @@ export default function FloatingDevTools({ onResetTasks }: FloatingDevToolsProps
     setIsDragging(false);
   };
 
-  // Add global listeners to handle mouse leaving the window
   React.useEffect(() => {
     const handleGlobalMouseMove = (e: globalThis.MouseEvent) => {
       if (isDragging) {
@@ -94,44 +84,47 @@ export default function FloatingDevTools({ onResetTasks }: FloatingDevToolsProps
     };
   }, [isDragging]);
 
+  const showDevTools = !isLoginPage && isGuestMode;
 
   return (
     <DevToolsContext.Provider value={contextValue}>
-      <div 
-        ref={cardRef}
-        className="fixed bottom-16 left-0 right-0 z-20 max-w-md mx-auto p-2"
-        style={{
-          transform: `translateY(${positionY}px)`,
-          bottom: '4rem', // Corresponds to h-16 of bottom-nav
-        }}
-      >
-        <Card 
-          className={cn(
-            "bg-secondary/95 backdrop-blur-sm border-primary/50 shadow-lg",
-            isDragging && 'cursor-grabbing'
-          )}
+      {showDevTools ? (
+        <div 
+          ref={cardRef}
+          className="fixed bottom-16 left-0 right-0 z-20 max-w-md mx-auto p-2"
+          style={{
+            transform: `translateY(${positionY}px)`,
+            bottom: '4rem',
+          }}
         >
-          <div 
-            className="absolute left-1/2 -translate-x-1/2 -top-2 p-1 cursor-grab"
-            onMouseDown={handleDragStart}
-            onTouchStart={handleDragStart}
+          <Card 
+            className={cn(
+              "bg-secondary/95 backdrop-blur-sm border-primary/50 shadow-lg",
+              isDragging && 'cursor-grabbing'
+            )}
           >
-            <GripVertical className="h-5 w-5 text-primary/80" />
-          </div>
-          <CardHeader className="p-3 pt-4 flex-row items-center gap-3 space-y-0">
-            <Code className="h-5 w-5 text-primary" />
-            <div>
-              <CardTitle className="text-base">Developer Tools</CardTitle>
-              <CardDescription className="text-xs">Quick access for prototyping.</CardDescription>
+            <div 
+              className="absolute left-1/2 -translate-x-1/2 -top-2 p-1 cursor-grab"
+              onMouseDown={handleDragStart}
+              onTouchStart={handleDragStart}
+            >
+              <GripVertical className="h-5 w-5 text-primary/80" />
             </div>
-          </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <div className="flex items-center justify-center h-24 border-2 border-dashed border-muted-foreground/30 rounded-lg">
-              <Button onClick={onResetTasks}>Reset Tasks</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <CardHeader className="p-3 pt-4 flex-row items-center gap-3 space-y-0">
+              <Code className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle className="text-base">Developer Tools</CardTitle>
+                <CardDescription className="text-xs">Quick access for prototyping.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="p-3 pt-0">
+              <div className="flex items-center justify-center h-24 border-2 border-dashed border-muted-foreground/30 rounded-lg">
+                <Button onClick={onResetTasks}>Reset Tasks</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
     </DevToolsContext.Provider>
   );
 }
