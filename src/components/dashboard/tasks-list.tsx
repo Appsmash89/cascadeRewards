@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PlayCircle, FileText, CheckCircle, Award } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -18,6 +18,18 @@ const taskIcons = {
 
 export default function TasksList({ initialTasks }: TasksListProps) {
   const [tasks, setTasks] = useState(initialTasks.map(task => ({ ...task, isCompleted: false })))
+
+  useEffect(() => {
+    setTasks(initialTasks.map(task => ({ ...task, isCompleted: task.isCompleted || false })));
+  }, [initialTasks]);
+
+  useEffect(() => {
+    const handleReset = () => {
+      setTasks(initialTasks.map(task => ({ ...task, isCompleted: false })));
+    };
+    window.addEventListener('reset-tasks', handleReset);
+    return () => window.removeEventListener('reset-tasks', handleReset);
+  }, [initialTasks]);
 
   const handleComplete = (taskId: string) => {
     setTasks(tasks.map(task => 

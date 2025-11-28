@@ -8,16 +8,22 @@ import {
 } from "@/components/ui/card"
 import { usePathname } from 'next/navigation';
 
-import { currentUser, referrals, tasks } from '@/lib/data';
+import { currentUser, referrals, tasks as initialTasksData } from '@/lib/data';
 import DashboardHeader from "@/components/dashboard/header";
 import StatsCards from "@/components/dashboard/stats-cards";
 import TasksList from "@/components/dashboard/tasks-list";
 import BottomNav from "@/components/dashboard/bottom-nav";
+import { useState } from "react";
 
 
 export default function DashboardPage() {
   const pathname = usePathname();
   const isDashboard = pathname === '/dashboard';
+  const [tasks, setTasks] = useState(initialTasksData);
+
+  const resetTasks = () => {
+    setTasks(initialTasksData.map(t => ({...t, isCompleted: false})));
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">

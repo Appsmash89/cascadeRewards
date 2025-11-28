@@ -9,8 +9,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Gift, LogOut, User as UserIcon } from "lucide-react"
+import { Gift, LogOut, User as UserIcon, RotateCcw } from "lucide-react"
 import type { User } from "@/lib/types";
+import { useDevTools } from "../floating-dev-tools";
 
 type DashboardHeaderProps = {
   user: User;
@@ -20,6 +21,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('');
   }
+  const devTools = useDevTools();
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 z-10">
@@ -48,6 +50,16 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
+            {devTools?.isGuestMode && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Dev Tools</DropdownMenuLabel>
+                <DropdownMenuItem onClick={devTools.resetTasks}>
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  <span>Reset Tasks</span>
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut className="mr-2 h-4 w-4" />

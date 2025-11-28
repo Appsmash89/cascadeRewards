@@ -13,6 +13,7 @@ export type Task = {
   description: string;
   points: number;
   type: 'video' | 'read';
+  isCompleted?: boolean;
 };
 
 export type Referral = {
