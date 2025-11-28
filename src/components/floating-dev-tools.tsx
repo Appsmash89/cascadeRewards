@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useRef, MouseEvent, TouchEvent, useContext, createContext, useMemo } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Code, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -23,10 +23,8 @@ type FloatingDevToolsProps = {
 
 export default function FloatingDevTools({ onResetTasks }: FloatingDevToolsProps) {
   const searchParams = useSearchParams();
-  const pathname = usePathname();
   const isGuestMode = searchParams.get('mode') === 'guest';
-  const isLoginPage = pathname === '/';
-
+  
   const [isDragging, setIsDragging] = useState(false);
   const [positionY, setPositionY] = useState(0);
   const dragStartPos = useRef({ startY: 0, initialY: 0 });
@@ -84,7 +82,7 @@ export default function FloatingDevTools({ onResetTasks }: FloatingDevToolsProps
     };
   }, [isDragging]);
 
-  const showDevTools = !isLoginPage && isGuestMode;
+  const showDevTools = isGuestMode;
 
   return (
     <DevToolsContext.Provider value={contextValue}>

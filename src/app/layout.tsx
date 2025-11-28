@@ -10,6 +10,7 @@ import { tasks as initialTasksData } from '@/lib/data';
 import { FirebaseClientProvider } from '@/firebase';
 import { AppProvider } from '@/context/app-context';
 import { Loader2 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 // This is a workaround to make metadata work with client components
 // export const metadata: Metadata = {
@@ -23,12 +24,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [tasks, setTasks] = useState(initialTasksData);
+  const pathname = usePathname();
 
   const handleResetTasks = () => {
     // This is a bit of a hack, but we'll use a custom event to communicate
     // between the layout and the dashboard page.
     window.dispatchEvent(new CustomEvent('reset-tasks'));
   };
+
+  const isLoginPage = pathname === '/';
 
   return (
     <html lang="en" className="h-full">
@@ -51,7 +55,11 @@ export default function RootLayout({
               }>
                 {children}
               </Suspense>
-              <FloatingDevTools onResetTasks={handleResetTasks} />
+              {!isLoginPage && (
+                <Suspense>
+                  <FloatingDevTools onResetTasks={handleResetTasks} />
+                </Suspense>
+              )}
               <Toaster />
             </div>
           </AppProvider>
