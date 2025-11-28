@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -11,10 +12,11 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { getReferralBonus } from "@/app/actions";
 import { Clipboard, ClipboardCheck, Calculator, Users, Loader2 } from 'lucide-react';
-import type { User, Referral } from "@/lib/types";
+import type { UserProfile, Referral } from "@/lib/types";
+import { useSearchParams } from 'next/navigation';
 
 type ReferralSectionProps = {
-  user: User;
+  user: UserProfile | null;
   referrals: Referral[];
 }
 
@@ -25,9 +27,14 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
   const [bonusResult, setBonusResult] = useState<{ multiplier: number, total: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const isGuestMode = searchParams.get('mode') === 'guest';
+  
+  const referralCode = isGuestMode ? 'CASC-GUEST' : user?.referralCode ?? '...';
+  const referralLevel = isGuestMode ? 0 : user?.level ?? 0;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(user.referralCode);
+    navigator.clipboard.writeText(referralCode);
     setIsCopied(true);
     toast({
       title: "Copied to clipboard!",
@@ -41,7 +48,7 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
     setError(null);
     setBonusResult(null);
 
-    const result = await getReferralBonus({ referrerLevel: user.referralLevel, baseReward });
+    const result = await getReferralBonus({ referrerLevel: referralLevel, baseReward });
 
     if (result.success && result.data) {
       setBonusResult({ multiplier: result.data.bonusMultiplier, total: result.data.totalReward });
@@ -63,7 +70,7 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
         <div>
           <Label htmlFor="referral-code" className="text-xs font-semibold text-muted-foreground">YOUR UNIQUE CODE</Label>
           <div className="flex items-center gap-2 mt-1">
-            <Input id="referral-code" value={user.referralCode} readOnly className="font-mono text-lg tracking-wider" />
+            <Input id="referral-code" value={referralCode} readOnly className="font-mono text-lg tracking-wider" />
             <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy referral code">
               {isCopied ? <ClipboardCheck className="h-4 w-4 text-green-500" /> : <Clipboard className="h-4 w-4" />}
             </Button>
@@ -101,7 +108,7 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
             Bonus Calculator
           </h4>
           <p className="text-sm text-muted-foreground">
-            See potential earnings based on your referral level ({user.referralLevel}).
+            See potential earnings based on your referral level ({referralLevel}).
           </p>
           <div className="flex items-end gap-2">
             <div className="flex-grow">

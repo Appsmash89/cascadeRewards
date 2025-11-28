@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gift, Chrome, Loader2 } from 'lucide-react';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth } from '@/firebase';
+import { useUser } from '@/hooks/use-user';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
@@ -17,11 +18,11 @@ export default function LoginPage() {
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    // This handles redirecting if the user is already logged in
-    if (user) {
+    // Redirects if the user is already logged in and their data is loaded.
+    if (!isUserLoading && user) {
       router.push('/dashboard');
     }
-  }, [user, router]);
+  }, [user, isUserLoading, router]);
 
   const handleGuestLogin = () => {
     // For prototyping, we'll use a query param to signify guest mode
@@ -29,25 +30,37 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
+    if (!auth) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Firebase Auth is not initialized.",
+        });
+        return;
+    }
     const provider = new GoogleAuthProvider();
     try {
-      // The user document logic is now handled by the useUser hook
+      // Use the popup method for a smoother UX.
       await signInWithPopup(auth, provider);
-      // Manually redirect after successful sign-in
+      // On successful sign-in, the useEffect will trigger the redirect.
       router.push('/dashboard');
     } catch (error: any) {
-      console.error("Google Sign-In Popup Error:", error);
-      if (error.code !== 'auth/popup-closed-by-user') {
-        toast({
-          variant: "destructive",
-          title: "Sign-In Failed",
-          description: error.message || "An unexpected error occurred during sign-in.",
-        });
+      console.error("Google Sign-In Error:", error);
+      let description = "An unexpected error occurred during sign-in.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        description = "The sign-in popup was closed before completion.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        description = "Google Sign-In is not enabled for this project. Please enable it in the Firebase console.";
       }
+      toast({
+        variant: "destructive",
+        title: "Sign-In Failed",
+        description: description,
+      });
     }
   };
 
+  // Show a loading screen while auth state is being determined or if user is logged in and we are redirecting.
   if (isUserLoading || user) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40">

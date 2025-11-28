@@ -1,102 +1,122 @@
 
 {
-    "entities": {
-      "UserProfile": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "User Profile",
-        "description": "Represents a user's profile in the application.",
-        "type": "object",
-        "properties": {
-          "uid": {
-            "type": "string",
-            "description": "The user's unique ID from Firebase Authentication."
-          },
-          "displayName": {
-            "type": "string",
-            "description": "The user's display name."
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "description": "The user's email address."
-          },
-          "photoURL": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL of the user's profile picture."
-          },
-          "provider": {
-            "type": "string",
-            "description": "The authentication provider (e.g., 'google.com')."
-          },
-          "points": {
-            "type": "number",
-            "description": "Total points earned by the user."
-          },
-          "level": {
-            "type": "number",
-            "description": "The user's current level."
-          },
-          "referralCode": {
-            "type": "string",
-            "description": "The unique code for referring other users."
-          },
-          "referredBy": {
-            "type": ["string", "null"],
-            "description": "The UID of the user who referred this user."
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the user account was created."
-          },
-          "lastLogin": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of the user's last login."
-          },
-          "totalLogins": {
-            "type": "number",
-            "description": "A count of the total number of times the user has logged in."
-          }
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's complete profile and application-specific data stored in Firestore.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID from Firebase Authentication, acting as the document key."
         },
-        "required": [
-          "uid",
-          "displayName",
-          "email",
-          "provider",
-          "points",
-          "level",
-          "referralCode",
-          "createdAt",
-          "lastLogin",
-          "totalLogins"
-        ]
-      }
-    },
-    "auth": {
-      "providers": [
-        "google.com"
-      ]
-    },
-    "firestore": {
-      "structure": [
-        {
-          "path": "/users/{userId}",
-          "definition": {
-            "schema": {
-              "$ref": "#/entities/UserProfile"
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name, synced from their auth provider."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address, synced from their auth provider."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's profile picture, synced from their auth provider."
+        },
+        "provider": {
+          "type": "string",
+          "description": "The authentication provider used for the last sign-in (e.g., 'google.com')."
+        },
+        "points": {
+          "type": "number",
+          "description": "Total points earned by the user for completing tasks and other activities."
+        },
+        "credits": {
+            "type": "number",
+            "description": "Currency that can be purchased or earned, used for unlocking special features."
+        },
+        "level": {
+          "type": "number",
+          "description": "The user's current level, which may unlock new features or rewards."
+        },
+        "referralCode": {
+          "type": "string",
+          "description": "A unique, auto-generated code for referring other users."
+        },
+        "referredBy": {
+          "type": ["string", "null"],
+          "description": "The UID of the user who referred this user, if applicable."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of when the user document was first created (first login)."
+        },
+        "lastLogin": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of the user's last login, updated on every sign-in."
+        },
+        "totalLogins": {
+            "type": "number",
+            "description": "A counter for the total number of times the user has logged in."
+        },
+        "settings": {
+            "type": "object",
+            "description": "User-configurable settings for the application.",
+            "properties": {
+                "notificationsEnabled": {
+                    "type": "boolean",
+                    "description": "Whether the user has enabled push notifications."
+                },
+                "darkMode": {
+                    "type": "boolean",
+                    "description": "Whether the user has enabled dark mode."
+                }
             },
-            "description": "Stores public and private user profile data. The document ID is the same as the Firebase Auth UID.",
-            "params": [
-              {
-                "name": "userId",
-                "description": "The unique identifier for the user, matching their Firebase Auth UID."
-              }
-            ]
-          }
+            "required": ["notificationsEnabled", "darkMode"]
         }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "email",
+        "photoURL",
+        "provider",
+        "points",
+        "credits",
+        "level",
+        "referralCode",
+        "createdAt",
+        "lastLogin",
+        "totalLogins",
+        "settings"
       ]
     }
+  },
+  "auth": {
+    "providers": [
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "schema": {
+            "$ref": "#/entities/UserProfile"
+          },
+          "description": "Stores all public and private data for a user. The document ID is the same as the Firebase Auth UID, ensuring a 1:1 relationship.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user, matching their Firebase Auth UID."
+            }
+          ]
+        }
+      }
+    ]
   }
-  
+}

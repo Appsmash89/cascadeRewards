@@ -8,6 +8,7 @@ import FloatingDevTools from '@/components/floating-dev-tools';
 import { useState, Suspense } from 'react';
 import { tasks as initialTasksData } from '@/lib/data';
 import { FirebaseClientProvider } from '@/firebase';
+import { AppProvider } from '@/context/app-context';
 import { Loader2 } from 'lucide-react';
 
 // This is a workaround to make metadata work with client components
@@ -41,17 +42,19 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-stone-900 flex justify-center">
         <FirebaseClientProvider>
-          <div className="relative w-full max-w-md bg-background min-h-screen flex flex-col">
-            <Suspense fallback={
-              <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            }>
-              {children}
+          <AppProvider>
+            <div className="relative w-full max-w-md bg-background min-h-screen flex flex-col">
+              <Suspense fallback={
+                <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              }>
+                {children}
+              </Suspense>
               <FloatingDevTools onResetTasks={handleResetTasks} />
-            </Suspense>
-            <Toaster />
-          </div>
+              <Toaster />
+            </div>
+          </AppProvider>
         </FirebaseClientProvider>
       </body>
     </html>

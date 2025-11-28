@@ -1,3 +1,4 @@
+
 'use client'
 
 import {
@@ -5,20 +6,29 @@ import {
   CardContent,
 } from "@/components/ui/card"
 import { Users, Wallet, TrendingUp } from 'lucide-react'
-import type { User, Referral } from '@/lib/types'
+import type { UserProfile, Referral } from '@/lib/types'
+import { useSearchParams } from 'next/navigation'
 
 type StatsCardsProps = {
-  user: User;
+  user: UserProfile | null;
   referrals: Referral[];
 }
 
 export default function StatsCards({ user, referrals }: StatsCardsProps) {
-  const referralEarnings = referrals.length * 50;
+  const searchParams = useSearchParams()
+  const isGuestMode = searchParams.get('mode') === 'guest';
+  
+  const referralEarnings = referrals.length * 50; // This can be made dynamic later
+
+  // Determine values based on user profile or guest mode defaults
+  const points = isGuestMode ? 1250 : user?.points ?? 0;
+  const referralCount = isGuestMode ? referrals.length : 0; // Replace with actual user referral count later
+  const earnings = isGuestMode ? referralEarnings : 0; // Replace with actual user earnings later
 
   const stats = [
-    { title: "Total Points", value: user.points.toLocaleString(), icon: Wallet, subtitle: "+180.1 this month" },
-    { title: "Referrals", value: referrals.length, icon: Users, subtitle: "+2 this month" },
-    { title: "Referral Earnings", value: `${referralEarnings.toLocaleString()} pts`, icon: TrendingUp, subtitle: "From your network" },
+    { title: "Total Points", value: points.toLocaleString(), icon: Wallet },
+    { title: "Referrals", value: referralCount, icon: Users },
+    { title: "Referral Earnings", value: `${earnings.toLocaleString()} pts`, icon: TrendingUp },
   ]
 
   return (

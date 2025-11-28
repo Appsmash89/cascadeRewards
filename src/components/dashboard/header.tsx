@@ -11,15 +11,15 @@ import {
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Gift, LogOut, User as UserIcon, RotateCcw } from "lucide-react"
-import type { User } from "@/lib/types";
 import { useDevTools } from "../floating-dev-tools";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
+import type { UserProfile } from "@/lib/types";
 
 type DashboardHeaderProps = {
-  user: User | null;
+  user: UserProfile | null;
 }
 
 export default function DashboardHeader({ user }: DashboardHeaderProps) {
@@ -28,6 +28,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
   }
   const devTools = useDevTools();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const auth = useAuth();
   const { toast } = useToast();
 
@@ -49,12 +50,15 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
   };
 
   if (!user) {
-    // Or a loading skeleton
     return (
         <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 z-10">
         </header>
     );
   }
+  
+  const isGuest = searchParams.get('mode') === 'guest';
+  const displayName = isGuest ? "Guest User" : user.displayName;
+  const displayAvatar = isGuest ? `https://picsum.photos/seed/guest/100/100` : user.photoURL;
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 z-10">
@@ -70,8 +74,8 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
               <Avatar>
-                <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="person portrait" />
-                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                <AvatarImage src={displayAvatar} alt={displayName} data-ai-hint="person portrait" />
+                <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
               </Avatar>
               <span className="sr-only">Toggle user menu</span>
             </Button>
