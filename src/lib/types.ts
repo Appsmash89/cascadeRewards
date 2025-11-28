@@ -22,3 +22,19 @@ export type Referral = {
   avatarUrl: string;
   joinDate: string;
 };
+
+// This represents the user document in Firestore
+export type UserProfile = {
+  uid: string;
+  displayName: string;
+  email: string;
+  photoURL: string;
+  provider: string;
+  points: number;
+  level: number;
+  referralCode: string;
+  referredBy: string | null;
+  createdAt: any; // Firestore Timestamp
+  lastLogin: any; // Firestore Timestamp
+  totalLogins: number;
+};

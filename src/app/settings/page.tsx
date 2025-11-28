@@ -1,3 +1,4 @@
+
 'use client';
 
 import DashboardHeader from "@/components/dashboard/header";
@@ -5,13 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/firebase";
 import { useEffect, useState } from "react";
-import type { User } from "@/lib/types";
+import type { User, UserProfile } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 
 export default function SettingsPage() {
-  const { user, isUserLoading } = useUser();
+  const { user, userProfile, isUserLoading } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isGuestMode = searchParams.get('mode') === 'guest';
@@ -27,17 +28,17 @@ export default function SettingsPage() {
         referralLevel: 0,
       };
       setDisplayUser(guestUser);
-    } else if (user) {
+    } else if (user && userProfile) {
       const appUser: User = {
-        name: user.displayName || 'User',
-        avatarUrl: user.photoURL || `https://picsum.photos/seed/user/100/100`,
-        points: 1250, // This would come from your database
-        referralCode: 'CASC-A9B3X2', // This would come from your database
-        referralLevel: 2, // This would come from your database
+        name: userProfile.displayName,
+        avatarUrl: userProfile.photoURL,
+        points: userProfile.points,
+        referralCode: userProfile.referralCode,
+        referralLevel: userProfile.level,
       };
       setDisplayUser(appUser);
     }
-  }, [isGuestMode, user]);
+  }, [isGuestMode, user, userProfile]);
 
   useEffect(() => {
     if (!isUserLoading && !user && !isGuestMode) {
@@ -45,12 +46,20 @@ export default function SettingsPage() {
     }
   }, [user, isUserLoading, isGuestMode, router]);
 
-  if (isUserLoading || !displayUser) {
+  if (isUserLoading || (!displayUser && !isGuestMode)) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+  
+  if (!displayUser) {
+    return (
+       <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (

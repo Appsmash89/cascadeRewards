@@ -5,10 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gift, Chrome, Loader2 } from 'lucide-react';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/firebase';
 import { useEffect } from 'react';
 
 export default function LoginPage() {
@@ -32,17 +31,18 @@ export default function LoginPage() {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      if (result.user) {
-        router.push('/dashboard');
-      }
+      // The user document logic is now handled by the useUser hook
+      await signInWithPopup(auth, provider);
+      router.push('/dashboard');
     } catch (error: any) {
       console.error("Google Sign-In Popup Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Sign-In Failed",
-        description: error.message || "An unexpected error occurred during sign-in.",
-      });
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast({
+          variant: "destructive",
+          title: "Sign-In Failed",
+          description: error.message || "An unexpected error occurred during sign-in.",
+        });
+      }
     }
   };
 

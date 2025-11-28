@@ -16,14 +16,14 @@ import BottomNav from "@/components/dashboard/bottom-nav";
 import { useState, useEffect } from "react";
 import { useUser } from "@/firebase";
 import { Loader2 } from "lucide-react";
-import type { User } from "@/lib/types";
+import type { User, UserProfile } from "@/lib/types";
 
 export default function DashboardPage() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isGuestMode = searchParams.get('mode') === 'guest';
-  const { user, isUserLoading } = useUser();
+  const { user, userProfile, isUserLoading } = useUser();
   const isDashboard = pathname === '/dashboard';
   const [tasks, setTasks] = useState(initialTasksData);
 
@@ -39,17 +39,17 @@ export default function DashboardPage() {
         referralLevel: 0,
       };
       setDisplayUser(guestUser);
-    } else if (user) {
+    } else if (user && userProfile) {
       const appUser: User = {
-        name: user.displayName || 'User',
-        avatarUrl: user.photoURL || `https://picsum.photos/seed/user/100/100`,
-        points: 1250, // This would come from your database
-        referralCode: 'CASC-A9B3X2', // This would come from your database
-        referralLevel: 2, // This would come from your database
+        name: userProfile.displayName,
+        avatarUrl: userProfile.photoURL,
+        points: userProfile.points,
+        referralCode: userProfile.referralCode,
+        referralLevel: userProfile.level,
       };
       setDisplayUser(appUser);
     }
-  }, [isGuestMode, user]);
+  }, [isGuestMode, user, userProfile]);
 
 
   useEffect(() => {
@@ -63,12 +63,22 @@ export default function DashboardPage() {
     setTasks(initialTasksData.map(t => ({...t, isCompleted: false})));
   }
 
-  if (isUserLoading || !displayUser) {
+  if (isUserLoading || (!displayUser && !isGuestMode)) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+  
+  if (!displayUser) {
+    // This can happen briefly while the userProfile is loading for a logged-in user.
+    // Or if a non-guest tries to access a page without being logged in.
+    return (
+       <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (

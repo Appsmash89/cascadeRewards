@@ -1,71 +1,102 @@
 
 {
-  "entities": {
-    "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
-      "type": "object",
-      "description": "Represents a user in the Cascade Rewards application.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user."
+    "entities": {
+      "UserProfile": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "User Profile",
+        "description": "Represents a user's profile in the application.",
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "The user's unique ID from Firebase Authentication."
+          },
+          "displayName": {
+            "type": "string",
+            "description": "The user's display name."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "The user's email address."
+          },
+          "photoURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the user's profile picture."
+          },
+          "provider": {
+            "type": "string",
+            "description": "The authentication provider (e.g., 'google.com')."
+          },
+          "points": {
+            "type": "number",
+            "description": "Total points earned by the user."
+          },
+          "level": {
+            "type": "number",
+            "description": "The user's current level."
+          },
+          "referralCode": {
+            "type": "string",
+            "description": "The unique code for referring other users."
+          },
+          "referredBy": {
+            "type": ["string", "null"],
+            "description": "The UID of the user who referred this user."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the user account was created."
+          },
+          "lastLogin": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of the user's last login."
+          },
+          "totalLogins": {
+            "type": "number",
+            "description": "A count of the total number of times the user has logged in."
+          }
         },
-        "googleId": {
-          "type": "string",
-          "description": "Google ID to connect to google authentication system."
-        },
-        "email": {
-          "type": "string",
-          "description": "User's email address.",
-          "format": "email"
-        },
-        "referralCode": {
-          "type": "string",
-          "description": "Unique referral code for the user."
-        },
-        "points": {
-          "type": "number",
-          "description": "Total points earned by the user."
-        },
-        "referrerId": {
-          "type": "string",
-          "description": "Reference to the user who referred this user. (Relationship: User 1:N User (referrals))"
+        "required": [
+          "uid",
+          "displayName",
+          "email",
+          "provider",
+          "points",
+          "level",
+          "referralCode",
+          "createdAt",
+          "lastLogin",
+          "totalLogins"
+        ]
+      }
+    },
+    "auth": {
+      "providers": [
+        "google.com"
+      ]
+    },
+    "firestore": {
+      "structure": [
+        {
+          "path": "/users/{userId}",
+          "definition": {
+            "schema": {
+              "$ref": "#/entities/UserProfile"
+            },
+            "description": "Stores public and private user profile data. The document ID is the same as the Firebase Auth UID.",
+            "params": [
+              {
+                "name": "userId",
+                "description": "The unique identifier for the user, matching their Firebase Auth UID."
+              }
+            ]
+          }
         }
-      },
-      "required": [
-        "id",
-        "googleId",
-        "email",
-        "referralCode",
-        "points"
       ]
     }
-  },
-  "auth": {
-    "providers": [
-      "google.com"
-    ]
-  },
-  "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles. Includes `googleId` to enable secure authentication via Google Sign-In without additional reads in security rules.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "Unique identifier for the user, corresponding to their Firebase Auth UID."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability. It leverages path-based ownership for user data and denormalization to avoid hierarchical `get()` calls in security rules, which enhances atomicity and simplifies debugging. The structure also promotes homogeneous security posture by segregating data based on access requirements.\n\nAuthorization Independence is achieved by storing the `googleId` on the `users/{userId}` document to avoid calls to Firebase Authentication.\n\nQAPs (Rules are not Filters) is supported via structural segregation based on path-based ownership. Listing user documents is restricted to admins or the user themselves. The structure will be extended as new features are added to ensure authorization is independent from filtering. All documents in a collection share the same security requirements."
   }
-}
+  
