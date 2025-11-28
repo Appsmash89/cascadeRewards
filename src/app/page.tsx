@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gift, Chrome, Loader2 } from 'lucide-react';
 import { useAuth } from '@/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase';
 import { useEffect } from 'react';
@@ -22,6 +22,27 @@ export default function LoginPage() {
       router.push('/dashboard');
     }
   }, [user, router]);
+  
+  useEffect(() => {
+    if (!auth || isUserLoading || user) return;
+
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // This is the signed-in user
+          router.push('/dashboard');
+        }
+      })
+      .catch((error) => {
+        console.error("Google Sign-In Redirect Error:", error);
+        toast({
+          variant: "destructive",
+          title: "Sign-In Failed",
+          description: error.message || "An unexpected error occurred during sign-in.",
+        });
+      });
+  }, [auth, isUserLoading, user, router, toast]);
+
 
   const handleGuestLogin = () => {
     // For prototyping, we'll use a query param to signify guest mode
@@ -31,17 +52,8 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard');
-    } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Sign-In Failed",
-        description: error.message || "An unexpected error occurred during sign-in.",
-      });
-    }
+    // We use signInWithRedirect instead of signInWithPopup to avoid popup blockers.
+    await signInWithRedirect(auth, provider);
   };
 
   if (isUserLoading || user) {
