@@ -48,14 +48,12 @@ export default function FloatingDevTools() {
     if (isDragging && dragRef.current && parentRef.current) {
       const parentRect = parentRef.current.getBoundingClientRect();
       
-      let x = e.clientX - parentRect.left - offsetRef.current.x;
       let y = e.clientY - parentRect.top - offsetRef.current.y;
 
-      // Constrain movement within the parent
-      x = Math.max(0, Math.min(x, parentRect.width - dragRef.current.offsetWidth));
+      // Constrain vertical movement within the parent
       y = Math.max(0, Math.min(y, parentRect.height - dragRef.current.offsetHeight));
 
-      setPosition({ x, y });
+      setPosition(currentPos => ({ x: currentPos.x, y }));
     }
   };
 
