@@ -1,28 +1,42 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 export default function NotFoundPage() {
-  const params = useSearchParams(); // safe: running on client only
+  const params = useSearchParams(); // safe now in client component
 
   return (
     <div style={{
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
       justifyContent: 'center',
+      alignItems: 'center',
       minHeight: '100vh',
-      padding: '20px',
-      textAlign: 'center'
+      padding: '2rem',
+      textAlign: 'center',
+      backgroundColor: '#f7f8fa',
     }}>
-      <h1>Page Not Found</h1>
-      <p>The page you're looking for doesn't seem to exist.</p>
-      <button
-        onClick={() => window.location.href = '/'}
-        style={{ marginTop: '20px', padding: '10px 20px' }}
-      >
-        Go Home
-      </button>
+      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', color: '#333' }}>
+        404 — Page Not Found
+      </h1>
+      <p style={{ fontSize: '1.2rem', marginBottom: '2rem', color: '#555' }}>
+        Sorry, the page you are looking for does not exist.
+      </p>
+      <Link href="/">
+        <button style={{
+          padding: '0.75rem 1.5rem',
+          backgroundColor: '#4a6cf7',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          fontSize: '1rem',
+          fontWeight: '600'
+        }}>
+          Go Home
+        </button>
+      </Link>
     </div>
   );
 }
