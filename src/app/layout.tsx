@@ -48,8 +48,8 @@ export default function RootLayout({
               </div>
             }>
               {children}
+              <FloatingDevTools onResetTasks={handleResetTasks} />
             </Suspense>
-            <FloatingDevTools onResetTasks={handleResetTasks} />
             <Toaster />
           </div>
         </FirebaseClientProvider>
