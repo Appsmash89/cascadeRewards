@@ -17,6 +17,7 @@ export default function LoginPage() {
   const { user, isUserLoading } = useUser();
 
   useEffect(() => {
+    // This handles redirecting if the user is already logged in
     if (user) {
       router.push('/dashboard');
     }
@@ -33,6 +34,7 @@ export default function LoginPage() {
     try {
       // The user document logic is now handled by the useUser hook
       await signInWithPopup(auth, provider);
+      // Manually redirect after successful sign-in
       router.push('/dashboard');
     } catch (error: any) {
       console.error("Google Sign-In Popup Error:", error);
