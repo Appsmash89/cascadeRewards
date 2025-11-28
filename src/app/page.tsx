@@ -18,10 +18,10 @@ export default function Home() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <DashboardHeader user={currentUser} />
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+      <main className="flex flex-1 flex-col gap-4 p-4">
         <StatsCards user={currentUser} referrals={referrals} />
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-          <Card className="xl:col-span-2">
+        <div className="grid gap-4">
+          <Card>
             <CardHeader>
               <CardTitle>Available Tasks</CardTitle>
               <CardDescription>

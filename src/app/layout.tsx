@@ -1,6 +1,7 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
+import BottomNav from '@/components/dashboard/bottom-nav';
 
 export const metadata: Metadata = {
   title: 'Cascade Rewards',
@@ -17,11 +18,17 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
-      <body className="font-body antialiased bg-background min-h-screen">
-        {children}
-        <Toaster />
+      <body className="font-body antialiased bg-stone-900 flex justify-center">
+        <div className="relative w-full max-w-md bg-background min-h-screen flex flex-col">
+          <div className="flex-1 pb-20">
+            {children}
+          </div>
+          <BottomNav />
+          <Toaster />
+        </div>
       </body>
     </html>
   );

@@ -7,7 +7,7 @@ export default function RedeemPage() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <DashboardHeader user={currentUser} />
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+      <main className="flex flex-1 flex-col gap-4 p-4">
         <div className="grid gap-4">
           <Card>
             <CardHeader>
