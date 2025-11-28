@@ -1,3 +1,4 @@
+'use client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,8 +9,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Gift, LogOut, User as UserIcon } from "lucide-react"
+import { Gift, LogOut, User as UserIcon, Star } from "lucide-react"
 import type { User } from "@/lib/types";
+import Link from "next/link";
 
 type DashboardHeaderProps = {
   user: User;
@@ -23,13 +25,13 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-10">
       <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-        <a
-          href="#"
+        <Link
+          href="/"
           className="flex items-center gap-2 text-lg font-semibold md:text-base"
         >
           <Gift className="h-6 w-6 text-primary" />
           <span className="font-bold text-xl">Cascade Rewards</span>
-        </a>
+        </Link>
       </nav>
       <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
         <div className="ml-auto flex-1 sm:flex-initial">
@@ -52,6 +54,12 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
+            <Link href="/redeem" passHref>
+              <DropdownMenuItem>
+                <Star className="mr-2 h-4 w-4" />
+                <span>Redeem</span>
+              </DropdownMenuItem>
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <LogOut className="mr-2 h-4 w-4" />
