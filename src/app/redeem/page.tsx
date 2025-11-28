@@ -2,12 +2,13 @@ import DashboardHeader from "@/components/dashboard/header";
 import { currentUser } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import BottomNav from "@/components/dashboard/bottom-nav";
 
 export default function RedeemPage() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <DashboardHeader user={currentUser} />
-      <main className="flex flex-1 flex-col gap-4 p-4">
+      <main className="flex flex-1 flex-col gap-4 p-4 pb-20">
         <div className="grid gap-4">
           <Card>
             <CardHeader>
@@ -26,6 +27,7 @@ export default function RedeemPage() {
           </Card>
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 }

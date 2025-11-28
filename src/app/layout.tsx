@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import BottomNav from '@/components/dashboard/bottom-nav';
 
 export const metadata: Metadata = {
   title: 'Cascade Rewards',
@@ -23,10 +22,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-stone-900 flex justify-center">
         <div className="relative w-full max-w-md bg-background min-h-screen flex flex-col">
-          <div className="flex-1 pb-20">
-            {children}
-          </div>
-          <BottomNav />
+          {children}
           <Toaster />
         </div>
       </body>
