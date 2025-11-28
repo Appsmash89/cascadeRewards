@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { getReferralBonus } from "@/app/actions";
-import { Clipboard, ClipboardCheck, Sparkles, Users, Loader2 } from 'lucide-react';
+import { Clipboard, ClipboardCheck, Calculator, Users, Loader2 } from 'lucide-react';
 import type { User, Referral } from "@/lib/types";
 
 type ReferralSectionProps = {
@@ -43,7 +43,7 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
 
     const result = await getReferralBonus({ referrerLevel: user.referralLevel, baseReward });
 
-    if (result.success) {
+    if (result.success && result.data) {
       setBonusResult({ multiplier: result.data.bonusMultiplier, total: result.data.totalReward });
     } else {
       setError(result.error);
@@ -97,8 +97,8 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
 
         <div className="space-y-4">
           <h4 className="flex items-center gap-2 text-sm font-semibold">
-            <Sparkles className="h-4 w-4 text-primary" />
-            AI Bonus Calculator
+            <Calculator className="h-4 w-4 text-primary" />
+            Bonus Calculator
           </h4>
           <p className="text-sm text-muted-foreground">
             See potential earnings based on your referral level ({user.referralLevel}).

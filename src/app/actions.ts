@@ -1,13 +1,21 @@
 'use server';
 
-import { calculateReferralBonus, CalculateReferralBonusInput } from '@/ai/flows/referral-bonus-calculation';
+export type CalculateReferralBonusInput = {
+  referrerLevel: number;
+  baseReward: number;
+};
 
 export async function getReferralBonus(input: CalculateReferralBonusInput) {
   try {
-    const result = await calculateReferralBonus(input);
-    if (!result || typeof result.bonusMultiplier !== 'number' || typeof result.totalReward !== 'number') {
-      throw new Error('Invalid response from AI model.');
-    }
+    // Manually coded logic for bonus calculation
+    const bonusMultiplier = 1 + input.referrerLevel * 0.1;
+    const totalReward = Math.round(input.baseReward * bonusMultiplier);
+
+    const result = {
+      bonusMultiplier: parseFloat(bonusMultiplier.toFixed(2)),
+      totalReward,
+    };
+
     return { success: true, data: result };
   } catch (error) {
     console.error('Error calculating referral bonus:', error);
