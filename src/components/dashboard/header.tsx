@@ -31,8 +31,15 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
   const searchParams = useSearchParams();
   const { auth } = useAuth();
   const { toast } = useToast();
+  
+  const isGuest = searchParams.get('mode') === 'guest';
 
   const handleLogout = async () => {
+    if (isGuest) {
+      router.push('/');
+      return;
+    }
+    
     if (auth) {
       try {
         await signOut(auth);
@@ -45,21 +52,13 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         });
       }
     } else {
-        // If for some reason auth is not available, still try to navigate to login
         router.push('/');
     }
   };
 
-  if (!user) {
-    return (
-        <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 z-10">
-        </header>
-    );
-  }
-  
-  const isGuest = searchParams.get('mode') === 'guest';
-  const displayName = isGuest ? "Guest User" : user.displayName;
-  const displayAvatar = isGuest ? `https://picsum.photos/seed/guest/100/100` : user.photoURL;
+  const displayName = isGuest ? "Guest User" : user?.displayName ?? "User";
+  const displayAvatar = isGuest ? `https://picsum.photos/seed/guest/100/100` : user?.photoURL;
+  const showDevToolsInMenu = devTools?.isGuestMode;
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 z-10">
@@ -84,11 +83,11 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem disabled={isGuest}>
               <UserIcon className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            {devTools?.isGuestMode && (
+            {showDevToolsInMenu && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel>Dev Tools</DropdownMenuLabel>
