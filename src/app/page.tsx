@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const auth = useAuth();
+  const { auth } = useAuth(); // Correctly destructure the auth object
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
 
