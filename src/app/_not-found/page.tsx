@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-export default function NotFoundPage() {
+function NotFoundContent() {
   return (
     <div style={{
       display: 'flex',
@@ -35,5 +36,13 @@ export default function NotFoundPage() {
         </button>
       </Link>
     </div>
+  );
+}
+
+export default function NotFoundPage() {
+  return (
+    <Suspense>
+      <NotFoundContent />
+    </Suspense>
   );
 }
