@@ -1,11 +1,8 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function NotFoundPage() {
-  const params = useSearchParams(); // safe now in client component
-
   return (
     <div style={{
       display: 'flex',
