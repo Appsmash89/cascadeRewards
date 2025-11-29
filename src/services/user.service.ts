@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -13,6 +12,8 @@ import type { User } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { initializeUserTasks } from './tasks.service';
+
+const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 /**
  * Generates a unique referral code.
@@ -41,15 +42,16 @@ export const manageUserDocument = async (
   const userRef = doc(firestore, 'users', user.uid);
   const userDoc = await getDoc(userRef);
 
+  const isGuest = user.email === GUEST_EMAIL;
+
   if (!userDoc.exists()) {
     // User is new, create the document with default values.
-    const isAnonymous = user.isAnonymous;
     const newUserProfile: UserProfile = {
       uid: user.uid,
-      displayName: user.displayName || (isAnonymous ? 'Guest User' : 'Anonymous User'),
+      displayName: isGuest ? 'Guest User' : user.displayName || 'New User',
       email: user.email || '',
       photoURL: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
-      provider: user.providerData[0]?.providerId || 'anonymous',
+      provider: user.providerData[0]?.providerId || 'password',
       points: 0,
       credits: 0,
       level: 1,
@@ -62,7 +64,6 @@ export const manageUserDocument = async (
         notificationsEnabled: true,
         darkMode: false,
       },
-      isAnonymous: isAnonymous,
     };
     // Use a non-blocking write.
     setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
@@ -75,8 +76,8 @@ export const manageUserDocument = async (
       totalLogins: increment(1),
     };
     
-    // Only update these fields if the user is not anonymous
-    if (!user.isAnonymous) {
+    // Only update these fields if the user is not the guest dev account
+    if (!isGuest) {
       updateData.displayName = user.displayName;
       updateData.email = user.email;
       updateData.photoURL = user.photoURL;

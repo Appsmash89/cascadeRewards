@@ -1,4 +1,3 @@
-
 'use client';
 
 import DashboardHeader from "@/components/dashboard/header";
@@ -13,11 +12,13 @@ import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, increment } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 
+const GUEST_EMAIL = 'guest.dev@cascade.app';
+
 export default function RedeemView() {
   const { user, userProfile, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const isGuestMode = user?.isAnonymous ?? false;
+  const isGuestMode = user?.email === GUEST_EMAIL;
 
   if (isUserLoading) {
     return (

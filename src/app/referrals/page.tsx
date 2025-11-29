@@ -1,4 +1,3 @@
-
 'use client';
 
 import DashboardHeader from "@/components/dashboard/header";
@@ -9,9 +8,11 @@ import { useUser } from "@/hooks/use-user";
 import { Loader2 } from "lucide-react";
 import { Suspense } from "react";
 
+const GUEST_EMAIL = 'guest.dev@cascade.app';
+
 function ReferralsView() {
   const { user, userProfile, isUserLoading } = useUser();
-  const isGuestMode = user?.isAnonymous ?? false;
+  const isGuestMode = user?.email === GUEST_EMAIL;
   
   if (isUserLoading) {
     return (

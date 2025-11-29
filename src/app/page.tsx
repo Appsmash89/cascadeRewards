@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -7,9 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Gift, Chrome, Loader2 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { useUser } from '@/hooks/use-user';
-import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
+
+// Hardcoded credentials for the persistent guest user
+const GUEST_EMAIL = 'guest.dev@cascade.app';
+const GUEST_PASSWORD = 'super-secret-password-12345!';
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,15 +37,31 @@ export default function LoginPage() {
       return;
     }
     try {
-      await signInAnonymously(auth);
+      // First, try to sign in with the persistent guest credentials.
+      await signInWithEmailAndPassword(auth, GUEST_EMAIL, GUEST_PASSWORD);
       router.push('/dashboard');
     } catch (error: any) {
-      console.error("Anonymous Sign-In Error:", error);
-      toast({
-        variant: "destructive",
-        title: "Guest Sign-In Failed",
-        description: "Could not sign in as guest. Please try again.",
-      });
+      // If the user doesn't exist, create it.
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        try {
+          await createUserWithEmailAndPassword(auth, GUEST_EMAIL, GUEST_PASSWORD);
+          router.push('/dashboard');
+        } catch (creationError: any) {
+          console.error("Guest Account Creation Error:", creationError);
+          toast({
+            variant: "destructive",
+            title: "Guest Sign-In Failed",
+            description: "Could not create the guest developer account.",
+          });
+        }
+      } else {
+        console.error("Guest Sign-In Error:", error);
+        toast({
+          variant: "destructive",
+          title: "Guest Sign-In Failed",
+          description: "An unexpected error occurred.",
+        });
+      }
     }
   };
 

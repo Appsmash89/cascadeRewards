@@ -1,4 +1,3 @@
-
 'use client';
 import {
   DropdownMenu,
@@ -47,9 +46,9 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
     }
   };
 
-  const displayName = user?.displayName ?? "User";
+  const displayName = isGuest ? "Guest User" : user?.displayName ?? "User";
   const displayAvatar = user?.photoURL;
-  const displayEmail = user?.email;
+  const displayEmail = isGuest ? "guest.dev@cascade.app" : user?.email;
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-lg px-4 z-10">

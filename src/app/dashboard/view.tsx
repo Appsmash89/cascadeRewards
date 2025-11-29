@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -21,16 +20,18 @@ import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 import { useMemo } from "react";
 
+const GUEST_EMAIL = 'guest.dev@cascade.app';
+
 export default function DashboardView() {
   const { user, userProfile, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const isGuestMode = user?.isAnonymous ?? false;
+  const isGuestMode = user?.email === GUEST_EMAIL;
 
   // 1. Fetch all master tasks only when a user is available
   const masterTasksQuery = useMemoFirebase(() => 
-    user ? collection(firestore, 'tasks') : null, 
-    [user, firestore]
+    userProfile ? collection(firestore, 'tasks') : null, 
+    [userProfile, firestore]
   );
   const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
 
@@ -78,7 +79,7 @@ export default function DashboardView() {
     });
   };
 
-  const isLoading = isUserLoading || isLoadingMasterTasks || (!!userProfile && isLoadingUserTasks);
+  const isLoading = isUserLoading || (!!user && (!masterTasks || !userTasks));
 
   if (isLoading) {
     return (

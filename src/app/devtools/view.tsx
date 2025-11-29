@@ -1,4 +1,3 @@
-
 'use client';
 
 import DashboardHeader from "@/components/dashboard/header";
@@ -10,10 +9,12 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 
+const GUEST_EMAIL = 'guest.dev@cascade.app';
+
 export default function DevToolsView() {
   const { user, userProfile, isUserLoading } = useUser();
   const router = useRouter();
-  const isGuestMode = user?.isAnonymous ?? false;
+  const isGuestMode = user?.email === GUEST_EMAIL;
   
   useEffect(() => {
     // If auth is loaded and the user is NOT a guest, redirect them away.

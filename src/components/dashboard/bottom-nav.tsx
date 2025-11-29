@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useUser } from '@/hooks/use-user';
 
+const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -24,7 +24,7 @@ const navItems = [
 export default function BottomNav() {
   const pathname = usePathname();
   const { user } = useUser();
-  const isGuestMode = user?.isAnonymous ?? false;
+  const isGuestMode = user?.email === GUEST_EMAIL;
 
   const navGridCols = isGuestMode ? 'grid-cols-5' : 'grid-cols-4';
 

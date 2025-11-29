@@ -1,10 +1,9 @@
-
 // This represents the user document in Firestore
 export type UserProfile = {
   uid: string;
-  displayName: string;
-  email: string;
-  photoURL: string;
+  displayName: string | null;
+  email: string | null;
+  photoURL: string | null;
   provider: string;
   points: number;
   credits: number;
@@ -18,7 +17,6 @@ export type UserProfile = {
     notificationsEnabled: boolean;
     darkMode: boolean;
   };
-  isAnonymous: boolean;
 };
 
 export type User = {

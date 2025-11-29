@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense } from "react";
@@ -15,11 +14,13 @@ import { useFirestore } from "@/firebase";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Loader2, Bell, Moon } from "lucide-react";
 
+const GUEST_EMAIL = 'guest.dev@cascade.app';
+
 function SettingsView() {
   const { user, userProfile, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { theme, setTheme } = useTheme();
-  const isGuestMode = user?.isAnonymous ?? false;
+  const isGuestMode = user?.email === GUEST_EMAIL;
 
   if (isUserLoading) {
     return (
