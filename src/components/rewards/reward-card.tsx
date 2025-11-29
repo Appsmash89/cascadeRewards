@@ -19,7 +19,7 @@ export default function RewardCard({ reward, userPoints, onRedeem }: RewardCardP
   const canAfford = userPoints >= reward.points;
 
   return (
-    <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+    <Card className="overflow-hidden transition-shadow hover:shadow-lg flex flex-col">
       <div className="relative h-32 w-full">
         <Image
           src={reward.imageUrl}
@@ -29,11 +29,11 @@ export default function RewardCard({ reward, userPoints, onRedeem }: RewardCardP
           data-ai-hint="gift card"
         />
       </div>
-      <CardContent className="p-4">
+      <CardContent className="p-4 flex flex-col flex-grow">
         <h4 className="text-base font-semibold tracking-tight truncate">{reward.title}</h4>
-        <p className="text-sm text-muted-foreground mb-3">{reward.description}</p>
+        <p className="text-sm text-muted-foreground mb-3 flex-grow">{reward.description}</p>
         
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start gap-3">
             <Badge variant="secondary" className="text-base font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
                 <Award className="h-4 w-4 mr-1.5" />
                 {reward.points.toLocaleString()}
@@ -44,7 +44,7 @@ export default function RewardCard({ reward, userPoints, onRedeem }: RewardCardP
                 onClick={() => onRedeem(reward.points, reward.title)}
                 disabled={!canAfford}
                 className={cn(
-                    "w-28 transition-all duration-300",
+                    "w-full transition-all duration-300",
                     !canAfford && "bg-secondary hover:bg-secondary"
                 )}
             >
