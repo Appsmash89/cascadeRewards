@@ -29,18 +29,17 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
   const { auth } = useAuth();
   const { toast } = useToast();
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (auth) {
-      try {
-        await signOut(auth);
-        router.push('/');
-      } catch (error) {
+      signOut(auth).catch((error) => {
         toast({
           variant: "destructive",
           title: "Logout Failed",
           description: "Could not log out. Please try again.",
         });
-      }
+      });
+      // Redirect immediately, don't wait for signOut to complete.
+      router.push('/');
     } else {
         router.push('/');
     }

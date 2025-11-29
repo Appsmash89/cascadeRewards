@@ -64,7 +64,7 @@ export const manageUserDocument = async (
     };
     // Use a non-blocking write.
     setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
-    // Also initialize their tasks
+    // Also initialize their tasks, can be awaited as it's a setup step.
     await initializeUserTasks(firestore, user.uid);
   } else {
     // User exists, update syncable fields.

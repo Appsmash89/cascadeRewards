@@ -32,13 +32,9 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
   // CRITICAL: Call signInWithEmailAndPassword directly. Do NOT use 'await signInWithEmailAndPassword(...)'.
   signInWithEmailAndPassword(authInstance, email, password)
     .catch((error) => {
-        // If the sign-in fails (e.g., wrong password), we might need to create the user.
-        // This is specific to the guest user workflow.
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-             initiateEmailSignUp(authInstance, email, password);
-        } else {
-            console.error("Sign-in initiation failed:", error);
-        }
+        // The `manageUserDocument` service will handle creating the user for the first time.
+        // This catch block can be used for logging specific sign-in errors if needed.
+        console.error("Sign-in initiation failed:", error);
     });
   // Code continues immediately.
 }
