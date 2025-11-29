@@ -29,12 +29,12 @@ export default function DashboardView() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const isGuestMode = user?.isAnonymous ?? false;
+  const isGuestMode = user?.email === GUEST_EMAIL;
 
   // 1. Fetch all master tasks
   const masterTasksQuery = useMemoFirebase(() => 
-    collection(firestore, 'tasks'),
-    [firestore]
+    userProfile ? collection(firestore, 'tasks') : null,
+    [firestore, userProfile]
   );
   const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
 
@@ -83,7 +83,7 @@ export default function DashboardView() {
     });
   };
 
-  if (isUserLoading) {
+  if (isUserLoading || !user) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
