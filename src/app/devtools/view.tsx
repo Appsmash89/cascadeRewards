@@ -1,23 +1,29 @@
+
 'use client';
 
 import DashboardHeader from "@/components/dashboard/header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
+import { useFirestore } from "@/firebase";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2, Bot } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { collection, getDocs, writeBatch, doc } from "firebase/firestore";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 export default function DevToolsView() {
   const { user, userProfile, isUserLoading } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
   const router = useRouter();
   const isGuestMode = user?.email === GUEST_EMAIL;
+  const [isResetting, setIsResetting] = useState(false);
   
   useEffect(() => {
-    // If auth is loaded and the user is NOT a guest, redirect them away.
     if (!isUserLoading && !isGuestMode) {
       router.push('/dashboard');
     }
@@ -31,8 +37,6 @@ export default function DevToolsView() {
     );
   }
   
-  // This check is for when loading is finished but the user is not a guest.
-  // It prevents a flash of content before the useEffect redirect kicks in.
   if (!isGuestMode) {
      return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
@@ -41,10 +45,49 @@ export default function DevToolsView() {
     );
   }
   
-  const handleResetTasks = () => {
-    // This functionality would need to be implemented.
-    // For now, it's just a placeholder.
-    console.log("Resetting tasks...");
+  const handleResetTasks = async () => {
+    if (!firestore || !userProfile) {
+        toast({ variant: "destructive", title: "Error", description: "Firestore or user profile not available." });
+        return;
+    }
+
+    setIsResetting(true);
+    try {
+        const userTasksRef = collection(firestore, 'users', userProfile.uid, 'tasks');
+        const tasksSnapshot = await getDocs(userTasksRef);
+
+        if (tasksSnapshot.empty) {
+            toast({ title: "No tasks to reset." });
+            setIsResetting(false);
+            return;
+        }
+
+        const batch = writeBatch(firestore);
+        tasksSnapshot.forEach((taskDoc) => {
+            const taskRef = doc(firestore, 'users', userProfile.uid, 'tasks', taskDoc.id);
+            batch.update(taskRef, {
+                status: 'available',
+                completedAt: null
+            });
+        });
+
+        await batch.commit();
+
+        toast({
+            title: "Tasks Reset",
+            description: "All tasks have been set back to 'available'.",
+        });
+
+    } catch (error) {
+        console.error("Error resetting tasks: ", error);
+        toast({
+            variant: "destructive",
+            title: "Reset Failed",
+            description: "Could not reset tasks. Check console for details.",
+        });
+    } finally {
+        setIsResetting(false);
+    }
   };
 
   return (
@@ -67,7 +110,10 @@ export default function DevToolsView() {
                 <p className="text-muted-foreground font-medium">Developer Sandbox</p>
                 <p className="text-sm text-muted-foreground/80">Use these tools to test app states.</p>
                 <div className="flex items-center gap-4 mt-6">
-                    <Button onClick={handleResetTasks} variant="outline">Reset Tasks</Button>
+                    <Button onClick={handleResetTasks} variant="outline" disabled={isResetting}>
+                        {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Reset Tasks
+                    </Button>
                     <Button disabled>Simulate Points</Button>
                 </div>
               </div>
