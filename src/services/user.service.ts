@@ -12,6 +12,7 @@ import {
 import type { User } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { initializeUserTasks } from './tasks.service';
 
 /**
  * Generates a unique referral code.
@@ -63,6 +64,8 @@ export const manageUserDocument = async (
     };
     // Use a non-blocking write.
     setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
+    // Also initialize their tasks
+    await initializeUserTasks(firestore, user.uid);
   } else {
     // User exists, update syncable fields.
     const updateData = {

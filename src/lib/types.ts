@@ -30,14 +30,25 @@ export type User = {
   referralLevel: number;
 };
 
+// Represents a master task from the global /tasks collection
 export type Task = {
   id: string;
   title: string;
   description: string;
   points: number;
   type: 'video' | 'read';
-  isCompleted?: boolean;
 };
+
+// Represents a user's specific task state from /users/{uid}/tasks/{taskId}
+export type UserTask = {
+  id: string; // This will be the same as the master task ID
+  status: 'available' | 'completed';
+  completedAt: any; // Firestore Timestamp or null
+}
+
+// A combined type for easier handling in the UI
+export type CombinedTask = Task & UserTask;
+
 
 export type Referral = {
   id: string;

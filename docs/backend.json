@@ -55,7 +55,7 @@
         },
         "lastLogin": {
           "type": "string",
-          "format": "date-time",
+f          "format": "date-time",
           "description": "The timestamp of the user's last login, updated on every sign-in."
         },
         "totalLogins": {
@@ -93,6 +93,29 @@
         "totalLogins",
         "settings"
       ]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A global task definition available to all users.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "points": { "type": "number" },
+        "type": { "type": "string", "enum": ["video", "read"] }
+      },
+      "required": ["title", "description", "points", "type"]
+    },
+    "UserTask": {
+      "title": "User Task",
+      "description": "Represents the state of a task for a specific user.",
+      "type": "object",
+      "properties": {
+        "taskId": { "type": "string" },
+        "status": { "type": "string", "enum": ["available", "completed"] },
+        "completedAt": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "required": ["taskId", "status"]
     }
   },
   "auth": {
@@ -105,16 +128,24 @@
       {
         "path": "/users/{userId}",
         "definition": {
-          "schema": {
-            "$ref": "#/entities/UserProfile"
-          },
-          "description": "Stores all public and private data for a user. The document ID is the same as the Firebase Auth UID, ensuring a 1:1 relationship.",
-          "params": [
+          "schema": { "$ref": "#/entities/UserProfile" },
+          "description": "Stores all public and private data for a user.",
+          "subcollections": [
             {
-              "name": "userId",
-              "description": "The unique identifier for the user, matching their Firebase Auth UID."
+              "path": "/tasks/{taskId}",
+              "definition": {
+                "schema": { "$ref": "#/entities/UserTask" },
+                "description": "Tracks the status of individual tasks for the user."
+              }
             }
           ]
+        }
+      },
+      {
+        "path": "/tasks/{taskId}",
+        "definition": {
+          "schema": { "$ref": "#/entities/Task" },
+          "description": "A global list of all available tasks in the application."
         }
       }
     ]

@@ -33,24 +33,39 @@ service cloud.firestore {
     }
     
     match /users/{userId} {
-      // READ: A user can only read their own document.
       allow get: if isOwner(userId);
-      
-      // LIST: No one can list all users.
       allow list: if false;
-
-      // CREATE: A user can only create their own document.
-      // The incoming data must match the UID and have the correct schema.
       allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
-
-      // UPDATE: A user can only update their own document.
-      // Critical fields like uid and createdAt must not be changed.
       allow update: if isOwner(userId) &&
                      request.resource.data.uid == resource.data.uid &&
                      request.resource.data.createdAt == resource.data.createdAt;
-                     
-      // DELETE: Deleting user documents is disallowed to maintain data integrity.
       allow delete: if false;
+
+      // Rules for the user's tasks subcollection
+      match /tasks/{taskId} {
+        // READ: A user can read their own task list.
+        allow get, list: if isOwner(userId);
+        
+        // CREATE: A user can create their own task entries.
+        allow create: if isOwner(userId);
+        
+        // UPDATE: A user can only update the status of their own task.
+        allow update: if isOwner(userId) && 
+                         request.resource.data.status != resource.data.status;
+                         
+        // DELETE: Disallowed.
+        allow delete: if false;
+      }
+    }
+
+    // Rules for the global tasks collection
+    match /tasks/{taskId} {
+        // READ: Any signed-in user can read the master list of tasks.
+        allow get, list: if isSignedIn();
+
+        // WRITE: Disallow client-side writes to prevent tampering.
+        // These should be managed via a trusted server or the Firebase Console.
+        allow write: if false;
     }
   }
 }
