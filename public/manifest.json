@@ -1,31 +1,6 @@
 {
   "name": "Cascade Rewards",
   "short_name": "Cascade",
-  "start_url": "https://cascade-rewards.vercel.app/",
-  "scope": "https://cascade-rewards.vercel.app/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0f172a",
-  "description": "A rewards platform app built as a PWA.",
-  "icons": [
-    {
-      "src": "https://cascade-rewards.vercel.app/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://cascade-rewards.vercel.app/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
-}
-
-
-
-/*{
-  "name": "Cascade Rewards",
-  "short_name": "Cascade",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -45,4 +20,4 @@
     }
   ]
 }
-*/
+
