@@ -9,7 +9,7 @@ import { useAuth, initiateEmailSignIn } from '@/firebase';
 import { useUser } from '@/hooks/use-user';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -23,6 +23,8 @@ export default function LoginPage() {
   const { auth, firestore } = useAuth();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
+  const [loadingProvider, setLoadingProvider] = useState<null | 'google' | 'guest'>(null);
+
 
   useEffect(() => {
     if (!isUserLoading && user) {
@@ -39,6 +41,7 @@ export default function LoginPage() {
       });
       return;
     }
+    setLoadingProvider('guest');
     // This is now a non-blocking call
     initiateEmailSignIn(auth, GUEST_EMAIL, GUEST_PASSWORD);
   };
@@ -54,11 +57,13 @@ export default function LoginPage() {
     }
     const provider = new GoogleAuthProvider();
     try {
+      setLoadingProvider('google');
       // signInWithPopup is an exception; it needs to be awaited to handle
       // popup-related errors gracefully, but it's still very fast.
       await signInWithPopup(auth, provider);
       // The onAuthStateChanged listener in AppProvider will handle the redirect.
     } catch (error: any) {
+      setLoadingProvider(null); // Reset loading state on error
       console.error("Google Sign-In Error:", error);
       let description = "An unexpected error occurred during sign-in.";
       if (error.code === 'auth/popup-closed-by-user') {
@@ -100,9 +105,18 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <Button onClick={handleGoogleSignIn} size="lg" className="h-12 text-base">
-            <Chrome className="mr-2 h-5 w-5" />
-            Sign In with Google
+          <Button 
+            onClick={handleGoogleSignIn} 
+            size="lg" 
+            className="h-12 text-base"
+            disabled={loadingProvider !== null}
+          >
+            {loadingProvider === 'google' ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              <Chrome className="mr-2 h-5 w-5" />
+            )}
+            {loadingProvider === 'google' ? 'Signing in...' : 'Sign In with Google'}
           </Button>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -114,8 +128,17 @@ export default function LoginPage() {
               </span>
             </div>
           </div>
-          <Button variant="secondary" onClick={handleGuestLogin} size="lg" className="h-12 text-base">
-            Continue as Guest
+          <Button 
+            variant="secondary" 
+            onClick={handleGuestLogin} 
+            size="lg" 
+            className="h-12 text-base"
+            disabled={loadingProvider !== null}
+          >
+            {loadingProvider === 'guest' && (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            )}
+            {loadingProvider === 'guest' ? 'Signing in...' : 'Continue as Guest'}
           </Button>
         </CardContent>
       </Card>
