@@ -1,3 +1,4 @@
+
 'use client';
 import {
   DropdownMenu,
@@ -29,19 +30,23 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
   const { auth } = useAuth();
   const { toast } = useToast();
 
-  const handleLogout = () => {
-    if (auth) {
-      signOut(auth).catch((error) => {
-        toast({
-          variant: "destructive",
-          title: "Logout Failed",
-          description: "Could not log out. Please try again.",
-        });
-      });
-      // Redirect immediately, don't wait for signOut to complete.
+  const handleLogout = async () => {
+    if (!auth) {
       router.push('/');
-    } else {
-        router.push('/');
+      return;
+    }
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Logout Failed",
+        description: "An error occurred during logout. Please try again.",
+      });
+    } finally {
+      // Ensure redirection happens after the sign-out attempt.
+      router.push('/');
     }
   };
 
