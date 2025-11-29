@@ -32,11 +32,17 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
 
   const handleLogout = async () => {
     if (!auth) {
-      router.push('/');
+      toast({
+        variant: "destructive",
+        title: "Logout Failed",
+        description: "Authentication service not available.",
+      });
       return;
     }
     try {
       await signOut(auth);
+      // Only redirect on successful sign-out.
+      router.push('/');
     } catch (error) {
       console.error("Logout Error:", error);
       toast({
@@ -44,9 +50,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
         title: "Logout Failed",
         description: "An error occurred during logout. Please try again.",
       });
-    } finally {
-      // Ensure redirection happens after the sign-out attempt.
-      router.push('/');
+      // Do NOT redirect if sign-out fails. The user is still logged in.
     }
   };
 
