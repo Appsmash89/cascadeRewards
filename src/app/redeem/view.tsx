@@ -3,16 +3,27 @@
 
 import DashboardHeader from "@/components/dashboard/header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Star } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { rewards as rewardsData } from "@/lib/data";
+import RewardCard from "@/components/rewards/reward-card";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { doc, increment } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
 
 export default function RedeemView() {
   const { userProfile, isUserLoading } = useUser();
   const searchParams = useSearchParams();
+  const firestore = useFirestore();
   const isGuestMode = searchParams.get('mode') === 'guest';
+  const { toast } = useToast();
+  
+  // Local state for guest mode points
+  const [guestPoints, setGuestPoints] = useState(1250);
 
   if (isUserLoading && !isGuestMode) {
     return (
@@ -30,7 +41,43 @@ export default function RedeemView() {
     )
   }
 
-  const points = isGuestMode ? 1250 : userProfile?.points ?? 0;
+  const currentPoints = isGuestMode ? guestPoints : userProfile?.points ?? 0;
+
+  const handleRedeem = (pointsCost: number, title: string) => {
+    if (isGuestMode) {
+      if (guestPoints >= pointsCost) {
+        setGuestPoints(prev => prev - pointsCost);
+        toast({
+          title: "Redemption Successful!",
+          description: `You have redeemed the ${title}.`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Insufficient Points",
+          description: "You don't have enough points for this reward.",
+        });
+      }
+    } else if (userProfile && firestore) {
+       if (userProfile.points >= pointsCost) {
+        const userDocRef = doc(firestore, 'users', userProfile.uid);
+        updateDocumentNonBlocking(userDocRef, {
+            points: increment(-pointsCost)
+        });
+        toast({
+          title: "Redemption Successful!",
+          description: `You have redeemed the ${title}.`,
+        });
+      } else {
+         toast({
+          variant: "destructive",
+          title: "Insufficient Points",
+          description: "You don't have enough points for this reward.",
+        });
+      }
+    }
+  };
+
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
@@ -40,23 +87,32 @@ export default function RedeemView() {
           <CardHeader>
             <CardTitle>Redeem Points</CardTitle>
             <CardDescription>
-              Use your well-earned points to claim exciting rewards.
+              Use your points to claim exciting rewards.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col items-center justify-center h-80 border-2 border-dashed border-muted-foreground/20 rounded-lg bg-background">
-              <div className="p-4 bg-primary/10 rounded-full mb-4">
-                <Sparkles className="h-8 w-8 text-primary" />
-              </div>
-              <p className="text-muted-foreground font-medium">More Rewards Coming Soon</p>
-              <p className="text-sm text-muted-foreground/80">Keep earning points!</p>
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">Your Balance</p>
-                <p className="text-4xl font-bold tracking-tighter">{points.toLocaleString()}</p>
-                <p className="text-sm font-medium text-muted-foreground">Points</p>
-              </div>
-              <Button className="mt-6" disabled>Explore Rewards</Button>
+            <div className="flex justify-between items-center bg-background p-4 rounded-lg border mb-6">
+                <div>
+                    <p className="text-sm text-muted-foreground">Your Balance</p>
+                    <p className="text-2xl font-bold tracking-tight">{currentPoints.toLocaleString()} Points</p>
+                </div>
+                <Star className="h-8 w-8 text-amber-400" />
             </div>
+
+            <div className="space-y-4">
+                <h3 className="text-lg font-semibold tracking-tight">Available Gift Cards</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {rewardsData.map((reward) => (
+                    <RewardCard 
+                        key={reward.id}
+                        reward={reward}
+                        userPoints={currentPoints}
+                        onRedeem={handleRedeem}
+                    />
+                ))}
+                </div>
+            </div>
+
           </CardContent>
         </Card>
       </main>

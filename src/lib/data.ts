@@ -1,4 +1,4 @@
-import type { User, Task, Referral } from './types';
+import type { User, Task, Referral, Reward } from './types';
 
 export const currentUser: User = {
   name: 'Alex Morgan',
@@ -22,3 +22,34 @@ export const referrals: Referral[] = [
   { id: 'ref-3', name: 'David Evans', avatarUrl: 'https://picsum.photos/seed/3/40/40', joinDate: '2024-05-10' },
   { id: 'ref-4', name: 'Fiona Green', avatarUrl: 'https://picsum.photos/seed/4/40/40', joinDate: '2024-05-08' },
 ];
+
+export const rewards: Reward[] = [
+  {
+    id: 'reward-1',
+    title: '$5 Amazon Gift Card',
+    description: 'Redeem for a $5 gift card.',
+    points: 500,
+    imageUrl: 'https://picsum.photos/seed/amazon/300/200'
+  },
+  {
+    id: 'reward-2',
+    title: '$10 Starbucks Gift Card',
+    description: 'Redeem for a $10 gift card.',
+    points: 1000,
+    imageUrl: 'https://picsum.photos/seed/starbucks/300/200'
+  },
+   {
+    id: 'reward-3',
+    title: '$20 Target Gift Card',
+    description: 'Redeem for a $20 gift card.',
+    points: 2000,
+    imageUrl: 'https://picsum.photos/seed/target/300/200'
+  },
+  {
+    id: 'reward-4',
+    title: '$50 Best Buy Gift Card',
+    description: 'Redeem for a $50 gift card.',
+    points: 5000,
+    imageUrl: 'https://picsum.photos/seed/bestbuy/300/200'
+  },
+]

@@ -45,3 +45,11 @@ export type Referral = {
   avatarUrl: string;
   joinDate: string;
 };
+
+export type Reward = {
+  id: string;
+  title: string;
+  description: string;
+  points: number;
+  imageUrl: string;
+};
