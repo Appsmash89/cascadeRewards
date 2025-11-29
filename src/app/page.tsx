@@ -1,14 +1,17 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Gift, Chrome, Loader2 } from 'lucide-react';
-import { useAuth } from '@/firebase';
+import { useAuth, initiateEmailSignIn } from '@/firebase';
 import { useUser } from '@/hooks/use-user';
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { doc, getDoc } from 'firebase/firestore';
 
 // Hardcoded credentials for the persistent guest user
 const GUEST_EMAIL = 'guest.dev@cascade.app';
@@ -17,7 +20,7 @@ const GUEST_PASSWORD = 'super-secret-password-12345!';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { auth } = useAuth();
+  const { auth, firestore } = useAuth();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
 
@@ -27,7 +30,7 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  const handleGuestLogin = async () => {
+  const handleGuestLogin = () => {
     if (!auth) {
       toast({
         variant: "destructive",
@@ -36,33 +39,8 @@ export default function LoginPage() {
       });
       return;
     }
-    try {
-      // First, try to sign in with the persistent guest credentials.
-      await signInWithEmailAndPassword(auth, GUEST_EMAIL, GUEST_PASSWORD);
-      router.push('/dashboard');
-    } catch (error: any) {
-      // If the user doesn't exist, create it.
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-        try {
-          await createUserWithEmailAndPassword(auth, GUEST_EMAIL, GUEST_PASSWORD);
-          router.push('/dashboard');
-        } catch (creationError: any) {
-          console.error("Guest Account Creation Error:", creationError);
-          toast({
-            variant: "destructive",
-            title: "Guest Sign-In Failed",
-            description: "Could not create the guest developer account.",
-          });
-        }
-      } else {
-        console.error("Guest Sign-In Error:", error);
-        toast({
-          variant: "destructive",
-          title: "Guest Sign-In Failed",
-          description: "An unexpected error occurred.",
-        });
-      }
-    }
+    // This is now a non-blocking call
+    initiateEmailSignIn(auth, GUEST_EMAIL, GUEST_PASSWORD);
   };
 
   const handleGoogleSignIn = async () => {
@@ -76,8 +54,10 @@ export default function LoginPage() {
     }
     const provider = new GoogleAuthProvider();
     try {
+      // signInWithPopup is an exception; it needs to be awaited to handle
+      // popup-related errors gracefully, but it's still very fast.
       await signInWithPopup(auth, provider);
-      router.push('/dashboard');
+      // The onAuthStateChanged listener in AppProvider will handle the redirect.
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
       let description = "An unexpected error occurred during sign-in.";
