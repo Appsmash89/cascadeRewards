@@ -1,4 +1,4 @@
-/*{
+{
   "name": "Cascade Rewards",
   "short_name": "Cascade",
   "start_url": "https://cascade-rewards.vercel.app/",
@@ -19,11 +19,11 @@
       "type": "image/png"
     }
   ]
-}*/
+}
 
 
 
-{
+/*{
   "name": "Cascade Rewards",
   "short_name": "Cascade",
   "start_url": "/",
@@ -45,4 +45,4 @@
     }
   ]
 }
-
+*/
