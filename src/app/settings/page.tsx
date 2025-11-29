@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense } from "react";
@@ -22,7 +23,7 @@ function SettingsView() {
   const { theme, setTheme } = useTheme();
   const isGuestMode = user?.email === GUEST_EMAIL;
 
-  if (isUserLoading) {
+  if (isUserLoading || !user) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

@@ -1,3 +1,4 @@
+
 'use client';
 
 import DashboardHeader from "@/components/dashboard/header";
@@ -20,7 +21,7 @@ export default function RedeemView() {
   const { toast } = useToast();
   const isGuestMode = user?.email === GUEST_EMAIL;
 
-  if (isUserLoading) {
+  if (isUserLoading || !user) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

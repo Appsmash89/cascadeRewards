@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -19,12 +20,14 @@ import { collection, doc, increment, serverTimestamp } from "firebase/firestore"
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 import { useMemo } from "react";
+import { useRouter } from "next/navigation";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 export default function DashboardView() {
   const { user, userProfile, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const router = useRouter();
   const { toast } = useToast();
   const isGuestMode = user?.email === GUEST_EMAIL;
 
@@ -79,17 +82,21 @@ export default function DashboardView() {
     });
   };
 
-  const isLoading = isUserLoading || (!!user && (!masterTasks || !userTasks));
-
-  if (isLoading) {
+  // If still authenticating, or if logged out (user is null), show loader.
+  // This prevents the "Could not load profile" flash on logout.
+  if (isUserLoading || !user) {
+    // If the user logs out, they will be redirected by the root page logic.
+    // We show a loader here to prevent flashing content.
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
-
+  
   if (!userProfile) {
+    // This state is hit if auth is done, user exists, but profile is missing.
+    // This indicates a true data-loading issue.
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Could not load user profile.</p>
