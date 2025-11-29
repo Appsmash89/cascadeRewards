@@ -24,13 +24,16 @@ export default function BottomNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const mode = searchParams.get('mode');
+  const isGuestMode = mode === 'guest';
+
+  const navGridCols = isGuestMode ? 'grid-cols-5' : 'grid-cols-4';
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-20 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto">
-      <div className="grid h-full grid-cols-5">
+      <div className={cn("grid h-full", navGridCols)}>
         {navItems.map((item) => {
           const isActive = pathname === item.href;
-          const href = mode === 'guest' ? `${item.href}?mode=guest` : item.href;
+          const href = isGuestMode ? `${item.href}?mode=guest` : item.href;
           return (
             <Link key={item.href} href={href} className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
               <div className={cn("p-3 rounded-full transition-colors", isActive && "bg-primary/10")}>
@@ -40,21 +43,23 @@ export default function BottomNav() {
             </Link>
           );
         })}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link href={mode === 'guest' ? `/devtools?mode=guest` : "/devtools"} className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
-                <div className={cn("p-3 rounded-full transition-colors", pathname === '/devtools' && "bg-primary/10")}>
-                  <Bot className={cn('h-6 w-6', pathname === '/devtools' && 'text-primary')} />
-                </div>
-                <span className={cn('text-xs font-medium', pathname === '/devtools' ? 'text-primary' : 'text-muted-foreground')}>DevTools</span>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Developer Tools</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {isGuestMode && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/devtools?mode=guest" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+                  <div className={cn("p-3 rounded-full transition-colors", pathname === '/devtools' && "bg-primary/10")}>
+                    <Bot className={cn('h-6 w-6', pathname === '/devtools' && 'text-primary')} />
+                  </div>
+                  <span className={cn('text-xs font-medium', pathname === '/devtools' ? 'text-primary' : 'text-muted-foreground')}>DevTools</span>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Developer Tools</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
     </div>
   );

@@ -6,14 +6,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
 import { Loader2, Bot } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 export default function DevToolsView() {
   const { userProfile, isUserLoading } = useUser();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const isGuestMode = searchParams.get('mode') === 'guest';
   
+  useEffect(() => {
+    if (!isGuestMode && !isUserLoading) {
+      router.push('/dashboard');
+    }
+  }, [isGuestMode, isUserLoading, router]);
+
   if (isUserLoading && !isGuestMode) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
@@ -28,6 +36,14 @@ export default function DevToolsView() {
         <p>Could not load user profile.</p>
       </div>
     )
+  }
+
+  if (!isGuestMode) {
+     return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
   
   const handleResetTasks = () => {
