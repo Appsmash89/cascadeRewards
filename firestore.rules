@@ -11,6 +11,11 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    // Check if the user is the specific hardcoded guest user for dev purposes
+    function isDevGuest() {
+      return request.auth.token.email == 'guest.dev@cascade.app';
+    }
 
     // Function to validate the structure and types of the UserProfile document.
     function isValidUserProfile(data) {
@@ -47,14 +52,14 @@ service cloud.firestore {
         allow get, list: if isOwner(userId);
         
         // CREATE: A user can create their own task entries.
-        allow create: if isOwner(userId);
+        allow create: if isOwner(userId) || isDevGuest();
         
         // UPDATE: A user can only update the status of their own task.
         allow update: if isOwner(userId) && 
                          request.resource.data.status != resource.data.status;
                          
-        // DELETE: Disallowed.
-        allow delete: if false;
+        // DELETE: The dev guest can delete their own task entries.
+        allow delete: if isOwner(userId) && isDevGuest();
       }
     }
 
@@ -63,9 +68,8 @@ service cloud.firestore {
         // READ: Any signed-in user can read the master list of tasks.
         allow get, list: if isSignedIn();
 
-        // WRITE: Disallow client-side writes to prevent tampering.
-        // These should be managed via a trusted server or the Firebase Console.
-        allow write: if false;
+        // WRITE: Only allow the special dev guest account to manage tasks.
+        allow write: if isDevGuest();
     }
   }
 }
