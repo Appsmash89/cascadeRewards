@@ -1,0 +1,159 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's complete profile and application-specific data stored in Firestore.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID from Firebase Authentication, acting as the document key."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name, synced from their auth provider."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address, synced from their auth provider."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's profile picture, synced from their auth provider."
+        },
+        "provider": {
+          "type": "string",
+          "description": "The authentication provider used for the last sign-in (e.g., 'google.com')."
+        },
+        "points": {
+          "type": "number",
+          "description": "Total points earned by the user for completing tasks and other activities."
+        },
+        "credits": {
+            "type": "number",
+            "description": "Currency that can be purchased or earned, used for unlocking special features."
+        },
+        "level": {
+          "type": "number",
+          "description": "The user's current level, which may unlock new features or rewards."
+        },
+        "referralCode": {
+          "type": "string",
+          "description": "A unique, auto-generated code for referring other users."
+        },
+        "referredBy": {
+          "type": ["string", "null"],
+          "description": "The UID of the user who referred this user, if applicable."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of when the user document was first created (first login)."
+        },
+        "lastLogin": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of the user's last login, updated on every sign-in."
+        },
+        "totalLogins": {
+            "type": "number",
+            "description": "A counter for the total number of times the user has logged in."
+        },
+        "settings": {
+            "type": "object",
+            "description": "User-configurable settings for the application.",
+            "properties": {
+                "notificationsEnabled": {
+                    "type": "boolean",
+                    "description": "Whether the user has enabled push notifications."
+                },
+                "darkMode": {
+                    "type": "boolean",
+                    "description": "Whether the user has enabled dark mode."
+                }
+            },
+            "required": ["notificationsEnabled", "darkMode"]
+        },
+        "isAnonymous": {
+          "type": "boolean",
+          "description": "True if the user is signed in anonymously."
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "email",
+        "photoURL",
+        "provider",
+        "points",
+        "credits",
+        "level",
+        "referralCode",
+        "createdAt",
+        "lastLogin",
+        "totalLogins",
+        "settings",
+        "isAnonymous"
+      ]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A global task definition available to all users.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "points": { "type": "number" },
+        "type": { "type": "string", "enum": ["video", "read"] }
+      },
+      "required": ["title", "description", "points", "type"]
+    },
+    "UserTask": {
+      "title": "User Task",
+      "description": "Represents the state of a task for a specific user.",
+      "type": "object",
+      "properties": {
+        "taskId": { "type": "string" },
+        "status": { "type": "string", "enum": ["available", "completed"] },
+        "completedAt": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "required": ["taskId", "status"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "google.com",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "schema": { "$ref": "#/entities/UserProfile" },
+          "description": "Stores all public and private data for a user.",
+          "subcollections": [
+            {
+              "path": "/tasks/{taskId}",
+              "definition": {
+                "schema": { "$ref": "#/entities/UserTask" },
+                "description": "Tracks the status of individual tasks for the user."
+              }
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tasks/{taskId}",
+        "definition": {
+          "schema": { "$ref": "#/entities/Task" },
+          "description": "A global list of all available tasks in the application."
+        }
+      }
+    ]
+  }
+}

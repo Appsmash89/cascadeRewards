@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Gift, Chrome, Loader2 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import { useUser } from '@/hooks/use-user';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInAnonymously } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
 
@@ -23,8 +23,26 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  const handleGuestLogin = () => {
-    router.push('/dashboard?mode=guest');
+  const handleGuestLogin = async () => {
+    if (!auth) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Firebase Auth is not initialized.",
+      });
+      return;
+    }
+    try {
+      await signInAnonymously(auth);
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error("Anonymous Sign-In Error:", error);
+      toast({
+        variant: "destructive",
+        title: "Guest Sign-In Failed",
+        description: "Could not sign in as guest. Please try again.",
+      });
+    }
   };
 
   const handleGoogleSignIn = async () => {

@@ -2,7 +2,6 @@
 'use client';
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import { doc } from "firebase/firestore";
 
@@ -17,14 +16,12 @@ import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Loader2, Bell, Moon } from "lucide-react";
 
 function SettingsView() {
-  const { userProfile, isUserLoading } = useUser();
+  const { user, userProfile, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const searchParams = useSearchParams();
   const { theme, setTheme } = useTheme();
+  const isGuestMode = user?.isAnonymous ?? false;
 
-  const isGuestMode = searchParams.get('mode') === 'guest';
-  
-  if (isUserLoading && !isGuestMode) {
+  if (isUserLoading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -32,7 +29,7 @@ function SettingsView() {
     );
   }
   
-  if (!userProfile && !isGuestMode) {
+  if (!userProfile) {
     return (
        <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Could not load user profile.</p>
@@ -41,24 +38,30 @@ function SettingsView() {
   }
 
   // Use guest defaults or real user settings
-  const notificationsEnabled = isGuestMode ? true : userProfile?.settings.notificationsEnabled ?? true;
-  // For theme, we check the current `next-themes` state first.
+  const notificationsEnabled = userProfile?.settings.notificationsEnabled ?? true;
   const isDarkMode = theme === 'dark';
 
   const handleThemeChange = (isDark: boolean) => {
     const newTheme = isDark ? 'dark' : 'light';
     setTheme(newTheme);
 
-    // If a user is logged in, update their preference in Firestore
-    if (userProfile && firestore) {
+    // If a user is logged in (and not a guest), update their preference
+    if (userProfile && !isGuestMode && firestore) {
       const userDocRef = doc(firestore, 'users', userProfile.uid);
       updateDocumentNonBlocking(userDocRef, { 'settings.darkMode': isDark });
     }
   };
+  
+  const handleNotificationsChange = (enabled: boolean) => {
+     if (userProfile && !isGuestMode && firestore) {
+      const userDocRef = doc(firestore, 'users', userProfile.uid);
+      updateDocumentNonBlocking(userDocRef, { 'settings.notificationsEnabled': enabled });
+    }
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
-      <DashboardHeader user={userProfile} />
+      <DashboardHeader user={userProfile} isGuest={isGuestMode} />
       <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
         <Card className="shadow-sm">
           <CardHeader>
@@ -73,7 +76,12 @@ function SettingsView() {
                 <Bell className="h-5 w-5 text-muted-foreground"/>
                 <Label htmlFor="notifications" className="text-base font-normal">Push Notifications</Label>
               </div>
-              <Switch id="notifications" checked={notificationsEnabled} disabled={isGuestMode}/>
+              <Switch 
+                id="notifications" 
+                checked={notificationsEnabled} 
+                onCheckedChange={handleNotificationsChange}
+                disabled={isGuestMode}
+              />
             </div>
             <div className="flex items-center justify-between p-4 rounded-lg bg-background border">
               <div className="flex items-center gap-4">

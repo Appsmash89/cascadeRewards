@@ -43,12 +43,13 @@ export const manageUserDocument = async (
 
   if (!userDoc.exists()) {
     // User is new, create the document with default values.
+    const isAnonymous = user.isAnonymous;
     const newUserProfile: UserProfile = {
       uid: user.uid,
-      displayName: user.displayName || 'Anonymous User',
+      displayName: user.displayName || (isAnonymous ? 'Guest User' : 'Anonymous User'),
       email: user.email || '',
-      photoURL: user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`,
-      provider: user.providerData[0]?.providerId || 'unknown',
+      photoURL: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+      provider: user.providerData[0]?.providerId || 'anonymous',
       points: 0,
       credits: 0,
       level: 1,
@@ -61,6 +62,7 @@ export const manageUserDocument = async (
         notificationsEnabled: true,
         darkMode: false,
       },
+      isAnonymous: isAnonymous,
     };
     // Use a non-blocking write.
     setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
@@ -68,13 +70,18 @@ export const manageUserDocument = async (
     await initializeUserTasks(firestore, user.uid);
   } else {
     // User exists, update syncable fields.
-    const updateData = {
-      displayName: user.displayName,
-      email: user.email,
-      photoURL: user.photoURL,
+    const updateData: Partial<UserProfile> & { [key: string]: any } = {
       lastLogin: serverTimestamp(),
       totalLogins: increment(1),
     };
+    
+    // Only update these fields if the user is not anonymous
+    if (!user.isAnonymous) {
+      updateData.displayName = user.displayName;
+      updateData.email = user.email;
+      updateData.photoURL = user.photoURL;
+    }
+
     // Use a non-blocking merge write.
     setDocumentNonBlocking(userRef, updateData, { merge: true });
   }

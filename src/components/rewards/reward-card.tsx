@@ -6,16 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Reward } from '@/lib/types';
-import { Award, CheckCircle } from 'lucide-react';
+import { Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type RewardCardProps = {
   reward: Reward;
   userPoints: number;
   onRedeem: (points: number, title: string) => void;
+  isGuest: boolean;
 };
 
-export default function RewardCard({ reward, userPoints, onRedeem }: RewardCardProps) {
+export default function RewardCard({ reward, userPoints, onRedeem, isGuest }: RewardCardProps) {
   const canAfford = userPoints >= reward.points;
 
   return (
@@ -42,13 +43,13 @@ export default function RewardCard({ reward, userPoints, onRedeem }: RewardCardP
             <Button 
                 size="sm" 
                 onClick={() => onRedeem(reward.points, reward.title)}
-                disabled={!canAfford}
+                disabled={!canAfford || isGuest}
                 className={cn(
                     "w-full transition-all duration-300",
                     !canAfford && "bg-secondary hover:bg-secondary"
                 )}
             >
-                {canAfford ? 'Redeem' : 'More Points'}
+                {isGuest ? 'Sign in to Redeem' : (canAfford ? 'Redeem' : 'More Points')}
             </Button>
         </div>
 

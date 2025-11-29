@@ -6,26 +6,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
 import { Loader2, Star } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { rewards as rewardsData } from "@/lib/data";
 import RewardCard from "@/components/rewards/reward-card";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, increment } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 
 export default function RedeemView() {
-  const { userProfile, isUserLoading } = useUser();
-  const searchParams = useSearchParams();
+  const { user, userProfile, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const isGuestMode = searchParams.get('mode') === 'guest';
   const { toast } = useToast();
-  
-  // Local state for guest mode points
-  const [guestPoints, setGuestPoints] = useState(1250);
+  const isGuestMode = user?.isAnonymous ?? false;
 
-  if (isUserLoading && !isGuestMode) {
+  if (isUserLoading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -33,7 +27,7 @@ export default function RedeemView() {
     );
   }
 
-  if (!userProfile && !isGuestMode) {
+  if (!userProfile) {
     return (
        <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Could not load user profile.</p>
@@ -41,24 +35,19 @@ export default function RedeemView() {
     )
   }
 
-  const currentPoints = isGuestMode ? guestPoints : userProfile?.points ?? 0;
+  const currentPoints = userProfile?.points ?? 0;
 
   const handleRedeem = (pointsCost: number, title: string) => {
     if (isGuestMode) {
-      if (guestPoints >= pointsCost) {
-        setGuestPoints(prev => prev - pointsCost);
-        toast({
-          title: "Redemption Successful!",
-          description: `You have redeemed the ${title}.`,
-        });
-      } else {
         toast({
           variant: "destructive",
-          title: "Insufficient Points",
-          description: "You don't have enough points for this reward.",
+          title: "Guest Mode",
+          description: "Please sign in with Google to redeem rewards.",
         });
-      }
-    } else if (userProfile && firestore) {
+        return;
+    }
+      
+    if (userProfile && firestore) {
        if (userProfile.points >= pointsCost) {
         const userDocRef = doc(firestore, 'users', userProfile.uid);
         updateDocumentNonBlocking(userDocRef, {
@@ -81,7 +70,7 @@ export default function RedeemView() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
-      <DashboardHeader user={userProfile} />
+      <DashboardHeader user={userProfile} isGuest={isGuestMode} />
       <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
         <Card className="shadow-sm">
           <CardHeader>
@@ -108,6 +97,7 @@ export default function RedeemView() {
                         reward={reward}
                         userPoints={currentPoints}
                         onRedeem={handleRedeem}
+                        isGuest={isGuestMode}
                     />
                 ))}
                 </div>

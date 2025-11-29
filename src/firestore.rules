@@ -1,0 +1,72 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Function to validate the structure and types of the UserProfile document.
+    function isValidUserProfile(data) {
+      return data.uid == request.auth.uid &&
+             data.displayName is string &&
+             data.email is string &&
+             data.photoURL is string &&
+             data.provider is string &&
+             data.points is number &&
+             data.credits is number &&
+             data.level is number &&
+             data.referralCode is string &&
+             (data.referredBy is string || data.referredBy == null) &&
+             data.createdAt is timestamp &&
+             data.lastLogin is timestamp &&
+             data.totalLogins is number && data.totalLogins > 0 &&
+             data.settings is map &&
+             data.settings.notificationsEnabled is bool &&
+             data.settings.darkMode is bool &&
+             data.isAnonymous is bool;
+    }
+    
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow update: if isOwner(userId) &&
+                     request.resource.data.uid == resource.data.uid &&
+                     request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+
+      // Rules for the user's tasks subcollection
+      match /tasks/{taskId} {
+        // READ: A user can read their own task list.
+        allow get, list: if isOwner(userId);
+        
+        // CREATE: A user can create their own task entries.
+        allow create: if isOwner(userId);
+        
+        // UPDATE: A user can only update the status of their own task.
+        allow update: if isOwner(userId) && 
+                         request.resource.data.status != resource.data.status;
+                         
+        // DELETE: Disallowed.
+        allow delete: if false;
+      }
+    }
+
+    // Rules for the global tasks collection
+    match /tasks/{taskId} {
+        // READ: Any signed-in user can read the master list of tasks.
+        allow get, list: if isSignedIn();
+
+        // WRITE: Disallow client-side writes to prevent tampering.
+        // These should be managed via a trusted server or the Firebase Console.
+        allow write: if false;
+    }
+  }
+}

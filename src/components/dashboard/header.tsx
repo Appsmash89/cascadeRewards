@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Gift, LogOut, User as UserIcon } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -19,25 +19,18 @@ import type { UserProfile } from "@/lib/types";
 
 type DashboardHeaderProps = {
   user: UserProfile | null;
+  isGuest: boolean;
 }
 
-export default function DashboardHeader({ user }: DashboardHeaderProps) {
+export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps) {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { auth } = useAuth();
   const { toast } = useToast();
-  
-  const isGuest = searchParams.get('mode') === 'guest';
 
   const handleLogout = async () => {
-    if (isGuest) {
-      router.push('/');
-      return;
-    }
-    
     if (auth) {
       try {
         await signOut(auth);
@@ -54,9 +47,9 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
     }
   };
 
-  const displayName = isGuest ? "Guest User" : user?.displayName ?? "User";
-  const displayAvatar = isGuest ? `https://i.pravatar.cc/150?u=guest` : user?.photoURL;
-  const displayEmail = isGuest ? "guest@example.com" : user?.email;
+  const displayName = user?.displayName ?? "User";
+  const displayAvatar = user?.photoURL;
+  const displayEmail = user?.email;
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-lg px-4 z-10">

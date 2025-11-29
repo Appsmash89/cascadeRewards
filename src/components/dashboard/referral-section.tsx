@@ -13,25 +13,23 @@ import { useToast } from "@/hooks/use-toast";
 import { getReferralBonus } from "@/app/actions";
 import { Clipboard, ClipboardCheck, Calculator, Users, Loader2 } from 'lucide-react';
 import type { UserProfile, Referral } from "@/lib/types";
-import { useSearchParams } from 'next/navigation';
 
 type ReferralSectionProps = {
   user: UserProfile | null;
   referrals: Referral[];
+  isGuest: boolean;
 }
 
-export default function ReferralSection({ user, referrals }: ReferralSectionProps) {
+export default function ReferralSection({ user, referrals, isGuest }: ReferralSectionProps) {
   const { toast } = useToast();
   const [isCopied, setIsCopied] = useState(false);
   const [baseReward, setBaseReward] = useState(100);
   const [bonusResult, setBonusResult] = useState<{ multiplier: number, total: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-  const isGuestMode = searchParams.get('mode') === 'guest';
   
-  const referralCode = isGuestMode ? 'CASC-GUEST' : user?.referralCode ?? '...';
-  const referralLevel = isGuestMode ? 0 : user?.level ?? 0;
+  const referralCode = user?.referralCode ?? '...';
+  const referralLevel = user?.level ?? 0;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralCode);
@@ -71,7 +69,7 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
           <Label htmlFor="referral-code" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your Unique Code</Label>
           <div className="flex items-center gap-2 mt-1">
             <Input id="referral-code" value={referralCode} readOnly className="font-mono text-lg tracking-wider bg-secondary" />
-            <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy referral code">
+            <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy referral code" disabled={isGuest}>
               {isCopied ? <ClipboardCheck className="h-5 w-5 text-green-500" /> : <Clipboard className="h-5 w-5" />}
             </Button>
           </div>
@@ -84,20 +82,24 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
             <Users className="h-4 w-4" />
             Your Referrals ({referrals.length})
           </h4>
-          <div className="space-y-3 max-h-48 overflow-y-auto pr-2 -mr-2">
-            {referrals.map((referral) => (
-              <div key={referral.id} className="flex items-center p-2 rounded-md hover:bg-secondary">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={referral.avatarUrl} alt={referral.name} data-ai-hint="person portrait" />
-                  <AvatarFallback>{getInitials(referral.name)}</AvatarFallback>
-                </Avatar>
-                <div className="ml-3 space-y-1">
-                  <p className="text-sm font-medium leading-none">{referral.name}</p>
-                  <p className="text-xs text-muted-foreground">Joined: {referral.joinDate}</p>
+          { isGuest ? (
+            <p className="text-sm text-muted-foreground p-2 text-center">Sign in to see your referrals.</p>
+          ) : (
+            <div className="space-y-3 max-h-48 overflow-y-auto pr-2 -mr-2">
+              {referrals.map((referral) => (
+                <div key={referral.id} className="flex items-center p-2 rounded-md hover:bg-secondary">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={referral.avatarUrl} alt={referral.name} data-ai-hint="person portrait" />
+                    <AvatarFallback>{getInitials(referral.name)}</AvatarFallback>
+                  </Avatar>
+                  <div className="ml-3 space-y-1">
+                    <p className="text-sm font-medium leading-none">{referral.name}</p>
+                    <p className="text-xs text-muted-foreground">Joined: {referral.joinDate}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <Separator />

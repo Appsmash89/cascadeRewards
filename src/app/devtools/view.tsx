@@ -6,23 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
 import { Loader2, Bot } from "lucide-react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 
 export default function DevToolsView() {
-  const { userProfile, isUserLoading } = useUser();
-  const searchParams = useSearchParams();
+  const { user, userProfile, isUserLoading } = useUser();
   const router = useRouter();
-  const isGuestMode = searchParams.get('mode') === 'guest';
+  const isGuestMode = user?.isAnonymous ?? false;
   
   useEffect(() => {
-    if (!isGuestMode && !isUserLoading) {
+    // If auth is loaded and the user is NOT a guest, redirect them away.
+    if (!isUserLoading && !isGuestMode) {
       router.push('/dashboard');
     }
   }, [isGuestMode, isUserLoading, router]);
 
-  if (isUserLoading && !isGuestMode) {
+  if (isUserLoading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -30,14 +30,8 @@ export default function DevToolsView() {
     );
   }
   
-  if (!userProfile && !isGuestMode) {
-    return (
-       <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <p>Could not load user profile.</p>
-      </div>
-    )
-  }
-
+  // This check is for when loading is finished but the user is not a guest.
+  // It prevents a flash of content before the useEffect redirect kicks in.
   if (!isGuestMode) {
      return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
@@ -47,12 +41,14 @@ export default function DevToolsView() {
   }
   
   const handleResetTasks = () => {
-    window.dispatchEvent(new CustomEvent('reset-tasks'));
+    // This functionality would need to be implemented.
+    // For now, it's just a placeholder.
+    console.log("Resetting tasks...");
   };
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
-      <DashboardHeader user={userProfile} />
+      <DashboardHeader user={userProfile} isGuest={isGuestMode} />
       <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
         <div className="grid gap-4">
           <Card className="shadow-sm">

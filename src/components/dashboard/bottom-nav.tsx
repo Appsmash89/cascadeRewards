@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Home, Star, Users, Settings, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useUser } from '@/hooks/use-user';
 
 
 const navItems = [
@@ -22,9 +23,8 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const mode = searchParams.get('mode');
-  const isGuestMode = mode === 'guest';
+  const { user } = useUser();
+  const isGuestMode = user?.isAnonymous ?? false;
 
   const navGridCols = isGuestMode ? 'grid-cols-5' : 'grid-cols-4';
 
@@ -33,9 +33,8 @@ export default function BottomNav() {
       <div className={cn("grid h-full", navGridCols)}>
         {navItems.map((item) => {
           const isActive = pathname === item.href;
-          const href = isGuestMode ? `${item.href}?mode=guest` : item.href;
           return (
-            <Link key={item.href} href={href} className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+            <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
               <div className={cn("p-3 rounded-full transition-colors", isActive && "bg-primary/10")}>
                 <item.icon className={cn('h-6 w-6', isActive && 'text-primary')} />
               </div>
@@ -47,7 +46,7 @@ export default function BottomNav() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href="/devtools?mode=guest" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/devtools" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
                   <div className={cn("p-3 rounded-full transition-colors", pathname === '/devtools' && "bg-primary/10")}>
                     <Bot className={cn('h-6 w-6', pathname === '/devtools' && 'text-primary')} />
                   </div>

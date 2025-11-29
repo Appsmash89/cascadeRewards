@@ -7,15 +7,13 @@ import ReferralSection from "@/components/dashboard/referral-section";
 import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
 import { Loader2 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 function ReferralsView() {
-  const { userProfile, isUserLoading } = useUser();
-  const searchParams = useSearchParams();
-  const isGuestMode = searchParams.get('mode') === 'guest';
+  const { user, userProfile, isUserLoading } = useUser();
+  const isGuestMode = user?.isAnonymous ?? false;
   
-  if (isUserLoading && !isGuestMode) {
+  if (isUserLoading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -23,7 +21,7 @@ function ReferralsView() {
     );
   }
   
-  if (!userProfile && !isGuestMode) {
+  if (!userProfile) {
     return (
        <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Could not load user profile.</p>
@@ -33,9 +31,9 @@ function ReferralsView() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
-      <DashboardHeader user={userProfile} />
+      <DashboardHeader user={userProfile} isGuest={isGuestMode}/>
       <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
-        <ReferralSection user={userProfile} referrals={referrals} />
+        <ReferralSection user={userProfile} referrals={referrals} isGuest={isGuestMode} />
       </main>
       <BottomNav />
     </div>

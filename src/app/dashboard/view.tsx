@@ -8,8 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useSearchParams } from 'next/navigation';
-import { referrals } from '@/lib/data';
 import DashboardHeader from "@/components/dashboard/header";
 import StatsCards from "@/components/dashboard/stats-cards";
 import TasksList from "@/components/dashboard/tasks-list";
@@ -24,14 +22,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useMemo } from "react";
 
 export default function DashboardView() {
-  const searchParams = useSearchParams();
-  const isGuestMode = searchParams.get('mode') === 'guest';
-  const { userProfile, isUserLoading } = useUser();
+  const { user, userProfile, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+  const isGuestMode = user?.isAnonymous ?? false;
 
-  // 1. Fetch all master tasks
-  const masterTasksQuery = useMemoFirebase(() => collection(firestore, 'tasks'), [firestore]);
+  // 1. Fetch all master tasks only when a user is available
+  const masterTasksQuery = useMemoFirebase(() => 
+    user ? collection(firestore, 'tasks') : null, 
+    [user, firestore]
+  );
   const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
 
   // 2. Fetch user-specific task statuses
@@ -78,7 +78,7 @@ export default function DashboardView() {
     });
   };
 
-  const isLoading = (isUserLoading && !isGuestMode) || isLoadingMasterTasks || (!!userProfile && isLoadingUserTasks);
+  const isLoading = isUserLoading || isLoadingMasterTasks || (!!userProfile && isLoadingUserTasks);
 
   if (isLoading) {
     return (
@@ -88,7 +88,7 @@ export default function DashboardView() {
     );
   }
 
-  if (!userProfile && !isGuestMode) {
+  if (!userProfile) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Could not load user profile.</p>
@@ -98,9 +98,9 @@ export default function DashboardView() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
-      <DashboardHeader user={userProfile} />
+      <DashboardHeader user={userProfile} isGuest={isGuestMode} />
       <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
-        <StatsCards user={userProfile} referrals={referrals} />
+        <StatsCards user={userProfile} referrals={[]} isGuest={isGuestMode} />
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Daily Tasks</CardTitle>

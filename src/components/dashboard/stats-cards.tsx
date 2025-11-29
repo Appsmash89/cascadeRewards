@@ -3,26 +3,22 @@
 
 import {
   Card,
-  CardContent,
 } from "@/components/ui/card"
 import { Users, Wallet, TrendingUp } from 'lucide-react'
 import type { UserProfile, Referral } from '@/lib/types'
-import { useSearchParams } from 'next/navigation'
 
 type StatsCardsProps = {
   user: UserProfile | null;
   referrals: Referral[];
+  isGuest: boolean;
 }
 
-export default function StatsCards({ user, referrals }: StatsCardsProps) {
-  const searchParams = useSearchParams()
-  const isGuestMode = searchParams.get('mode') === 'guest';
-  
+export default function StatsCards({ user, referrals, isGuest }: StatsCardsProps) {
   const referralEarnings = referrals.length * 50; 
 
-  const points = isGuestMode ? 1250 : user?.points ?? 0;
-  const referralCount = isGuestMode ? referrals.length : 0; 
-  const earnings = isGuestMode ? referralEarnings : 0; 
+  const points = user?.points ?? 0;
+  const referralCount = isGuest ? 0 : referrals.length; 
+  const earnings = isGuest ? 0 : referralEarnings; 
 
   const stats = [
     { title: "Total Points", value: points.toLocaleString(), icon: Wallet },
