@@ -76,10 +76,6 @@
                 }
             },
             "required": ["notificationsEnabled", "darkMode"]
-        },
-        "isAnonymous": {
-          "type": "boolean",
-          "description": "True if the user is signed in anonymously."
         }
       },
       "required": [
@@ -95,8 +91,7 @@
         "createdAt",
         "lastLogin",
         "totalLogins",
-        "settings",
-        "isAnonymous"
+        "settings"
       ]
     },
     "Task": {
@@ -116,21 +111,19 @@
       "description": "Represents the state of a task for a specific user.",
       "type": "object",
       "properties": {
-        "taskId": { "type": "string" },
         "status": { "type": "string", "enum": ["available", "completed"] },
         "completedAt": { "type": ["string", "null"], "format": "date-time" }
       },
-      "required": ["taskId", "status"]
+      "required": ["status"]
     }
   },
   "auth": {
     "providers": [
-      "google.com",
-      "anonymous"
+      "google.com"
     ]
   },
   "firestore": {
-    "structure": [
+     "structure": [
       {
         "path": "/users/{userId}",
         "definition": {

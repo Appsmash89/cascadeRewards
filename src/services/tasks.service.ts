@@ -67,4 +67,3 @@ export const initializeUserTasks = async (
 
   await batch.commit();
 };
-

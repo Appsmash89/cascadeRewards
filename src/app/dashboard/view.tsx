@@ -15,7 +15,7 @@ import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
 import { Loader2 } from "lucide-react";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import type { CombinedTask, Task, UserTask } from "@/lib/types";
+import type { CombinedTask, Task, UserTask, WithId } from "@/lib/types";
 import { collection, doc, increment, serverTimestamp } from "firebase/firestore";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
@@ -29,32 +29,33 @@ export default function DashboardView() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const isGuestMode = user?.email === GUEST_EMAIL;
+  const isGuestMode = user?.isAnonymous ?? false;
 
-  // 1. Fetch all master tasks only when a user is available
+  // 1. Fetch all master tasks
   const masterTasksQuery = useMemoFirebase(() => 
-    userProfile ? collection(firestore, 'tasks') : null, 
-    [userProfile, firestore]
+    collection(firestore, 'tasks'),
+    [firestore]
   );
   const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
 
   // 2. Fetch user-specific task statuses
   const userTasksQuery = useMemoFirebase(() => 
-    userProfile ? collection(firestore, 'users', userProfile.uid, 'tasks') : null, 
+    userProfile ? collection(firestore, 'users', userProfile.uid, 'tasks') : null,
     [firestore, userProfile]
   );
   const { data: userTasks, isLoading: isLoadingUserTasks } = useCollection<UserTask>(userTasksQuery);
 
   // 3. Combine master tasks with user statuses
-  const combinedTasks = useMemo(() => {
+  const combinedTasks = useMemo((): CombinedTask[] => {
     if (!masterTasks || !userTasks) return [];
     
     const userTasksMap = new Map(userTasks.map(ut => [ut.id, ut]));
     
-    return masterTasks.map(mt => ({
+    return masterTasks.map((mt: WithId<Task>) => ({
       ...mt,
-      ...userTasksMap.get(mt.id), // This will add status, completedAt, etc.
-    })).filter(ct => ct.status); // Filter out any tasks that might not have a user status yet
+      status: userTasksMap.get(mt.id)?.status ?? 'available',
+      completedAt: userTasksMap.get(mt.id)?.completedAt ?? null,
+    }));
 
   }, [masterTasks, userTasks]);
 
@@ -82,11 +83,7 @@ export default function DashboardView() {
     });
   };
 
-  // If still authenticating, or if logged out (user is null), show loader.
-  // This prevents the "Could not load profile" flash on logout.
-  if (isUserLoading || !user) {
-    // If the user logs out, they will be redirected by the root page logic.
-    // We show a loader here to prevent flashing content.
+  if (isUserLoading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

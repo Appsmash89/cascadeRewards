@@ -29,8 +29,7 @@ service cloud.firestore {
              data.totalLogins is number && data.totalLogins > 0 &&
              data.settings is map &&
              data.settings.notificationsEnabled is bool &&
-             data.settings.darkMode is bool &&
-             data.isAnonymous is bool;
+             data.settings.darkMode is bool;
     }
     
     match /users/{userId} {
