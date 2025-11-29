@@ -61,39 +61,39 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('');
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col shadow-sm">
       <CardHeader>
         <CardTitle>Referral Dashboard</CardTitle>
         <CardDescription>Manage your network and track earnings.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col flex-grow gap-6">
         <div>
-          <Label htmlFor="referral-code" className="text-xs font-semibold text-muted-foreground">YOUR UNIQUE CODE</Label>
+          <Label htmlFor="referral-code" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your Unique Code</Label>
           <div className="flex items-center gap-2 mt-1">
-            <Input id="referral-code" value={referralCode} readOnly className="font-mono text-lg tracking-wider" />
+            <Input id="referral-code" value={referralCode} readOnly className="font-mono text-lg tracking-wider bg-secondary" />
             <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy referral code">
-              {isCopied ? <ClipboardCheck className="h-4 w-4 text-green-500" /> : <Clipboard className="h-4 w-4" />}
+              {isCopied ? <ClipboardCheck className="h-5 w-5 text-green-500" /> : <Clipboard className="h-5 w-5" />}
             </Button>
           </div>
         </div>
 
         <Separator />
 
-        <div>
-          <h4 className="flex items-center gap-2 text-sm font-semibold mb-3">
+        <div className="space-y-3">
+          <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
             <Users className="h-4 w-4" />
-            Your Referrals
+            Your Referrals ({referrals.length})
           </h4>
-          <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
+          <div className="space-y-3 max-h-48 overflow-y-auto pr-2 -mr-2">
             {referrals.map((referral) => (
-              <div key={referral.id} className="flex items-center">
+              <div key={referral.id} className="flex items-center p-2 rounded-md hover:bg-secondary">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={referral.avatarUrl} alt={referral.name} data-ai-hint="person portrait" />
                   <AvatarFallback>{getInitials(referral.name)}</AvatarFallback>
                 </Avatar>
-                <div className="ml-4 space-y-1">
+                <div className="ml-3 space-y-1">
                   <p className="text-sm font-medium leading-none">{referral.name}</p>
-                  <p className="text-sm text-muted-foreground">Joined: {referral.joinDate}</p>
+                  <p className="text-xs text-muted-foreground">Joined: {referral.joinDate}</p>
                 </div>
               </div>
             ))}
@@ -103,7 +103,7 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
         <Separator />
 
         <div className="space-y-4">
-          <h4 className="flex items-center gap-2 text-sm font-semibold">
+          <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
             <Calculator className="h-4 w-4 text-primary" />
             Bonus Calculator
           </h4>
@@ -118,9 +118,10 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
                 type="number"
                 value={baseReward}
                 onChange={(e) => setBaseReward(Number(e.target.value))}
+                className="bg-secondary"
               />
             </div>
-            <Button onClick={handleCalculateBonus} disabled={isLoading} className="w-32">
+            <Button onClick={handleCalculateBonus} disabled={isLoading} className="w-32 h-10">
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Calculate"}
             </Button>
           </div>
@@ -132,7 +133,7 @@ export default function ReferralSection({ user, referrals }: ReferralSectionProp
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Total Reward:</span>
-                <Badge className="text-base">{bonusResult.total.toLocaleString()} pts</Badge>
+                <Badge className="text-base" variant="secondary">{bonusResult.total.toLocaleString()} pts</Badge>
               </div>
             </div>
           )}

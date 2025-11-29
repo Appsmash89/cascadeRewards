@@ -5,18 +5,20 @@ import DashboardHeader from "@/components/dashboard/header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
-import { Loader2 } from "lucide-react";
+import { Loader2, Bell, Moon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
-
-export default function SettingsPage() {
+function SettingsView() {
   const { userProfile, isUserLoading } = useUser();
   const searchParams = useSearchParams();
   const isGuestMode = searchParams.get('mode') === 'guest';
   
   if (isUserLoading && !isGuestMode) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
+      <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -24,26 +26,42 @@ export default function SettingsPage() {
   
   if (!userProfile && !isGuestMode) {
     return (
-       <div className="flex min-h-screen w-full items-center justify-center bg-muted/40">
+       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Could not load user profile.</p>
       </div>
     )
   }
 
+  // Use guest defaults or real user settings
+  const notificationsEnabled = isGuestMode ? true : userProfile?.settings.notificationsEnabled ?? true;
+  const darkMode = isGuestMode ? false : userProfile?.settings.darkMode ?? false;
+
+
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+    <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
       <DashboardHeader user={userProfile} />
-      <main className="flex flex-1 flex-col gap-4 p-4 pb-20">
-        <Card>
+      <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Settings</CardTitle>
             <CardDescription>
-              Manage your account and app settings.
+              Manage your account and app preferences.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-muted-foreground/30 rounded-lg">
-                <p className="text-muted-foreground">App settings will be available here.</p>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-background border">
+              <div className="flex items-center gap-4">
+                <Bell className="h-5 w-5 text-muted-foreground"/>
+                <Label htmlFor="notifications" className="text-base">Push Notifications</Label>
+              </div>
+              <Switch id="notifications" checked={notificationsEnabled} disabled={isGuestMode}/>
+            </div>
+            <div className="flex items-center justify-between p-4 rounded-lg bg-background border">
+              <div className="flex items-center gap-4">
+                <Moon className="h-5 w-5 text-muted-foreground"/>
+                <Label htmlFor="dark-mode" className="text-base">Dark Mode</Label>
+              </div>
+              <Switch id="dark-mode" checked={darkMode} disabled={isGuestMode} />
             </div>
           </CardContent>
         </Card>
@@ -52,3 +70,17 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <SettingsView />
+    </Suspense>
+  )
+}
+
