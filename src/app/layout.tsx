@@ -9,6 +9,7 @@ import { AppProvider } from '@/context/app-context';
 import { Loader2 } from 'lucide-react';
 import { Inter } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { ThemeProvider } from "next-themes";
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -23,7 +24,7 @@ export default function RootLayout({
 }>) {
 
   return (
-    <html lang="en" className={cn("h-full font-sans antialiased", inter.variable)}>
+    <html lang="en" className={cn("h-full font-sans antialiased", inter.variable)} suppressHydrationWarning>
       <head>
         <title>Cascade Rewards</title>
         <meta name="description" content="Earn points for tasks and referrals." />
@@ -31,20 +32,27 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
       <body className="flex justify-center bg-secondary dark:bg-neutral-950">
-        <FirebaseClientProvider>
-          <AppProvider>
-            <div className="relative w-full max-w-md bg-background min-h-[100svh] flex flex-col shadow-2xl shadow-black/10">
-              <Suspense fallback={
-                <div className="flex min-h-screen w-full items-center justify-center bg-background">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-              }>
-                {children}
-              </Suspense>
-              <Toaster />
-            </div>
-          </AppProvider>
-        </FirebaseClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <FirebaseClientProvider>
+            <AppProvider>
+              <div className="relative w-full max-w-md bg-background min-h-[100svh] flex flex-col shadow-2xl shadow-black/10">
+                <Suspense fallback={
+                  <div className="flex min-h-screen w-full items-center justify-center bg-background">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                }>
+                  {children}
+                </Suspense>
+                <Toaster />
+              </div>
+            </AppProvider>
+          </FirebaseClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -13,6 +13,7 @@ import { doc } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
 import { manageUserDocument } from '@/services/user.service';
+import { useTheme } from 'next-themes';
 
 /**
  * Defines the shape of the application's global context.
@@ -38,6 +39,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     userError: authError,
   } = useAuth();
   const firestore = useFirestore();
+  const { setTheme } = useTheme();
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
 
   // Effect to manage the user document in Firestore whenever the auth state changes.
@@ -62,6 +64,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     isLoading: isProfileLoading,
     error: profileError,
   } = useDoc<UserProfile>(userProfileRef);
+  
+  // Effect to sync Firestore dark mode setting with the theme.
+  useEffect(() => {
+    if (userProfile) {
+      const preferredTheme = userProfile.settings.darkMode ? 'dark' : 'light';
+      setTheme(preferredTheme);
+    }
+  }, [userProfile, setTheme]);
 
   // Memoize the context value to prevent unnecessary re-renders of consumers.
   const contextValue = useMemo<AppContextType>(
