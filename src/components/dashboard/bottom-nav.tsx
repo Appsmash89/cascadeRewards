@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -12,7 +11,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useUser } from '@/hooks/use-user';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -37,24 +35,14 @@ export default function BottomNav() {
           const isActive = pathname === item.href;
           return (
             <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
-              <motion.div
-                whileTap={{ scale: 0.9 }}
+              <div
                 className={cn("p-3 rounded-full transition-colors", isActive && "bg-primary/10")}
               >
                 <item.icon className={cn('h-6 w-6', isActive && 'text-primary')} />
-              </motion.div>
-              <AnimatePresence>
-                {isActive && (
-                  <motion.span 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                    className={cn('text-xs font-medium', isActive ? 'text-primary' : 'text-muted-foreground')}>
-                    {item.label}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-              {!isActive && <span className="text-xs font-medium text-muted-foreground">{item.label}</span>}
+              </div>
+              <span className={cn('text-xs font-medium', isActive ? 'text-primary' : 'text-muted-foreground')}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
@@ -63,9 +51,9 @@ export default function BottomNav() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link href="/devtools" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
-                  <motion.div whileTap={{ scale: 0.9 }} className={cn("p-3 rounded-full transition-colors", pathname === '/devtools' && "bg-primary/10")}>
+                  <div className={cn("p-3 rounded-full transition-colors", pathname === '/devtools' && "bg-primary/10")}>
                     <Bot className={cn('h-6 w-6', pathname === '/devtools' && 'text-primary')} />
-                  </motion.div>
+                  </div>
                   <span className={cn('text-xs font-medium', pathname === '/devtools' ? 'text-primary' : 'text-muted-foreground')}>DevTools</span>
                 </Link>
               </TooltipTrigger>
