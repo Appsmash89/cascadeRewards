@@ -42,15 +42,13 @@ export default function RootLayout({
           <FirebaseClientProvider>
             <AppProvider>
               <div className="relative w-full max-w-md bg-secondary min-h-[100svh] flex flex-col shadow-2xl shadow-black/10">
-                <AnimatePresence mode="wait">
-                    <Suspense fallback={
-                      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      </div>
-                    }>
-                      {children}
-                    </Suspense>
-                </AnimatePresence>
+                <Suspense fallback={
+                  <div className="flex min-h-screen w-full items-center justify-center bg-background">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                }>
+                  {children}
+                </Suspense>
                 <Toaster />
               </div>
             </AppProvider>

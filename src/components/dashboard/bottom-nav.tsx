@@ -31,12 +31,7 @@ export default function BottomNav() {
   const navGridCols = isGuestMode ? 'grid-cols-5' : 'grid-cols-4';
 
   return (
-    <motion.div 
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
-      transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-      className="fixed bottom-0 left-0 right-0 h-20 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto"
-    >
+    <div className="fixed bottom-0 left-0 right-0 h-20 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto">
       <div className={cn("grid h-full", navGridCols)}>
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -81,6 +76,6 @@ export default function BottomNav() {
           </TooltipProvider>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
