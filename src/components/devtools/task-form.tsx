@@ -35,7 +35,7 @@ const taskSchema = z.object({
     required_error: 'You need to select a task type.',
   }),
   link: z.string().url('Must be a valid URL').optional().or(z.literal('')),
-  content: z.string().min(10, 'Content must be at least 10 characters.'),
+  content: z.string().min(1, 'Content must not be empty.'),
 });
 
 type TaskFormProps = {

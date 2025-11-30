@@ -121,7 +121,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         <CardContent>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="prose dark:prose-invert max-w-none mt-4 border-t pt-6">
             <h3 className="text-lg font-semibold">How to Complete This Task</h3>
-            <div dangerouslySetInnerHTML={{ __html: task.content.replace(/\n/g, '<br />') }} />
+            <div dangerouslySetInnerHTML={{ __html: task.content }} />
           </motion.div>
           <motion.div 
             className="mt-8 flex justify-end gap-2"
