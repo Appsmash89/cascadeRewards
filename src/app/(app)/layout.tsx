@@ -39,7 +39,7 @@ export default function AppLayout({
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-secondary">
+    <div className="flex min-h-screen w-full flex-col bg-background">
       <DashboardHeader user={userProfile} isGuest={isGuestMode}/>
       <motion.main
         key={router.pathname}
@@ -47,7 +47,7 @@ export default function AppLayout({
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: -20 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="flex flex-1 flex-col gap-4 p-4 pb-24 overflow-y-auto bg-background"
+        className="flex flex-1 flex-col gap-4 p-4 pb-24 overflow-y-auto"
       >
         {children}
       </motion.main>
