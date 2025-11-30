@@ -8,6 +8,7 @@ import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
 import { Loader2 } from "lucide-react";
 import { Suspense } from "react";
+import { motion } from "framer-motion";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -18,7 +19,9 @@ function ReferralsView() {
   if (isUserLoading || !user) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </motion.div>
       </div>
     );
   }

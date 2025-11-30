@@ -21,6 +21,7 @@ import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -86,14 +87,14 @@ export default function DashboardView() {
   if (isUserLoading || !user) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </motion.div>
       </div>
     );
   }
   
   if (!userProfile) {
-    // This state is hit if auth is done, user exists, but profile is missing.
-    // This indicates a true data-loading issue.
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Could not load user profile.</p>
@@ -106,21 +107,23 @@ export default function DashboardView() {
       <DashboardHeader user={userProfile} isGuest={isGuestMode} />
       <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
         <StatsCards user={userProfile} referrals={[]} isGuest={isGuestMode} />
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Daily Tasks</CardTitle>
-            <CardDescription>
-              Complete tasks to earn points and climb the leaderboard.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TasksList 
-              tasks={combinedTasks}
-              onCompleteTask={handleCompleteTask} 
-              isGuestMode={isGuestMode}
-            />
-          </CardContent>
-        </Card>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Daily Tasks</CardTitle>
+              <CardDescription>
+                Complete tasks to earn points and climb the leaderboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TasksList 
+                tasks={combinedTasks}
+                onCompleteTask={handleCompleteTask} 
+                isGuestMode={isGuestMode}
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
       </main>
       <BottomNav />
     </div>

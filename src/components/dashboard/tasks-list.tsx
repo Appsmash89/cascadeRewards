@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { CombinedTask } from '@/lib/types';
 import { Separator } from '../ui/separator';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type TasksListProps = {
   tasks: CombinedTask[];
@@ -19,11 +20,22 @@ const taskIcons = {
   read: <FileText className="h-5 w-5 text-indigo-500" />,
 };
 
-const TaskItem = ({ task, onComplete, disabled }: { task: CombinedTask, onComplete: () => void, disabled: boolean }) => (
-  <div className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-secondary">
-    <div className="flex-shrink-0 bg-primary/10 p-2 rounded-full">
+const TaskItem = ({ task, onComplete, disabled, index }: { task: CombinedTask, onComplete: () => void, disabled: boolean, index: number }) => (
+  <motion.div
+    layout
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
+    exit={{ opacity: 0, x: -30, transition: { duration: 0.2 } }}
+    className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-secondary"
+  >
+    <motion.div 
+      key={task.status}
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      className="flex-shrink-0 bg-primary/10 p-2 rounded-full"
+    >
       {task.status === 'completed' ? <CheckCircle className="h-5 w-5 text-green-500" /> : taskIcons[task.type]}
-    </div>
+    </motion.div>
     <div className="flex-grow">
       <p className="font-medium leading-tight">{task.title}</p>
       <p className="text-sm text-muted-foreground">{task.description}</p>
@@ -33,25 +45,27 @@ const TaskItem = ({ task, onComplete, disabled }: { task: CombinedTask, onComple
         <Award className="h-3 w-3" />
         <span>{task.points}</span>
       </Badge>
-      <Button 
-        size="sm" 
-        variant={task.status === 'completed' ? 'ghost' : 'outline'}
-        onClick={onComplete}
-        disabled={disabled}
-        className={cn(
-          "w-28 transition-all duration-300",
-          task.status === 'completed' && "border-green-500/30 bg-green-500/10 text-green-600 hover:bg-green-500/20 hover:text-green-700 cursor-default"
-        )}
-      >
-        {task.status === 'completed' ? (
-          <>
-            <CheckCircle className="mr-2 h-4 w-4" />
-            Done
-          </>
-        ) : 'Complete'}
-      </Button>
+      <motion.div whileTap={{ scale: 0.95 }}>
+        <Button 
+          size="sm" 
+          variant={task.status === 'completed' ? 'ghost' : 'outline'}
+          onClick={onComplete}
+          disabled={disabled}
+          className={cn(
+            "w-28 transition-all duration-300",
+            task.status === 'completed' && "border-green-500/30 bg-green-500/10 text-green-600 hover:bg-green-500/20 hover:text-green-700 cursor-default"
+          )}
+        >
+          {task.status === 'completed' ? (
+            <>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Done
+            </>
+          ) : 'Complete'}
+        </Button>
+      </motion.div>
     </div>
-  </div>
+  </motion.div>
 );
 
 export default function TasksList({ tasks, onCompleteTask, isGuestMode }: TasksListProps) {
@@ -64,21 +78,28 @@ export default function TasksList({ tasks, onCompleteTask, isGuestMode }: TasksL
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Available Tasks</h3>
         {availableTasks.length > 0 ? (
           <div className="space-y-2">
-            {availableTasks.map((task) => (
-              <TaskItem 
-                key={task.id} 
-                task={task} 
-                onComplete={() => onCompleteTask(task)}
-                disabled={isGuestMode || task.status === 'completed'}
-              />
-            ))}
+            <AnimatePresence>
+              {availableTasks.map((task, i) => (
+                <TaskItem 
+                  key={task.id} 
+                  task={task} 
+                  onComplete={() => onCompleteTask(task)}
+                  disabled={isGuestMode || task.status === 'completed'}
+                  index={i}
+                />
+              ))}
+            </AnimatePresence>
           </div>
         ) : (
-          <div className="text-center py-8 px-4 border-2 border-dashed rounded-lg">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-8 px-4 border-2 border-dashed rounded-lg"
+          >
             <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
             <p className="font-semibold">All tasks completed!</p>
             <p className="text-sm text-muted-foreground">Check back tomorrow for more.</p>
-          </div>
+          </motion.div>
         )}
       </div>
 
@@ -90,12 +111,13 @@ export default function TasksList({ tasks, onCompleteTask, isGuestMode }: TasksL
             Completed Tasks
           </h3>
           <div className="space-y-2">
-            {completedTasks.map((task) => (
+            {completedTasks.map((task, i) => (
               <TaskItem 
                 key={task.id} 
                 task={task} 
                 onComplete={() => {}}
                 disabled={true}
+                index={i}
               />
             ))}
           </div>

@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, increment } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
+import { motion } from 'framer-motion';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -24,7 +25,9 @@ export default function RedeemView() {
   if (isUserLoading || !user) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </motion.div>
       </div>
     );
   }
@@ -74,39 +77,47 @@ export default function RedeemView() {
     <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
       <DashboardHeader user={userProfile} isGuest={isGuestMode} />
       <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Redeem Points</CardTitle>
-            <CardDescription>
-              Use your points to claim exciting rewards.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center bg-background p-4 rounded-lg border mb-6">
-                <div>
-                    <p className="text-sm text-muted-foreground">Your Balance</p>
-                    <p className="text-2xl font-bold tracking-tight">{currentPoints.toLocaleString()} Points</p>
-                </div>
-                <Star className="h-8 w-8 text-amber-400" />
-            </div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Redeem Points</CardTitle>
+              <CardDescription>
+                Use your points to claim exciting rewards.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                transition={{ delay: 0.2 }}
+                className="flex justify-between items-center bg-background p-4 rounded-lg border mb-6"
+              >
+                  <div>
+                      <p className="text-sm text-muted-foreground">Your Balance</p>
+                      <p className="text-2xl font-bold tracking-tight">{currentPoints.toLocaleString()} Points</p>
+                  </div>
+                  <Star className="h-8 w-8 text-amber-400" />
+              </motion.div>
 
-            <div className="space-y-4">
-                <h3 className="text-lg font-semibold tracking-tight">Available Gift Cards</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {rewardsData.map((reward) => (
-                    <RewardCard 
-                        key={reward.id}
-                        reward={reward}
-                        userPoints={currentPoints}
-                        onRedeem={handleRedeem}
-                        isGuest={isGuestMode}
-                    />
-                ))}
-                </div>
-            </div>
+              <div className="space-y-4">
+                  <h3 className="text-lg font-semibold tracking-tight">Available Gift Cards</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {rewardsData.map((reward, i) => (
+                      <RewardCard 
+                          key={reward.id}
+                          reward={reward}
+                          userPoints={currentPoints}
+                          onRedeem={handleRedeem}
+                          isGuest={isGuestMode}
+                          index={i}
+                      />
+                  ))}
+                  </div>
+              </div>
 
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
       </main>
       <BottomNav />
     </div>
