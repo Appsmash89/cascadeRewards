@@ -54,7 +54,7 @@ export default function RewardCard({ reward, userPoints, onRedeem, isGuest, inde
                   {reward.points.toLocaleString()}
               </Badge>
 
-              <motion.div className="w-full" whileTap={{ scale: 0.95 }}>
+              <div className="w-full">
                 <Button 
                     size="sm" 
                     onClick={() => onRedeem(reward.points, reward.title)}
@@ -66,7 +66,7 @@ export default function RewardCard({ reward, userPoints, onRedeem, isGuest, inde
                 >
                     {isGuest ? 'Sign in to Redeem' : (canAfford ? 'Redeem' : 'More Points')}
                 </Button>
-              </motion.div>
+              </div>
           </div>
 
         </CardContent>

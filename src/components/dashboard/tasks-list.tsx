@@ -56,7 +56,7 @@ const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boo
           Done
         </div>
       ) : (
-        <Button asChild size="sm" variant="outline" className="w-28" whileTap={{ scale: 0.95 }}>
+        <Button asChild size="sm" variant="outline" className="w-28">
           <Link href={`/tasks/${task.id}`}>
             Open
             <ArrowRight className="ml-2 h-4 w-4" />

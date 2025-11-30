@@ -81,21 +81,19 @@ export default function ReferralSection({ user, referrals, isGuest }: ReferralSe
           <Label htmlFor="referral-code" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Your Unique Code</Label>
           <div className="flex items-center gap-2 mt-1">
             <Input id="referral-code" value={referralCode} readOnly className="font-mono text-lg tracking-wider bg-secondary" />
-            <motion.div whileTap={{ scale: 0.9 }}>
-              <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy referral code" disabled={isGuest}>
-                <AnimatePresence mode="wait">
-                  {isCopied ? (
-                    <motion.div key="copied" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                      <ClipboardCheck className="h-5 w-5 text-green-500" />
-                    </motion.div>
-                  ) : (
-                    <motion.div key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                      <Clipboard className="h-5 w-5" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Button>
-            </motion.div>
+            <Button variant="outline" size="icon" onClick={handleCopy} aria-label="Copy referral code" disabled={isGuest}>
+              <AnimatePresence mode="wait">
+                {isCopied ? (
+                  <motion.div key="copied" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                    <ClipboardCheck className="h-5 w-5 text-green-500" />
+                  </motion.div>
+                ) : (
+                  <motion.div key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                    <Clipboard className="h-5 w-5" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Button>
           </div>
         </motion.div>
 
@@ -155,11 +153,9 @@ export default function ReferralSection({ user, referrals, isGuest }: ReferralSe
                 className="bg-secondary"
               />
             </div>
-            <motion.div whileTap={{ scale: 0.95 }}>
-              <Button onClick={handleCalculateBonus} disabled={isLoading} className="w-32 h-10">
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Calculate"}
-              </Button>
-            </motion.div>
+            <Button onClick={handleCalculateBonus} disabled={isLoading} className="w-32 h-10">
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Calculate"}
+            </Button>
           </div>
           <AnimatePresence>
           {bonusResult && (
