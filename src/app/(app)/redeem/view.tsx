@@ -90,7 +90,7 @@ export default function RedeemView() {
                       reward={reward}
                       userPoints={currentPoints}
                       onRedeem={handleRedeem}
-                      isGuest={isGuest}
+                      isGuest={isGuestMode}
                       index={i}
                   />
               ))}
