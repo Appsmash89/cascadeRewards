@@ -12,7 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useUser } from '@/hooks/use-user';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
