@@ -103,9 +103,15 @@ export default function DashboardView() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
+    <div className="flex min-h-screen w-full flex-col bg-background">
       <DashboardHeader user={userProfile} isGuest={isGuestMode} />
-      <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
+      <motion.main 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="flex flex-1 flex-col gap-4 p-4 pb-24"
+      >
         <StatsCards user={userProfile} referrals={[]} isGuest={isGuestMode} />
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <Card className="shadow-sm">
@@ -124,7 +130,7 @@ export default function DashboardView() {
             </CardContent>
           </Card>
         </motion.div>
-      </main>
+      </motion.main>
       <BottomNav />
     </div>
   );

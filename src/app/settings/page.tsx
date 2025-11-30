@@ -4,6 +4,7 @@
 import { Suspense } from "react";
 import { useTheme } from "next-themes";
 import { doc } from "firebase/firestore";
+import { motion } from 'framer-motion';
 
 import DashboardHeader from "@/components/dashboard/header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,9 +63,15 @@ function SettingsView() {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
+    <div className="flex min-h-screen w-full flex-col bg-background">
       <DashboardHeader user={userProfile} isGuest={isGuestMode} />
-      <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
+      <motion.main 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="flex flex-1 flex-col gap-4 p-4 pb-24"
+      >
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle>Settings</CardTitle>
@@ -73,7 +80,7 @@ function SettingsView() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex items-center justify-between p-4 rounded-lg bg-background border">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-secondary border">
               <div className="flex items-center gap-4">
                 <Bell className="h-5 w-5 text-muted-foreground"/>
                 <Label htmlFor="notifications" className="text-base font-normal">Push Notifications</Label>
@@ -85,7 +92,7 @@ function SettingsView() {
                 disabled={isGuestMode}
               />
             </div>
-            <div className="flex items-center justify-between p-4 rounded-lg bg-background border">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-secondary border">
               <div className="flex items-center gap-4">
                 <Moon className="h-5 w-5 text-muted-foreground"/>
                 <Label htmlFor="dark-mode" className="text-base font-normal">Dark Mode</Label>
@@ -98,7 +105,7 @@ function SettingsView() {
             </div>
           </CardContent>
         </Card>
-      </main>
+      </motion.main>
       <BottomNav />
     </div>
   );

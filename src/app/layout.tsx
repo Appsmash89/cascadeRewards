@@ -10,8 +10,7 @@ import { Loader2 } from 'lucide-react';
 import { Inter } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from "next-themes";
-import { AnimatePresence, motion } from 'framer-motion';
-import { usePathname } from 'next/navigation';
+import { AnimatePresence } from 'framer-motion';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -24,7 +23,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
 
   return (
     <html lang="en" className={cn("h-full font-sans antialiased", inter.variable)} suppressHydrationWarning>
@@ -34,7 +32,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
-      <body className="flex justify-center bg-secondary dark:bg-neutral-950">
+      <body className="flex justify-center bg-background">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -43,16 +41,8 @@ export default function RootLayout({
         >
           <FirebaseClientProvider>
             <AppProvider>
-              <div className="relative w-full max-w-md bg-background min-h-[100svh] flex flex-col shadow-2xl shadow-black/10">
+              <div className="relative w-full max-w-md bg-secondary min-h-[100svh] flex flex-col shadow-2xl shadow-black/10">
                 <AnimatePresence mode="wait">
-                  <motion.div
-                    key={pathname}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2, ease: 'easeInOut' }}
-                    className="flex flex-col flex-1"
-                  >
                     <Suspense fallback={
                       <div className="flex min-h-screen w-full items-center justify-center bg-background">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -60,7 +50,6 @@ export default function RootLayout({
                     }>
                       {children}
                     </Suspense>
-                  </motion.div>
                 </AnimatePresence>
                 <Toaster />
               </div>
