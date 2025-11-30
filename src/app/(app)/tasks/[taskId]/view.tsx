@@ -89,75 +89,73 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const isAvailable = userTask?.status === 'available';
 
   return (
-    <div className="relative pb-20">
-      <Card>
-        <CardHeader>
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <Button asChild variant="ghost" size="sm" className="mb-4 -ml-4">
-              <Link href="/dashboard">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to tasks
-              </Link>
-            </Button>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-secondary p-3 rounded-full">
-                  {taskIcons[task.type]}
-                </div>
-                <div>
-                  <CardTitle className="text-2xl">{task.title}</CardTitle>
-                  <CardDescription>{task.description}</CardDescription>
-                </div>
+    <Card>
+      <CardHeader>
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <Button asChild variant="ghost" size="sm" className="mb-4 -ml-4">
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to tasks
+            </Link>
+          </Button>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-secondary p-3 rounded-full">
+                {taskIcons[task.type]}
               </div>
-              <Badge variant="secondary" className="flex items-center gap-1.5 text-lg font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
-                <Award className="h-5 w-5" />
-                <span>{task.points}</span>
-              </Badge>
+              <div>
+                <CardTitle className="text-2xl">{task.title}</CardTitle>
+                <CardDescription>{task.description}</CardDescription>
+              </div>
             </div>
-          </motion.div>
-        </CardHeader>
-        <CardContent>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="prose dark:prose-invert max-w-none mt-4 border-t pt-6">
-            <h3 className="text-lg font-semibold">How to Complete This Task</h3>
-            <div dangerouslySetInnerHTML={{ __html: task.content }} />
-          </motion.div>
-          <motion.div 
-            className="mt-8 flex justify-end gap-2"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.3 }}
+            <Badge variant="secondary" className="flex items-center gap-1.5 text-lg font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
+              <Award className="h-5 w-5" />
+              <span>{task.points}</span>
+            </Badge>
+          </div>
+        </motion.div>
+      </CardHeader>
+      <CardContent>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="prose dark:prose-invert max-w-none mt-4 border-t pt-6">
+          <h3 className="text-lg font-semibold">How to Complete This Task</h3>
+          <div className="whitespace-pre-wrap">{task.content}</div>
+        </motion.div>
+        <motion.div 
+          className="mt-8 flex justify-end gap-2"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.3 }}
+        >
+          {isInProgress && (
+              <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="h-12 rounded-lg text-lg"
+                  onClick={handleUpload}
+              >
+                  <Upload className="mr-2 h-5 w-5"/>
+                  Upload
+              </Button>
+          )}
+          <Button 
+              asChild={!!task.link}
+              size="lg" 
+              className="h-12 shadow-lg shadow-primary/30 rounded-lg text-lg"
+              disabled={isCompleted}
+              onClick={handleStartTask}
           >
-            {isInProgress && (
-                <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="h-12 rounded-lg text-lg"
-                    onClick={handleUpload}
-                >
-                    <Upload className="mr-2 h-5 w-5"/>
-                    Upload
-                </Button>
+            {task.link ? (
+              <Link href={task.link} target="_blank" rel="noopener noreferrer">
+                {isCompleted ? 'Completed' : (isInProgress ? 'Continue' : 'Start')}
+              </Link>
+            ) : (
+              <span>{isCompleted ? 'Completed' : (isInProgress ? 'In Progress' : 'Start')}</span>
             )}
-            <Button 
-                asChild={!!task.link}
-                size="lg" 
-                className="h-12 shadow-lg shadow-primary/30 rounded-lg text-lg"
-                disabled={isCompleted}
-                onClick={handleStartTask}
-            >
-              {task.link ? (
-                <Link href={task.link} target="_blank" rel="noopener noreferrer">
-                  {isCompleted ? 'Completed' : (isInProgress ? 'Continue' : 'Start')}
-                </Link>
-              ) : (
-                <span>{isCompleted ? 'Completed' : (isInProgress ? 'In Progress' : 'Start')}</span>
-              )}
-            </Button>
-          </motion.div>
-        </CardContent>
-      </Card>
-    </div>
+          </Button>
+        </motion.div>
+      </CardContent>
+    </Card>
   );
 }
