@@ -11,11 +11,11 @@ export const currentUser: User = {
 };
 
 export const masterTasks = [
-  { id: 'task-1', title: 'Watch Introductory Video', description: 'Learn about Cascade Rewards', points: 50, type: 'video' },
-  { id: 'task-2', title: 'Read "How to Refer" Guide', description: 'Master the referral system', points: 25, type: 'read' },
-  { id: 'task-3', title: 'Watch Advanced Tips Video', description: 'Maximize your earnings', points: 75, type: 'video' },
-  { id: 'task-4', title: 'Read "User Success Stories"', description: 'Get inspired by top earners', points: 30, type: 'read' },
-  { id: 'task-5', title: 'Complete Profile Setup', description: 'Add your payment details', points: 100, type: 'read' },
+  { id: 'task-1', title: 'Watch Introductory Video', description: 'Learn about Cascade Rewards', points: 50, type: 'video', link: 'https://www.youtube.com' },
+  { id: 'task-2', title: 'Read "How to Refer" Guide', description: 'Master the referral system', points: 25, type: 'read', link: 'https://www.google.com' },
+  { id: 'task-3', title: 'Watch Advanced Tips Video', description: 'Maximize your earnings', points: 75, type: 'video', link: 'https://www.youtube.com' },
+  { id: 'task-4', title: 'Read "User Success Stories"', description: 'Get inspired by top earners', points: 30, type: 'read', link: 'https://www.google.com' },
+  { id: 'task-5', title: 'Complete Profile Setup', description: 'Add your payment details', points: 100, type: 'read', link: 'https://www.google.com' },
 ];
 
 

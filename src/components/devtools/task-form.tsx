@@ -32,21 +32,23 @@ const taskSchema = z.object({
   type: z.enum(['read', 'video'], {
     required_error: 'You need to select a task type.',
   }),
+  link: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 
 type TaskFormProps = {
   task?: Task | null;
-  onSubmit: (data: Task) => Promise<void>;
+  onSubmit: (data: z.infer<typeof taskSchema>) => Promise<void>;
 };
 
 export default function TaskForm({ task, onSubmit }: TaskFormProps) {
-  const form = useForm<Task>({
+  const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
     defaultValues: task || {
       title: '',
       description: '',
       points: 50,
       type: 'read',
+      link: '',
     },
   });
 
@@ -111,6 +113,22 @@ export default function TaskForm({ task, onSubmit }: TaskFormProps) {
                   <SelectItem value="video">Video</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="link"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Task Link</FormLabel>
+              <FormControl>
+                <Input placeholder="https://example.com/task-details" {...field} />
+              </FormControl>
+              <FormDescription>
+                Optional: The destination URL for the 'Start' button.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

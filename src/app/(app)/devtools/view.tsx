@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -19,6 +19,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import TaskForm from "@/components/devtools/task-form";
+import Link from 'next/link';
+import { z } from "zod";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -90,9 +92,16 @@ export default function DevToolsView() {
     }
   };
 
-  const handleAddTask = async (data: Task) => {
+  const handleTaskSubmit = async (data: Omit<Task, 'id'>) => {
     if (!firestore || !userProfile) return;
     try {
+      if (editingTask) {
+        // Update existing task
+        const masterTaskRef = doc(firestore, 'tasks', editingTask.id);
+        await setDoc(masterTaskRef, data, { merge: true });
+        toast({ title: 'Task Updated', description: `"${data.title}" has been updated.` });
+      } else {
+        // Add new task
         const newId = `task-${Date.now()}`;
         const masterTaskRef = doc(firestore, 'tasks', newId);
         await setDoc(masterTaskRef, data);
@@ -100,26 +109,15 @@ export default function DevToolsView() {
         // Also add to the guest user's subcollection
         const userTaskRef = doc(firestore, 'users', userProfile.uid, 'tasks', newId);
         await setDoc(userTaskRef, { status: 'available', completedAt: null });
-
         toast({ title: 'Task Added', description: `"${data.title}" has been added globally.` });
-        setIsDialogOpen(false);
+      }
+      setIsDialogOpen(false);
+      setEditingTask(null);
     } catch (e: any) {
-        toast({ variant: "destructive", title: 'Error adding task', description: e.message });
+      toast({ variant: "destructive", title: 'Error submitting task', description: e.message });
     }
   };
 
-  const handleUpdateTask = async (id: string, data: Task) => {
-     if (!firestore) return;
-    try {
-        const masterTaskRef = doc(firestore, 'tasks', id);
-        await setDoc(masterTaskRef, data, { merge: true });
-        toast({ title: 'Task Updated', description: `"${data.title}" has been updated.` });
-        setEditingTask(null);
-        setIsDialogOpen(false);
-    } catch (e: any) {
-        toast({ variant: "destructive", title: 'Error updating task', description: e.message });
-    }
-  };
 
   const handleDeleteTask = async (task: WithId<Task>) => {
     if (!firestore || !userProfile) return;
@@ -187,10 +185,16 @@ export default function DevToolsView() {
                 ) : (
                     <div className="divide-y">
                         {sortedTasks && sortedTasks.map(task => (
-                            <div key={task.id} className="flex items-center justify-between p-3">
-                                <div>
+                            <div key={task.id} className="flex items-center justify-between p-3 gap-2">
+                                <div className="flex-1">
                                     <p className="font-medium">{task.title}</p>
                                     <p className="text-sm text-muted-foreground">{task.points} points</p>
+                                    {task.link && (
+                                        <Link href={task.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
+                                            <Link2 className="h-3 w-3" />
+                                            {task.link}
+                                        </Link>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <DialogTrigger asChild>
@@ -215,13 +219,7 @@ export default function DevToolsView() {
             </DialogHeader>
             <TaskForm 
                 task={editingTask} 
-                onSubmit={async (data) => {
-                    if (editingTask) {
-                        await handleUpdateTask(editingTask.id, data);
-                    } else {
-                        await handleAddTask(data);
-                    }
-                }}
+                onSubmit={handleTaskSubmit}
             />
         </DialogContent>
     </Dialog>

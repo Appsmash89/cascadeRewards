@@ -9,6 +9,7 @@ import {
   type Firestore,
 } from 'firebase/firestore';
 import { masterTasks } from '@/lib/data';
+import type { Task } from '@/lib/types';
 
 /**
  * Seeds the global /tasks collection with the master task list.
@@ -26,12 +27,14 @@ export const seedMasterTasks = async (firestore: Firestore): Promise<void> => {
     const batch = writeBatch(firestore);
     masterTasks.forEach((task) => {
       const docRef = doc(firestore, 'tasks', task.id);
-      batch.set(docRef, {
+      const taskData: Task = {
         title: task.title,
         description: task.description,
         points: task.points,
         type: task.type,
-      });
+        link: task.link || '',
+      };
+      batch.set(docRef, taskData);
     });
     await batch.commit();
     console.log('Master tasks seeded.');

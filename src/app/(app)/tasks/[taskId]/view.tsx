@@ -14,6 +14,7 @@ import type { Task, UserTask } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { motion } from 'framer-motion';
+import React from 'react';
 
 const taskIcons = {
   video: <PlayCircle className="h-6 w-6 text-primary" />,
@@ -37,20 +38,25 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   );
   const { data: userTask, isLoading: isUserTaskLoading } = useDoc<UserTask>(userTaskRef);
 
-  const handleStartTask = () => {
+  const handleStartTask = (e: React.MouseEvent) => {
     if (!userProfile || !firestore || !task) return;
 
-    const userTaskDocRef = doc(firestore, 'users', userProfile.uid, 'tasks', taskId);
-
-    // Update the task status to 'in-progress'
-    updateDocumentNonBlocking(userTaskDocRef, {
-      status: 'in-progress',
-    });
-
-    toast({
-      title: "Task Started!",
-      description: `The task "${task.title}" is now in progress.`,
-    });
+    // Prevent navigation if there's no link
+    if (!task.link) {
+      e.preventDefault();
+    }
+    
+    // Only update status if it's currently 'available'
+    if (userTask?.status === 'available') {
+      const userTaskDocRef = doc(firestore, 'users', userProfile.uid, 'tasks', taskId);
+      updateDocumentNonBlocking(userTaskDocRef, {
+        status: 'in-progress',
+      });
+      toast({
+        title: "Task Started!",
+        description: `The task "${task.title}" is now in progress.`,
+      });
+    }
   };
   
   const handleUpload = () => {
@@ -80,6 +86,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
 
   const isCompleted = userTask?.status === 'completed';
   const isInProgress = userTask?.status === 'in-progress';
+  const isAvailable = userTask?.status === 'available';
 
   return (
     <div className="relative pb-20">
@@ -145,12 +152,19 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 </Button>
             )}
             <Button 
-              size="lg" 
-              className="h-12 shadow-lg shadow-primary/30 rounded-lg text-lg"
-              onClick={handleStartTask}
-              disabled={isCompleted || isInProgress}
+                asChild={!!task.link}
+                size="lg" 
+                className="h-12 shadow-lg shadow-primary/30 rounded-lg text-lg"
+                disabled={isCompleted}
+                onClick={handleStartTask}
             >
-              {isCompleted ? 'Completed' : (isInProgress ? 'In Progress' : 'Start')}
+              {task.link ? (
+                <Link href={task.link} target="_blank" rel="noopener noreferrer">
+                  {isCompleted ? 'Completed' : (isInProgress ? 'Continue' : 'Start')}
+                </Link>
+              ) : (
+                <span>{isCompleted ? 'Completed' : (isInProgress ? 'In Progress' : 'Start')}</span>
+              )}
             </Button>
           </motion.div>
         </CardContent>

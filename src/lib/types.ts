@@ -35,6 +35,7 @@ export type Task = {
   description: string;
   points: number;
   type: 'video' | 'read';
+  link?: string;
 };
 
 // Represents a user's specific task state from /users/{uid}/tasks/{taskId}
