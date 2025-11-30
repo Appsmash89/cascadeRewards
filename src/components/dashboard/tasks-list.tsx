@@ -44,26 +44,26 @@ const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boo
         <Award className="h-3 w-3" />
         <span>{task.points}</span>
       </Badge>
-      <motion.div whileTap={{ scale: 0.95 }}>
-         {task.status === 'completed' ? (
-          <div
-            className={cn(
-              "flex items-center justify-center w-28 h-9 rounded-md border text-sm",
-              "border-green-500/30 bg-green-500/10 text-green-600 cursor-default"
-            )}
-          >
-            <CheckCircle className="mr-2 h-4 w-4" />
-            Done
-          </div>
-        ) : (
-          <Button asChild size="sm" variant="outline" className="w-28">
-            <Link href={`/tasks/${task.id}`}>
-              Open
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        )}
-      </motion.div>
+      
+        {task.status === 'completed' ? (
+        <div
+          className={cn(
+            "flex items-center justify-center w-28 h-9 rounded-md border text-sm",
+            "border-green-500/30 bg-green-500/10 text-green-600 cursor-default"
+          )}
+        >
+          <CheckCircle className="mr-2 h-4 w-4" />
+          Done
+        </div>
+      ) : (
+        <Button asChild size="sm" variant="outline" className="w-28" whileTap={{ scale: 0.95 }}>
+          <Link href={`/tasks/${task.id}`}>
+            Open
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      )}
+      
     </div>
   </motion.div>
 );
