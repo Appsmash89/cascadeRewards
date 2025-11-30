@@ -25,6 +25,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import type { Task } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 const taskSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
@@ -45,15 +46,29 @@ type TaskFormProps = {
 export default function TaskForm({ task, onSubmit }: TaskFormProps) {
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
-    defaultValues: task || {
-      title: '',
-      description: '',
-      points: 50,
-      type: 'read',
-      link: '',
-      content: 'This is the default content. Please replace it with instructions on how to complete the task.',
+    defaultValues: {
+      title: task?.title || '',
+      description: task?.description || '',
+      points: task?.points || 50,
+      type: task?.type || 'read',
+      link: task?.link || '',
+      content: task?.content || 'This is the default content. Please replace it with instructions on how to complete the task.',
     },
   });
+
+  useEffect(() => {
+    // When the `task` prop updates (e.g., after data fetching),
+    // reset the form with the new default values.
+    form.reset({
+      title: task?.title || '',
+      description: task?.description || '',
+      points: task?.points || 50,
+      type: task?.type || 'read',
+      link: task?.link || '',
+      content: task?.content || '',
+    });
+  }, [task, form]);
+
 
   const { isSubmitting } = form.formState;
 

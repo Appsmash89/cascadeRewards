@@ -44,10 +44,6 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
         const collectionRef = collection(firestore, 'tasks');
         const newDocRef = await addDoc(collectionRef, data);
         
-        // Also add to the guest user's subcollection
-        const userTaskRef = doc(firestore, 'users', userProfile.uid, 'tasks', newDocRef.id);
-        await setDoc(userTaskRef, { status: 'available', completedAt: null });
-        
         toast({ title: 'Task Added', description: `"${data.title}" has been added globally.` });
       } else {
         // Update existing task
@@ -89,10 +85,13 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <TaskForm 
-                task={task} 
-                onSubmit={handleTaskSubmit}
-            />
+            {/* Only render form if not loading and we either have a task or are creating a new one */}
+            {(!isTaskLoading && (task || isNew)) && (
+                <TaskForm 
+                    task={task} 
+                    onSubmit={handleTaskSubmit}
+                />
+            )}
         </CardContent>
     </Card>
   );
