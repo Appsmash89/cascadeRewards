@@ -81,7 +81,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const isCompleted = userTask?.status === 'completed';
 
   return (
-    <div className="relative pb-24">
+    <div className="relative pb-4">
       <Card>
         <CardHeader>
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
@@ -126,24 +126,23 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               <li>Step 3: Profit! (and by profit, we mean points).</li>
             </ul>
           </motion.div>
+          <motion.div 
+            className="mt-8 flex justify-end"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.3 }}
+          >
+            <Button 
+              size="lg" 
+              className="h-12 shadow-lg shadow-primary/30 rounded-lg text-lg"
+              onClick={handleStartTask}
+              disabled={isCompleted}
+            >
+              {isCompleted ? 'Completed' : 'Start Task'}
+            </Button>
+          </motion.div>
         </CardContent>
       </Card>
-
-      <motion.div 
-        className="fixed bottom-20 right-4 z-20"
-        initial={{ scale: 0, y: 50 }}
-        animate={{ scale: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.3 }}
-      >
-        <Button 
-          size="lg" 
-          className="h-14 w-36 shadow-lg shadow-primary/30 rounded-full text-lg"
-          onClick={handleStartTask}
-          disabled={isCompleted}
-        >
-          {isCompleted ? 'Completed' : 'Start Task'}
-        </Button>
-      </motion.div>
     </div>
   );
 }
