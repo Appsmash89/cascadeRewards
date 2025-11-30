@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import type { Task } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
@@ -33,6 +34,7 @@ const taskSchema = z.object({
     required_error: 'You need to select a task type.',
   }),
   link: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  content: z.string().min(10, 'Content must be at least 10 characters.'),
 });
 
 type TaskFormProps = {
@@ -49,6 +51,7 @@ export default function TaskForm({ task, onSubmit }: TaskFormProps) {
       points: 50,
       type: 'read',
       link: '',
+      content: 'This is the default content. Please replace it with instructions on how to complete the task.',
     },
   });
 
@@ -128,6 +131,26 @@ export default function TaskForm({ task, onSubmit }: TaskFormProps) {
               </FormControl>
               <FormDescription>
                 Optional: The destination URL for the 'Start' button.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="content"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Task Instructions</FormLabel>
+              <FormControl>
+                <Textarea 
+                    placeholder="Provide detailed steps on how to complete the task..." 
+                    className="min-h-[200px]"
+                    {...field} 
+                />
+              </FormControl>
+              <FormDescription>
+                This content will be displayed on the task detail page.
               </FormDescription>
               <FormMessage />
             </FormItem>

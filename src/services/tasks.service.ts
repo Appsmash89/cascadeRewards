@@ -33,6 +33,7 @@ export const seedMasterTasks = async (firestore: Firestore): Promise<void> => {
         points: task.points,
         type: task.type,
         link: task.link || '',
+        content: "This is the default content for the task. You can edit this in the DevTools.",
       };
       batch.set(docRef, taskData);
     });

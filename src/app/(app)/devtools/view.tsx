@@ -9,18 +9,9 @@ import { Loader2, PlusCircle, Trash2, Edit, Link2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { collection, getDocs, writeBatch, doc, deleteDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, writeBatch, doc, deleteDoc } from "firebase/firestore";
 import type { Task, WithId } from "@/lib/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import TaskForm from "@/components/devtools/task-form";
 import Link from 'next/link';
-import { z } from "zod";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -32,14 +23,12 @@ export default function DevToolsView() {
   const isGuestMode = user?.email === GUEST_EMAIL;
   
   const [isResetting, setIsResetting] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<WithId<Task> | null>(null);
 
   const masterTasksQuery = useMemoFirebase(() =>
     userProfile ? collection(firestore, 'tasks') : null,
     [userProfile, firestore]
   );
-  const { data: masterTasks, isLoading: isLoadingMasterTasks, error } = useCollection<Task>(masterTasksQuery);
+  const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
 
   useEffect(() => {
     if (!isUserLoading && !isGuestMode) {
@@ -92,33 +81,6 @@ export default function DevToolsView() {
     }
   };
 
-  const handleTaskSubmit = async (data: Omit<Task, 'id'>) => {
-    if (!firestore || !userProfile) return;
-    try {
-      if (editingTask) {
-        // Update existing task
-        const masterTaskRef = doc(firestore, 'tasks', editingTask.id);
-        await setDoc(masterTaskRef, data, { merge: true });
-        toast({ title: 'Task Updated', description: `"${data.title}" has been updated.` });
-      } else {
-        // Add new task
-        const newId = `task-${Date.now()}`;
-        const masterTaskRef = doc(firestore, 'tasks', newId);
-        await setDoc(masterTaskRef, data);
-        
-        // Also add to the guest user's subcollection
-        const userTaskRef = doc(firestore, 'users', userProfile.uid, 'tasks', newId);
-        await setDoc(userTaskRef, { status: 'available', completedAt: null });
-        toast({ title: 'Task Added', description: `"${data.title}" has been added globally.` });
-      }
-      setIsDialogOpen(false);
-      setEditingTask(null);
-    } catch (e: any) {
-      toast({ variant: "destructive", title: 'Error submitting task', description: e.message });
-    }
-  };
-
-
   const handleDeleteTask = async (task: WithId<Task>) => {
     if (!firestore || !userProfile) return;
     if (!confirm(`Are you sure you want to delete "${task.title}"? This cannot be undone.`)) return;
@@ -130,7 +92,6 @@ export default function DevToolsView() {
         // Also delete from guest user's subcollection
         const userTaskRef = doc(firestore, 'users', userProfile.uid, 'tasks', task.id);
         await deleteDoc(userTaskRef).catch(e => console.warn("Could not delete user task, it might not exist", e));
-
 
         toast({ title: 'Task Deleted', description: `"${task.title}" has been removed.` });
     } catch (e: any) {
@@ -149,7 +110,7 @@ export default function DevToolsView() {
   const sortedTasks = masterTasks?.sort((a, b) => a.title.localeCompare(b.title));
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <>
         <Card className="shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
             <div>
@@ -169,12 +130,12 @@ export default function DevToolsView() {
                 <CardTitle>Task Management</CardTitle>
                 <CardDescription>Add, edit, or delete global tasks.</CardDescription>
             </div>
-            <DialogTrigger asChild>
-                <Button size="sm" onClick={() => setEditingTask(null)}>
+            <Button size="sm" asChild>
+                <Link href="/devtools/task/new">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Task
-                </Button>
-            </DialogTrigger>
+                </Link>
+            </Button>
             </CardHeader>
             <CardContent>
             <div className="border rounded-lg">
@@ -197,11 +158,11 @@ export default function DevToolsView() {
                                     )}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <DialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" onClick={() => setEditingTask(task)}>
+                                    <Button variant="ghost" size="icon" asChild>
+                                        <Link href={`/devtools/task/edit/${task.id}`}>
                                             <Edit className="h-4 w-4" />
-                                        </Button>
-                                    </DialogTrigger>
+                                        </Link>
+                                    </Button>
                                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteTask(task)}>
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -213,15 +174,6 @@ export default function DevToolsView() {
             </div>
             </CardContent>
         </Card>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
-            </DialogHeader>
-            <TaskForm 
-                task={editingTask} 
-                onSubmit={handleTaskSubmit}
-            />
-        </DialogContent>
-    </Dialog>
+    </>
   );
 }

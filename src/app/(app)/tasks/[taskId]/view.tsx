@@ -121,18 +121,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         <CardContent>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="prose dark:prose-invert max-w-none mt-4 border-t pt-6">
             <h3 className="text-lg font-semibold">How to Complete This Task</h3>
-            <p>
-              This is a placeholder for the detailed instructions for completing the task.
-              You can add any content here, such as embedded videos, text, images, or links.
-            </p>
-            <p>
-              For example, if this is a 'video' task, you could embed the video player here. If it's a 'read' task, you could display the article content directly.
-            </p>
-            <ul className="list-disc pl-5 space-y-2">
-              <li>Step 1: Do the first thing.</li>
-              <li>Step 2: Do the second thing.</li>
-              <li>Step 3: Profit! (and by profit, we mean points).</li>
-            </ul>
+            <div dangerouslySetInnerHTML={{ __html: task.content.replace(/\n/g, '<br />') }} />
           </motion.div>
           <motion.div 
             className="mt-8 flex justify-end gap-2"

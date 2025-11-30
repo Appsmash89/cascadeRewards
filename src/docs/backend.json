@@ -103,9 +103,10 @@
         "description": { "type": "string" },
         "points": { "type": "number" },
         "type": { "type": "string", "enum": ["video", "read"] },
-        "link": { "type": "string", "format": "uri" }
+        "link": { "type": "string", "format": "uri" },
+        "content": { "type": "string" }
       },
-      "required": ["title", "description", "points", "type"]
+      "required": ["title", "description", "points", "type", "content"]
     },
     "UserTask": {
       "title": "User Task",
