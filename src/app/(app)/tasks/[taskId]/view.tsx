@@ -2,7 +2,7 @@
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, serverTimestamp, increment } from 'firebase/firestore';
+import { doc, serverTimestamp, increment, setDoc } from 'firebase/firestore';
 import { useParams } from 'next/navigation';
 import { useUser } from '@/hooks/use-user';
 import { Loader2, Award, ArrowLeft, PlayCircle, FileText, Upload } from 'lucide-react';
@@ -47,11 +47,19 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
     }
     
     // Only update status if it's currently 'available'
-    if (userTask?.status === 'available') {
+    if (userTask?.status === 'available' || !userTask) {
       const userTaskDocRef = doc(firestore, 'users', userProfile.uid, 'tasks', taskId);
-      updateDocumentNonBlocking(userTaskDocRef, {
-        status: 'in-progress',
-      });
+      // Use setDoc with merge to create or update
+      setDoc(userTaskDocRef, { status: 'in-progress' }, { merge: true })
+        .catch(error => {
+          console.error("Error starting task:", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not start the task.",
+          });
+        });
+
       toast({
         title: "Task Started!",
         description: `The task "${task.title}" is now in progress.`,
@@ -86,7 +94,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
 
   const isCompleted = userTask?.status === 'completed';
   const isInProgress = userTask?.status === 'in-progress';
-  const isAvailable = userTask?.status === 'available';
+  const isAvailable = !userTask || userTask.status === 'available';
 
   return (
     <Card>
@@ -151,7 +159,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 {isCompleted ? 'Completed' : (isInProgress ? 'Continue' : 'Start')}
               </Link>
             ) : (
-              <span>{isCompleted ? 'Completed' : (isInProgress ? 'In Progress' : 'Start')}</span>
+              <span>{isCompleted ? 'Completed' : (isInProgress ? 'Continue' : 'Start')}</span>
             )}
           </Button>
         </motion.div>
