@@ -49,7 +49,7 @@ export default function RewardCard({ reward, userPoints, onRedeem, isGuest, inde
           <p className="text-sm text-muted-foreground mb-3 flex-grow">{reward.description}</p>
           
           <div className="flex flex-col items-start gap-3 mt-auto">
-              <Badge variant="secondary" className="text-base font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
+              <Badge variant="secondary" className="text-base font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20">
                   <Award className="h-4 w-4 mr-1.5" />
                   {reward.points.toLocaleString()}
               </Badge>

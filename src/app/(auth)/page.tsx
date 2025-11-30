@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc, getDoc } from 'firebase/firestore';
+import { motion } from 'framer-motion';
 
 // Hardcoded credentials for the persistent guest user
 const GUEST_EMAIL = 'guest.dev@cascade.app';
@@ -99,9 +100,9 @@ export default function LoginPage() {
       </div>
       <Card className="w-full max-w-sm border-0 shadow-xl shadow-primary/5">
         <CardHeader>
-          <CardDescription className="text-center">
-            Sign in to access your dashboard.
-          </CardDescription>
+          <CardTitle className="text-center text-xl font-semibold">
+            Sign In
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <Button 

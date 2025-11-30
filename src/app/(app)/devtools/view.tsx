@@ -1,13 +1,11 @@
 
 'use client';
 
-import DashboardHeader from "@/components/dashboard/header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import BottomNav from "@/components/dashboard/bottom-nav";
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Bot, PlusCircle, Trash2, Edit } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -142,11 +140,10 @@ export default function DevToolsView() {
     }
   };
 
-
-  if (isUserLoading || !user) {
+  if (!isGuestMode) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p>Access denied.</p>
       </div>
     );
   }
@@ -154,85 +151,79 @@ export default function DevToolsView() {
   const sortedTasks = masterTasks?.sort((a, b) => a.title.localeCompare(b.title));
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-secondary dark:bg-neutral-950">
-      <DashboardHeader user={userProfile} isGuest={isGuestMode} />
-      <main className="flex flex-1 flex-col gap-4 p-4 pb-24">
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <Card className="shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle>Developer Tools</CardTitle>
-                    <CardDescription>Tools for easy prototyping and quick testing.</CardDescription>
-                </div>
-                <Button onClick={handleResetTasks} variant="outline" size="sm" disabled={isResetting}>
-                    {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Reset User Progress
-                </Button>
-                </CardHeader>
-            </Card>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Card className="shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>Developer Tools</CardTitle>
+                <CardDescription>Tools for easy prototyping and quick testing.</CardDescription>
+            </div>
+            <Button onClick={handleResetTasks} variant="outline" size="sm" disabled={isResetting}>
+                {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Reset User Progress
+            </Button>
+            </CardHeader>
+        </Card>
 
-            <Card className="shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle>Task Management</CardTitle>
-                    <CardDescription>Add, edit, or delete global tasks.</CardDescription>
-                </div>
-                <DialogTrigger asChild>
-                    <Button size="sm" onClick={() => setEditingTask(null)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Task
-                    </Button>
-                </DialogTrigger>
-                </CardHeader>
-                <CardContent>
-                <div className="border rounded-lg">
-                    {isLoadingMasterTasks ? (
-                        <div className="p-8 text-center text-muted-foreground">
-                            <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                        </div>
-                    ) : (
-                        <div className="divide-y">
-                            {sortedTasks && sortedTasks.map(task => (
-                                <div key={task.id} className="flex items-center justify-between p-3">
-                                    <div>
-                                        <p className="font-medium">{task.title}</p>
-                                        <p className="text-sm text-muted-foreground">{task.points} points</p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <DialogTrigger asChild>
-                                            <Button variant="ghost" size="icon" onClick={() => setEditingTask(task)}>
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                        </DialogTrigger>
-                                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteTask(task)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </div>
+        <Card className="shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>Task Management</CardTitle>
+                <CardDescription>Add, edit, or delete global tasks.</CardDescription>
+            </div>
+            <DialogTrigger asChild>
+                <Button size="sm" onClick={() => setEditingTask(null)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Task
+                </Button>
+            </DialogTrigger>
+            </CardHeader>
+            <CardContent>
+            <div className="border rounded-lg">
+                {isLoadingMasterTasks ? (
+                    <div className="p-8 text-center text-muted-foreground">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                    </div>
+                ) : (
+                    <div className="divide-y">
+                        {sortedTasks && sortedTasks.map(task => (
+                            <div key={task.id} className="flex items-center justify-between p-3">
+                                <div>
+                                    <p className="font-medium">{task.title}</p>
+                                    <p className="text-sm text-muted-foreground">{task.points} points</p>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                </CardContent>
-            </Card>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
-                </DialogHeader>
-                <TaskForm 
-                    task={editingTask} 
-                    onSubmit={async (data) => {
-                        if (editingTask) {
-                            await handleUpdateTask(editingTask.id, data);
-                        } else {
-                            await handleAddTask(data);
-                        }
-                    }}
-                />
-            </DialogContent>
-        </Dialog>
-      </main>
-      <BottomNav />
-    </div>
+                                <div className="flex items-center gap-2">
+                                    <DialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" onClick={() => setEditingTask(task)}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                    </DialogTrigger>
+                                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDeleteTask(task)}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+            </CardContent>
+        </Card>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
+            </DialogHeader>
+            <TaskForm 
+                task={editingTask} 
+                onSubmit={async (data) => {
+                    if (editingTask) {
+                        await handleUpdateTask(editingTask.id, data);
+                    } else {
+                        await handleAddTask(data);
+                    }
+                }}
+            />
+        </DialogContent>
+    </Dialog>
   );
 }

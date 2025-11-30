@@ -32,7 +32,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
-      <body className="flex justify-center bg-background">
+      <body className="flex justify-center bg-secondary">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -41,13 +41,15 @@ export default function RootLayout({
         >
           <FirebaseClientProvider>
             <AppProvider>
-              <div className="relative w-full max-w-md bg-secondary min-h-[100svh] flex flex-col shadow-2xl shadow-black/10">
+              <div className="relative w-full max-w-md bg-background min-h-[100svh] flex flex-col shadow-2xl shadow-black/10">
                 <Suspense fallback={
                   <div className="flex min-h-screen w-full items-center justify-center bg-background">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
                 }>
-                  {children}
+                  <AnimatePresence mode="wait">
+                    {children}
+                  </AnimatePresence>
                 </Suspense>
                 <Toaster />
               </div>
