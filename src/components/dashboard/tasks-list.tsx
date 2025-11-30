@@ -1,17 +1,16 @@
-
 'use client';
 
-import { PlayCircle, FileText, CheckCircle, Award, History } from 'lucide-react';
+import { PlayCircle, FileText, CheckCircle, Award, History, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { CombinedTask } from '@/lib/types';
 import { Separator } from '../ui/separator';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 type TasksListProps = {
   tasks: CombinedTask[];
-  onCompleteTask: (task: CombinedTask) => void;
   isGuestMode: boolean;
 };
 
@@ -20,7 +19,7 @@ const taskIcons = {
   read: <FileText className="h-5 w-5 text-indigo-500" />,
 };
 
-const TaskItem = ({ task, onComplete, disabled, index }: { task: CombinedTask, onComplete: () => void, disabled: boolean, index: number }) => (
+const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boolean, index: number }) => (
   <motion.div
     layout
     initial={{ opacity: 0, y: 20 }}
@@ -46,29 +45,30 @@ const TaskItem = ({ task, onComplete, disabled, index }: { task: CombinedTask, o
         <span>{task.points}</span>
       </Badge>
       <motion.div whileTap={{ scale: 0.95 }}>
-        <Button 
-          size="sm" 
-          variant={task.status === 'completed' ? 'ghost' : 'outline'}
-          onClick={onComplete}
-          disabled={disabled}
-          className={cn(
-            "w-28 transition-all duration-300",
-            task.status === 'completed' && "border-green-500/30 bg-green-500/10 text-green-600 hover:bg-green-500/20 hover:text-green-700 cursor-default"
-          )}
-        >
-          {task.status === 'completed' ? (
-            <>
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Done
-            </>
-          ) : 'Complete'}
-        </Button>
+         {task.status === 'completed' ? (
+          <div
+            className={cn(
+              "flex items-center justify-center w-28 h-9 rounded-md border text-sm",
+              "border-green-500/30 bg-green-500/10 text-green-600 cursor-default"
+            )}
+          >
+            <CheckCircle className="mr-2 h-4 w-4" />
+            Done
+          </div>
+        ) : (
+          <Button asChild size="sm" variant="outline" className="w-28">
+            <Link href={`/tasks/${task.id}`}>
+              Open
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        )}
       </motion.div>
     </div>
   </motion.div>
 );
 
-export default function TasksList({ tasks, onCompleteTask, isGuestMode }: TasksListProps) {
+export default function TasksList({ tasks, isGuestMode }: TasksListProps) {
   const availableTasks = tasks.filter(task => task.status === 'available');
   const completedTasks = tasks.filter(task => task.status === 'completed');
 
@@ -83,7 +83,6 @@ export default function TasksList({ tasks, onCompleteTask, isGuestMode }: TasksL
                 <TaskItem 
                   key={task.id} 
                   task={task} 
-                  onComplete={() => onCompleteTask(task)}
                   disabled={isGuestMode || task.status === 'completed'}
                   index={i}
                 />
@@ -114,8 +113,7 @@ export default function TasksList({ tasks, onCompleteTask, isGuestMode }: TasksL
             {completedTasks.map((task, i) => (
               <TaskItem 
                 key={task.id} 
-                task={task} 
-                onComplete={() => {}}
+                task={task}
                 disabled={true}
                 index={i}
               />

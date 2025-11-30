@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -57,29 +56,6 @@ export default function DashboardView() {
   }, [masterTasks, userTasks]);
 
 
-  const handleCompleteTask = (task: CombinedTask) => {
-    if (!userProfile || !firestore) return;
-
-    const userTaskRef = doc(firestore, 'users', userProfile.uid, 'tasks', task.id);
-    const userProfileRef = doc(firestore, 'users', userProfile.uid);
-
-    // Update the task status to 'completed'
-    updateDocumentNonBlocking(userTaskRef, {
-      status: 'completed',
-      completedAt: serverTimestamp(),
-    });
-
-    // Award points to the user
-    updateDocumentNonBlocking(userProfileRef, {
-      points: increment(task.points),
-    });
-
-    toast({
-      title: "Task Completed!",
-      description: `You earned ${task.points} points.`,
-    });
-  };
-
   // The main loading state is handled by the new layout
   if (!userProfile) {
     return null; // or a minimal loader if preferred, but layout handles the main one
@@ -99,7 +75,6 @@ export default function DashboardView() {
           <CardContent>
             <TasksList 
               tasks={combinedTasks}
-              onCompleteTask={handleCompleteTask} 
               isGuestMode={isGuestMode}
             />
           </CardContent>
