@@ -39,8 +39,9 @@ export type Task = {
 
 // Represents a user's specific task state from /users/{uid}/tasks/{taskId}
 export type UserTask = {
-  status: 'available' | 'completed';
+  status: 'available' | 'in-progress' | 'completed';
   completedAt: any; // Firestore Timestamp or null
+  screenshotURL?: string;
 }
 
 // A combined type for easier handling in the UI

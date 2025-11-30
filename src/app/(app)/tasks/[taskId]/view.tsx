@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, serverTimestamp, increment } from 'firebase/firestore';
 import { useParams } from 'next/navigation';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, Award, ArrowLeft, PlayCircle, FileText } from 'lucide-react';
+import { Loader2, Award, ArrowLeft, PlayCircle, FileText, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,31 +38,30 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const { data: userTask, isLoading: isUserTaskLoading } = useDoc<UserTask>(userTaskRef);
 
   const handleStartTask = () => {
-    // This is where you would put logic to start the task,
-    // e.g., navigate to a video, open a document, etc.
-    // For now, we'll just complete it immediately for demonstration.
     if (!userProfile || !firestore || !task) return;
 
     const userTaskDocRef = doc(firestore, 'users', userProfile.uid, 'tasks', taskId);
-    const userProfileRef = doc(firestore, 'users', userProfile.uid);
 
-    // Update the task status to 'completed'
+    // Update the task status to 'in-progress'
     updateDocumentNonBlocking(userTaskDocRef, {
-      status: 'completed',
-      completedAt: serverTimestamp(),
-    });
-
-    // Award points to the user
-    updateDocumentNonBlocking(userProfileRef, {
-      points: increment(task.points),
+      status: 'in-progress',
     });
 
     toast({
-      title: "Task Completed!",
-      description: `You earned ${task.points} points.`,
+      title: "Task Started!",
+      description: `The task "${task.title}" is now in progress.`,
     });
-    
-    // Potentially navigate back to dashboard or show a completion message
+  };
+  
+  const handleUpload = () => {
+     if (!userProfile || !firestore || !task) return;
+     // This is a placeholder for the actual upload logic
+     // You would trigger a file input, upload to Firebase Storage,
+     // then get the URL and update the userTask document.
+     toast({
+         title: "Upload not implemented",
+         description: "This is where the screenshot upload would be triggered.",
+     });
   };
 
   const isLoading = isTaskLoading || isUserTaskLoading;
@@ -79,9 +79,10 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   }
 
   const isCompleted = userTask?.status === 'completed';
+  const isInProgress = userTask?.status === 'in-progress';
 
   return (
-    <div className="relative pb-4">
+    <div className="relative pb-20">
       <Card>
         <CardHeader>
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
@@ -127,18 +128,29 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
             </ul>
           </motion.div>
           <motion.div 
-            className="mt-8 flex justify-end"
+            className="mt-8 flex justify-end gap-2"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.3 }}
           >
+            {isInProgress && (
+                <Button 
+                    size="lg" 
+                    variant="outline"
+                    className="h-12 rounded-lg text-lg"
+                    onClick={handleUpload}
+                >
+                    <Upload className="mr-2 h-5 w-5"/>
+                    Upload
+                </Button>
+            )}
             <Button 
               size="lg" 
               className="h-12 shadow-lg shadow-primary/30 rounded-lg text-lg"
               onClick={handleStartTask}
-              disabled={isCompleted}
+              disabled={isCompleted || isInProgress}
             >
-              {isCompleted ? 'Completed' : 'Start Task'}
+              {isCompleted ? 'Completed' : (isInProgress ? 'In Progress' : 'Start')}
             </Button>
           </motion.div>
         </CardContent>

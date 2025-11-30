@@ -111,8 +111,9 @@
       "description": "Represents the state of a task for a specific user.",
       "type": "object",
       "properties": {
-        "status": { "type": "string", "enum": ["available", "completed"] },
-        "completedAt": { "type": ["string", "null"], "format": "date-time" }
+        "status": { "type": "string", "enum": ["available", "in-progress", "completed"] },
+        "completedAt": { "type": ["string", "null"], "format": "date-time" },
+        "screenshotURL": { "type": "string" }
       },
       "required": ["status"]
     }

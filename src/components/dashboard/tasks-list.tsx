@@ -1,6 +1,7 @@
+
 'use client';
 
-import { PlayCircle, FileText, CheckCircle, Award, History, ArrowRight } from 'lucide-react';
+import { PlayCircle, FileText, CheckCircle, Award, History, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -45,7 +46,7 @@ const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boo
         <span>{task.points}</span>
       </Badge>
       
-        {task.status === 'completed' ? (
+      {task.status === 'completed' ? (
         <div
           className={cn(
             "flex items-center justify-center w-28 h-9 rounded-md border text-sm",
@@ -55,6 +56,13 @@ const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boo
           <CheckCircle className="mr-2 h-4 w-4" />
           Done
         </div>
+      ) : task.status === 'in-progress' ? (
+        <Button asChild size="sm" variant="outline" className="w-28 border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 hover:text-amber-700">
+           <Link href={`/tasks/${task.id}`}>
+            In Progress
+            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+          </Link>
+        </Button>
       ) : (
         <Button asChild size="sm" variant="outline" className="w-28">
           <Link href={`/tasks/${task.id}`}>
@@ -69,7 +77,7 @@ const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boo
 );
 
 export default function TasksList({ tasks, isGuestMode }: TasksListProps) {
-  const availableTasks = tasks.filter(task => task.status === 'available');
+  const availableTasks = tasks.filter(task => task.status === 'available' || task.status === 'in-progress');
   const completedTasks = tasks.filter(task => task.status === 'completed');
 
   return (

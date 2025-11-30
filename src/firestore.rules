@@ -51,7 +51,8 @@ service cloud.firestore {
         
         // UPDATE: A user can only update the status of their own task.
         allow update: if isOwner(userId) && 
-                         request.resource.data.status != resource.data.status;
+                         (request.resource.data.status == 'in-progress' && resource.data.status == 'available') ||
+                         (request.resource.data.status == 'completed' && resource.data.status == 'in-progress');
                          
         // DELETE: Disallowed.
         allow delete: if false;
