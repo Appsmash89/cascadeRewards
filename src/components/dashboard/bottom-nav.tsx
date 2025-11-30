@@ -32,7 +32,7 @@ export default function BottomNav() {
   const navGridCols = isGuestMode ? 'grid-cols-5' : 'grid-cols-4';
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 h-16 bg-secondary/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto">
       <div className={cn("grid h-full", navGridCols)}>
         {allNavItems.map((item) => {
           const isActive = pathname === item.href;

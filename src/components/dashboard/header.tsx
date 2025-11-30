@@ -59,7 +59,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
   const displayEmail = isGuest ? "guest.dev@cascade.app" : user?.email;
 
   return (
-    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-lg px-4 z-10">
+    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-secondary/80 backdrop-blur-lg px-4 z-10">
       <div className="flex items-center gap-2 text-lg font-semibold">
         <Gift className="h-6 w-6 text-primary" />
         <span className="font-bold text-xl tracking-tight">Cascade</span>
