@@ -8,6 +8,7 @@ import {
   serverTimestamp,
   increment,
   type Firestore,
+  arrayUnion,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
@@ -42,7 +43,14 @@ const seedInitialAppSettings = async (firestore: Firestore): Promise<void> => {
         } catch (error) {
             console.error("Error seeding 'All' category:", error);
         }
+    } else {
+        const data = categoriesDoc.data();
+        if (data && !data.taskCategories.includes('All')) {
+            console.log("Adding missing 'All' category...");
+            await setDoc(categoriesDocRef, { taskCategories: arrayUnion('All') }, { merge: true });
+        }
     }
+
      const globalSettingsRef = doc(firestore, 'app-settings', 'global');
     const globalSettingsDoc = await getDoc(globalSettingsRef);
 

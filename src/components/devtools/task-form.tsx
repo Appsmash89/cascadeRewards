@@ -53,7 +53,7 @@ export default function TaskForm({ task, categories, onSubmit }: TaskFormProps) 
       description: task?.description || '',
       points: task?.points || 50,
       type: task?.type || 'read',
-      category: task?.category || '',
+      category: task?.category || 'All',
       link: task?.link || '',
       content: task?.content || 'This is the default content. Please replace it with instructions on how to complete the task.',
     },
@@ -67,7 +67,7 @@ export default function TaskForm({ task, categories, onSubmit }: TaskFormProps) 
       description: task?.description || '',
       points: task?.points || 50,
       type: task?.type || 'read',
-      category: task?.category || '',
+      category: task?.category || 'All',
       link: task?.link || '',
       content: task?.content || '',
     });
