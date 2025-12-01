@@ -1,3 +1,4 @@
+
 'use client';
 import {
   DropdownMenu,
@@ -74,9 +75,9 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
           <span className="font-bold text-xl tracking-tight">Cascade</span>
         </div>
 
-        <div className="flex items-center gap-3 ml-auto">
-          <div className="flex items-center gap-2 bg-amber-500/10 text-amber-500 rounded-full pl-3 pr-1 py-1 border border-amber-500/20">
-             <Star className="h-4 w-4" />
+        <div className="flex items-center gap-2 ml-auto">
+          <Star className="h-5 w-5 text-amber-500" />
+          <div className="flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full px-3 py-1 border border-amber-500/20">
              <span className="font-bold text-sm tabular-nums">
                 <AnimatedCounter to={points} />
              </span>
