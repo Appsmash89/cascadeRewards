@@ -1,6 +1,18 @@
 
 {
   "entities": {
+    "AppSettings": {
+      "title": "Application Settings",
+      "description": "Global settings for the entire application.",
+      "type": "object",
+      "properties": {
+        "fontSizeMultiplier": {
+          "type": "number",
+          "description": "A multiplier to adjust the base font size for all users."
+        }
+      },
+      "required": ["fontSizeMultiplier"]
+    },
     "UserProfile": {
       "title": "User Profile",
       "description": "Represents a user's complete profile and application-specific data stored in Firestore.",
@@ -148,6 +160,13 @@
         "definition": {
           "schema": { "$ref": "#/entities/Task" },
           "description": "A global list of all available tasks in the application."
+        }
+      },
+      {
+        "path": "/app-settings/{settingId}",
+        "definition": {
+          "schema": { "$ref": "#/entities/AppSettings" },
+          "description": "Stores global application settings. Use a single document with a fixed ID like 'global'."
         }
       }
     ]

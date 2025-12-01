@@ -1,15 +1,16 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUser } from "@/hooks/use-user";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2, Users } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { collection, doc, deleteDoc, writeBatch } from "firebase/firestore";
-import type { Task, WithId, UserProfile } from "@/lib/types";
+import { useEffect } from "react";
+import { collection, doc, deleteDoc, writeBatch, increment, setDoc, getDocs } from "firebase/firestore";
+import type { Task, WithId, UserProfile, AppSettings } from "@/lib/types";
 import Link from 'next/link';
 import {
   AlertDialog,
@@ -32,6 +33,11 @@ export default function DevToolsView() {
   const router = useRouter();
   
   const isGuestMode = user?.email === GUEST_EMAIL;
+
+  const appSettingsRef = useMemoFirebase(() =>
+    firestore ? doc(firestore, 'app-settings', 'global') : null, [firestore]
+  );
+  const { data: appSettings } = useDoc<AppSettings>(appSettingsRef);
   
   const masterTasksQuery = useMemoFirebase(() =>
     userProfile ? collection(firestore, 'tasks') : null,
@@ -53,56 +59,82 @@ export default function DevToolsView() {
 
   const handleDeleteTask = async (task: WithId<Task>) => {
     if (!firestore || !userProfile) return;
-    if (!confirm(`Are you sure you want to delete "${task.title}"? This cannot be undone.`)) return;
+    
+    // Directly use window.confirm
+    const isConfirmed = window.confirm(`Are you sure you want to delete "${task.title}"? This cannot be undone.`);
+    if (!isConfirmed) return;
 
     try {
         const masterTaskRef = doc(firestore, 'tasks', task.id);
         await deleteDoc(masterTaskRef);
 
-        // Also delete from guest user's subcollection
-        const userTaskRef = doc(firestore, 'users', userProfile.uid, 'tasks', task.id);
-        await deleteDoc(userTaskRef).catch(e => console.warn("Could not delete user task, it might not exist", e));
+        // Also delete from guest user's subcollection for consistency
+        if(users) {
+          const batch = writeBatch(firestore);
+          users.forEach(u => {
+            const userTaskRef = doc(firestore, 'users', u.uid, 'tasks', task.id);
+            batch.delete(userTaskRef);
+          });
+          await batch.commit();
+        }
 
-        toast({ title: 'Task Deleted', description: `"${task.title}" has been removed.` });
+        toast({ title: 'Task Deleted', description: `"${task.title}" has been removed for all users.` });
     } catch (e: any) {
         toast({ variant: "destructive", title: 'Error deleting task', description: e.message });
     }
   };
 
   const handleResetTasks = async () => {
-    if (!firestore || !users) return;
+    if (!firestore || !users) {
+      toast({ variant: "destructive", title: "Error", description: "Could not reset tasks." });
+      return;
+    }
 
-    const batch = writeBatch(firestore);
-
-    for (const u of users) {
-        // 1. Reset points on the user profile
+    try {
+      const batch = writeBatch(firestore);
+      
+      for (const u of users) {
+        // Reset points and totalEarned on the user profile
         const userDocRef = doc(firestore, 'users', u.uid);
         batch.update(userDocRef, {
-            points: 0,
-            totalEarned: 0,
+          points: 0,
+          totalEarned: 0
         });
 
-        // 2. Reset tasks in the subcollection
+        // Reset all tasks in the subcollection
         const userTasksCollectionRef = collection(firestore, 'users', u.uid, 'tasks');
-        // This part needs to read the tasks for each user to reset them
-        // In a real app, you might do this with a Cloud Function for efficiency.
-        // For this client-side admin panel, we do it directly.
-        // Let's assume we can get user tasks or we reset based on master tasks.
-        // For simplicity, we'll reset based on the master task list.
-        if (masterTasks) {
-            masterTasks.forEach(task => {
-                const taskRef = doc(userTasksCollectionRef, task.id);
-                batch.set(taskRef, { status: 'available', completedAt: null }, { merge: true });
-            });
-        }
+        const userTasksSnapshot = await getDocs(userTasksCollectionRef);
+        userTasksSnapshot.forEach(taskDoc => {
+          batch.update(taskDoc.ref, { status: 'available', completedAt: null });
+        });
+      }
+
+      await batch.commit();
+      toast({ title: "Success", description: "All user progress has been reset." });
+
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Reset Failed", description: e.message });
     }
-    
-    await batch.commit();
-    toast({
-      title: 'Progress for All Users Reset',
-      description: "All users' tasks and points have been reset.",
-    });
   };
+
+  const handleFontSizeChange = async (step: number) => {
+    if (!appSettingsRef) return;
+    
+    // The check for minimum size should happen on the UI side if needed, 
+    // but the core logic can rely on Firestore's atomic increment.
+    // This avoids using stale local state `appSettings`.
+    await setDoc(appSettingsRef, { 
+      fontSizeMultiplier: increment(step * 0.1) 
+    }, { merge: true });
+  }
+
+  if (isUserLoading || usersLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!isGuestMode) {
     return (
@@ -113,6 +145,9 @@ export default function DevToolsView() {
   }
 
   const sortedTasks = masterTasks?.sort((a, b) => a.title.localeCompare(b.title));
+  
+  // Handle potential floating point inaccuracies for display
+  const displayMultiplier = appSettings?.fontSizeMultiplier ? (Math.round(appSettings.fontSizeMultiplier * 10) / 10).toFixed(1) : '1.0';
 
   return (
     <>
@@ -123,16 +158,17 @@ export default function DevToolsView() {
                   <CardDescription>Tools for easy prototyping and quick testing.</CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-              <Button asChild>
-                <Link href="/devtools/users">
-                  <Users className="mr-2 h-4 w-4" />
-                  Manage User Tasks
-                </Link>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button asChild className="w-full">
+                  <Link href="/devtools/users">
+                    <Users className="mr-2 h-4 w-4" />
+                    Manage Users
+                  </Link>
               </Button>
-               <AlertDialog>
+              <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive">
+                  <Button variant="destructive" className="w-full">
+                    <RotateCcw className="mr-2 h-4 w-4" />
                     Reset All User Progress
                   </Button>
                 </AlertDialogTrigger>
@@ -140,7 +176,7 @@ export default function DevToolsView() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This action will reset all task progress and points for <strong>every single user</strong> in the database, including the admin account. This cannot be undone.
+                      This will reset all task progress and points for EVERY user, including the admin. This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -151,6 +187,18 @@ export default function DevToolsView() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              <div className="p-2 border rounded-lg flex items-center justify-between md:col-span-2">
+                <p className="font-medium text-sm pl-2">Global Font Size</p>
+                <div className="flex items-center gap-2">
+                  <Button size="icon" variant="outline" onClick={() => handleFontSizeChange(-1)} disabled={(appSettings?.fontSizeMultiplier ?? 1) <= 0.5}>
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="font-bold w-10 text-center">{displayMultiplier}x</span>
+                  <Button size="icon" variant="outline" onClick={() => handleFontSizeChange(1)}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </CardContent>
         </Card>
 
@@ -207,3 +255,5 @@ export default function DevToolsView() {
     </>
   );
 }
+
+    
