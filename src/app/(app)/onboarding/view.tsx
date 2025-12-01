@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useMemoFirebase } from '@/firebase';
 import { useUser } from '@/hooks/use-user';
 import { doc } from 'firebase/firestore';
 import { taskCategories, TaskCategory } from '@/lib/types';
@@ -14,6 +15,9 @@ import { useToast } from '@/hooks/use-toast';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+
+// Exclude 'All' from user-selectable categories
+const selectableCategories = taskCategories.filter(c => c !== 'All');
 
 export default function OnboardingView() {
   const { user, userProfile } = useUser();
@@ -108,7 +112,7 @@ export default function OnboardingView() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        {taskCategories.map((category, index) => (
+                        {selectableCategories.map((category, index) => (
                             <motion.div
                                 key={category}
                                 initial={{ opacity: 0, x: -20 }}
