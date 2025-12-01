@@ -57,17 +57,17 @@ service cloud.firestore {
           
           // --- Points & Level Security ---
           // User cannot increase their own points, totalEarned, or level.
-          request.resource.data.totalEarned == resource.data.totalEarned &&
-          request.resource.data.level == resource.data.level &&
-          // They can only DECREASE points (e.g., redeeming rewards), but not go below 0.
-          request.resource.data.points >= 0 &&
           request.resource.data.points <= resource.data.points &&
+          request.resource.data.points >= 0 &&
+          request.resource.data.level <= resource.data.level &&
+          request.resource.data.totalEarned <= resource.data.totalEarned &&
 
           // --- Login Timestamp Security ---
-          // if lastLogin is being updated, it must be the server time.
-          (!('lastLogin' in request.resource.data) || request.resource.data.lastLogin == request.time) &&
           // if totalLogins is being updated, it can only be incremented by 1.
-          (!('totalLogins' in request.resource.data) || request.resource.data.totalLogins == resource.data.totalLogins + 1)
+          (request.resource.data.totalLogins == resource.data.totalLogins + 1 ||
+          request.resource.data.totalLogins == resource.data.totalLogins) &&
+          // Allow other fields like settings and interests to be updated.
+          true
         );
         
       allow delete: if false;
