@@ -64,9 +64,9 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
   const totalEarned = user?.totalEarned ?? 0;
   const points = user?.points ?? 0;
 
-  const levelProgress = ((totalEarned % POINTS_PER_LEVEL) / POINTS_PER_LEVEL) * 100;
-  const pointsForNextLevel = POINTS_PER_LEVEL - (totalEarned % POINTS_PER_LEVEL);
-
+  const pointsInCurrentLevel = totalEarned % POINTS_PER_LEVEL;
+  const levelProgress = (pointsInCurrentLevel / POINTS_PER_LEVEL) * 100;
+  
   return (
     <header className="sticky top-0 flex flex-col border-b bg-background/80 backdrop-blur-lg px-4 z-10">
       <div className="flex h-16 items-center gap-4">
@@ -116,16 +116,21 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
           </DropdownMenu>
         </div>
       </div>
-      <div className="flex items-center gap-3 pb-2">
-        <span className="text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded-full h-6 w-6 flex items-center justify-center">
-            {level}
-        </span>
-        <div className="flex-1">
-          <Progress value={levelProgress} className="h-2" />
+      <div className="flex flex-col gap-2 pb-3">
+        <div className="flex items-center gap-3">
+            <span className="text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded-full h-6 w-6 flex items-center justify-center">
+                {level}
+            </span>
+            <div className="flex-1">
+            <Progress value={levelProgress} className="h-2" />
+            </div>
+            <span className="text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded-full h-6 w-6 flex items-center justify-center">
+                {level+1}
+            </span>
         </div>
-        <span className="text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded-full h-6 w-6 flex items-center justify-center">
-            {level+1}
-        </span>
+        <p className="text-xs text-muted-foreground text-center font-medium">
+            {pointsInCurrentLevel} / {POINTS_PER_LEVEL} points to Level {level + 1}
+        </p>
       </div>
     </header>
   )
