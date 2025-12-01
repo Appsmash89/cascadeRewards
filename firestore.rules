@@ -67,12 +67,7 @@ service cloud.firestore {
           // if lastLogin is being updated, it must be the server time.
           (!('lastLogin' in request.resource.data) || request.resource.data.lastLogin == request.time) &&
           // if totalLogins is being updated, it can only be incremented by 1.
-          (!('totalLogins' in request.resource.data) || request.resource.data.totalLogins == resource.data.totalLogins + 1) &&
-
-          // --- Modifiable Fields ---
-          // This uses the `keys()` method to ensure no other fields are being changed.
-          // The request can only contain these modifiable fields or the ones explicitly handled above.
-          request.resource.data.keys().hasOnly(['uid', 'displayName', 'email', 'photoURL', 'provider', 'points', 'credits', 'level', 'totalEarned', 'referralCode', 'referredBy', 'createdAt', 'lastLogin', 'totalLogins', 'settings', 'interests'])
+          (!('totalLogins' in request.resource.data) || request.resource.data.totalLogins == resource.data.totalLogins + 1)
         );
         
       allow delete: if false;
