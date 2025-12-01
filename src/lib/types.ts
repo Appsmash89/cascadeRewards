@@ -14,6 +14,7 @@ export type UserProfile = {
   createdAt: any; // Firestore Timestamp
   lastLogin: any; // Firestore Timestamp
   totalLogins: number;
+  totalEarned: number;
   settings: {
     notificationsEnabled: boolean;
     darkMode: boolean;
@@ -43,7 +44,6 @@ export type Task = {
 export type UserTask = {
   status: 'available' | 'in-progress' | 'completed';
   completedAt: any; // Firestore Timestamp or null
-  screenshotURL?: string;
 }
 
 // A combined type for easier handling in the UI

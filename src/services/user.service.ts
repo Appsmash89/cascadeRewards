@@ -57,6 +57,7 @@ export const manageUserDocument = async (
       createdAt: serverTimestamp(),
       lastLogin: serverTimestamp(),
       totalLogins: 1,
+      totalEarned: 0,
       settings: {
         notificationsEnabled: true,
         darkMode: false,

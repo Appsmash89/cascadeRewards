@@ -41,7 +41,7 @@ export default function DevToolsView() {
         toast({ variant: "destructive", title: "Error", description: "Firestore not available." });
         return;
     }
-    if (!confirm('Are you sure you want to reset task progress for ALL users (including admin)? This cannot be undone.')) {
+    if (!confirm('Are you sure you want to reset task progress and points for ALL users (including admin)? This cannot be undone.')) {
         return;
     }
 
@@ -57,16 +57,18 @@ export default function DevToolsView() {
             return;
         }
 
-        let usersResetCount = 0;
-
-        // For each user, get their tasks and add resets to the batch
+        // For each user, reset their points and get their tasks subcollection
         for (const userDoc of usersSnapshot.docs) {
-            usersResetCount++;
+            const userRef = doc(firestore, 'users', userDoc.id);
+            // Add point reset to the batch
+            batch.update(userRef, { points: 0, totalEarned: 0 });
+
             const userTasksRef = collection(firestore, 'users', userDoc.id, 'tasks');
             const tasksSnapshot = await getDocs(userTasksRef);
             
             if (!tasksSnapshot.empty) {
                 tasksSnapshot.forEach((taskDoc) => {
+                    // Add task status reset to the batch
                     batch.update(taskDoc.ref, {
                         status: 'available',
                         completedAt: null
@@ -75,17 +77,11 @@ export default function DevToolsView() {
             }
         }
         
-        if (usersResetCount === 0) {
-            toast({ title: "No Users to Reset", description: "No users were found in the database." });
-            setIsResetting(false);
-            return;
-        }
-
         await batch.commit();
 
         toast({
-            title: "Global Task Reset Successful",
-            description: `Task progress for ${usersResetCount} user(s) has been reset.`,
+            title: "Global Reset Successful",
+            description: `Task progress and points for ${usersSnapshot.size} user(s) have been reset.`,
         });
 
     } catch (error) {
@@ -158,7 +154,7 @@ export default function DevToolsView() {
                 <CardDescription>Add, edit, or delete global tasks.</CardDescription>
             </div>
             <Button size="sm" asChild>
-                <Link href="/devtools/task/new">
+                <Link href="/devtools/task/edit/new">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Task
                 </Link>
