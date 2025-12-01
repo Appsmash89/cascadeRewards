@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { collection, getDocs, writeBatch, doc, deleteDoc } from "firebase/firestore";
-import type { Task, WithId } from "@/lib/types";
+import type { Task, UserProfile, WithId } from "@/lib/types";
 import Link from 'next/link';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
@@ -37,44 +37,54 @@ export default function DevToolsView() {
   }, [isGuestMode, isUserLoading, router]);
 
   const handleResetTasks = async () => {
-    if (!firestore || !userProfile) {
-        toast({ variant: "destructive", title: "Error", description: "Firestore or user profile not available." });
+    if (!firestore) {
+        toast({ variant: "destructive", title: "Error", description: "Firestore not available." });
+        return;
+    }
+    if (!confirm('Are you sure you want to reset task progress for ALL users? This cannot be undone.')) {
         return;
     }
 
     setIsResetting(true);
     try {
-        const userTasksRef = collection(firestore, 'users', userProfile.uid, 'tasks');
-        const tasksSnapshot = await getDocs(userTasksRef);
+        const batch = writeBatch(firestore);
+        const usersRef = collection(firestore, 'users');
+        const usersSnapshot = await getDocs(usersRef);
 
-        if (tasksSnapshot.empty) {
-            toast({ title: "No tasks to reset." });
+        if (usersSnapshot.empty) {
+            toast({ title: "No users found to reset." });
             setIsResetting(false);
             return;
         }
 
-        const batch = writeBatch(firestore);
-        tasksSnapshot.forEach((taskDoc) => {
-            const taskRef = doc(firestore, 'users', userProfile.uid, 'tasks', taskDoc.id);
-            batch.update(taskRef, {
-                status: 'available',
-                completedAt: null
-            });
-        });
+        // For each user, get their tasks and add resets to the batch
+        for (const userDoc of usersSnapshot.docs) {
+            const userTasksRef = collection(firestore, 'users', userDoc.id, 'tasks');
+            const tasksSnapshot = await getDocs(userTasksRef);
+            
+            if (!tasksSnapshot.empty) {
+                tasksSnapshot.forEach((taskDoc) => {
+                    batch.update(taskDoc.ref, {
+                        status: 'available',
+                        completedAt: null
+                    });
+                });
+            }
+        }
 
         await batch.commit();
 
         toast({
-            title: "Tasks Reset",
-            description: "All your personal task progress has been reset.",
+            title: "Global Task Reset Successful",
+            description: "All task progress for all users has been reset.",
         });
 
     } catch (error) {
-        console.error("Error resetting tasks: ", error);
+        console.error("Error resetting all tasks: ", error);
         toast({
             variant: "destructive",
             title: "Reset Failed",
-            description: "Could not reset tasks. Check console for details.",
+            description: "Could not reset all user tasks. Check console for details.",
         });
     } finally {
         setIsResetting(false);
@@ -119,7 +129,7 @@ export default function DevToolsView() {
             </div>
             <Button onClick={handleResetTasks} variant="outline" size="sm" disabled={isResetting}>
                 {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Reset My Progress
+                Reset All User Progress
             </Button>
             </CardHeader>
             <CardContent>
