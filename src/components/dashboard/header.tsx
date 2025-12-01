@@ -1,4 +1,3 @@
-
 'use client';
 import {
   DropdownMenu,
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Gift, LogOut, User as UserIcon, Award } from "lucide-react"
+import { Gift, LogOut, User as UserIcon, Star } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
@@ -77,7 +76,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
 
         <div className="flex items-center gap-3 ml-auto">
           <div className="flex items-center gap-2 bg-amber-500/10 text-amber-500 rounded-full pl-3 pr-1 py-1 border border-amber-500/20">
-             <Award className="h-4 w-4" />
+             <Star className="h-4 w-4" />
              <span className="font-bold text-sm tabular-nums">
                 <AnimatedCounter to={points} />
              </span>

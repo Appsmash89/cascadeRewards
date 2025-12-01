@@ -1,6 +1,6 @@
 'use client';
 
-import { PlayCircle, FileText, CheckCircle, Award, History, ArrowRight, Loader2 } from 'lucide-react';
+import { PlayCircle, FileText, CheckCircle, Star, History, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -50,7 +50,7 @@ const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boo
       </div>
       <div className="flex items-center gap-4">
         <Badge variant="secondary" className="flex items-center gap-1 font-bold text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
-          <Award className="h-3 w-3" />
+          <Star className="h-3 w-3" />
           <span>{task.points}</span>
         </Badge>
         

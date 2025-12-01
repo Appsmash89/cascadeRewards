@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Reward } from '@/lib/types';
-import { Award } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -50,7 +50,7 @@ export default function RewardCard({ reward, userPoints, onRedeem, isGuest, inde
           
           <div className="flex flex-col items-start gap-3 mt-auto">
               <Badge variant="secondary" className="text-base font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20">
-                  <Award className="h-4 w-4 mr-1.5" />
+                  <Star className="h-4 w-4 mr-1.5" />
                   {reward.points.toLocaleString()}
               </Badge>
 

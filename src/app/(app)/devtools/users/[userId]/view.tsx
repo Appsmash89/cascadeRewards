@@ -4,7 +4,7 @@
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, collection, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, ArrowLeft, CheckCircle, Award, RotateCcw, Undo2 } from 'lucide-react';
+import { Loader2, ArrowLeft, CheckCircle, Star, RotateCcw, Undo2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -275,7 +275,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
             </div>
             <div className="flex items-center gap-4">
                 <Badge variant="secondary" className="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
-                    <Award className="h-3 w-3 mr-1" />
+                    <Star className="h-3 w-3 mr-1" />
                     {task.points}
                 </Badge>
                 <Button 
@@ -288,7 +288,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
                     {task.status === 'completed' 
                         ? <> <CheckCircle className="mr-2 h-4 w-4"/> Completed </>
                         : task.status === 'in-progress'
-                        ? <> <Award className="mr-2 h-4 w-4"/> Award Points </>
+                        ? <> <Star className="mr-2 h-4 w-4"/> Award Points </>
                         : 'Pending'
                     }
                 </Button>
