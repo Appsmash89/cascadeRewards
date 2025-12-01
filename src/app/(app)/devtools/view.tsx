@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +8,20 @@ import { Loader2, PlusCircle, Trash2, Edit, Link2, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { collection, doc, deleteDoc } from "firebase/firestore";
-import type { Task, WithId } from "@/lib/types";
+import { collection, doc, deleteDoc, writeBatch } from "firebase/firestore";
+import type { Task, WithId, UserProfile } from "@/lib/types";
 import Link from 'next/link';
-import PinLock from "@/components/auth/pin-lock";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -21,7 +30,6 @@ export default function DevToolsView() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
-  const [isUnlocked, setIsUnlocked] = useState(false);
   
   const isGuestMode = user?.email === GUEST_EMAIL;
   
@@ -30,6 +38,12 @@ export default function DevToolsView() {
     [userProfile, firestore]
   );
   const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
+
+    const usersQuery = useMemoFirebase(() => 
+    firestore && isGuestMode ? collection(firestore, 'users') : null,
+    [firestore, isGuestMode]
+  );
+  const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   useEffect(() => {
     if (!isUserLoading && !isGuestMode) {
@@ -55,6 +69,41 @@ export default function DevToolsView() {
     }
   };
 
+  const handleResetTasks = async () => {
+    if (!firestore || !users) return;
+
+    const batch = writeBatch(firestore);
+
+    for (const u of users) {
+        // 1. Reset points on the user profile
+        const userDocRef = doc(firestore, 'users', u.uid);
+        batch.update(userDocRef, {
+            points: 0,
+            totalEarned: 0,
+        });
+
+        // 2. Reset tasks in the subcollection
+        const userTasksCollectionRef = collection(firestore, 'users', u.uid, 'tasks');
+        // This part needs to read the tasks for each user to reset them
+        // In a real app, you might do this with a Cloud Function for efficiency.
+        // For this client-side admin panel, we do it directly.
+        // Let's assume we can get user tasks or we reset based on master tasks.
+        // For simplicity, we'll reset based on the master task list.
+        if (masterTasks) {
+            masterTasks.forEach(task => {
+                const taskRef = doc(userTasksCollectionRef, task.id);
+                batch.set(taskRef, { status: 'available', completedAt: null }, { merge: true });
+            });
+        }
+    }
+    
+    await batch.commit();
+    toast({
+      title: 'Progress for All Users Reset',
+      description: "All users' tasks and points have been reset.",
+    });
+  };
+
   if (!isGuestMode) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
@@ -65,10 +114,6 @@ export default function DevToolsView() {
 
   const sortedTasks = masterTasks?.sort((a, b) => a.title.localeCompare(b.title));
 
-  if (!isUnlocked) {
-    return <PinLock onUnlock={() => setIsUnlocked(true)} />
-  }
-
   return (
     <>
         <Card className="shadow-sm">
@@ -78,13 +123,34 @@ export default function DevToolsView() {
                   <CardDescription>Tools for easy prototyping and quick testing.</CardDescription>
               </div>
             </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
+            <CardContent className="grid grid-cols-2 gap-4">
+              <Button asChild>
                 <Link href="/devtools/users">
                   <Users className="mr-2 h-4 w-4" />
                   Manage User Tasks
                 </Link>
               </Button>
+               <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    Reset All User Progress
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action will reset all task progress and points for <strong>every single user</strong> in the database, including the admin account. This cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleResetTasks}>
+                      Yes, Reset Everything
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
         </Card>
 
