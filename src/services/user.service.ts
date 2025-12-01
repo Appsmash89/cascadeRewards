@@ -45,19 +45,19 @@ export const manageUserDocument = async (
     // User is new, create the document with default values.
     const newUserProfile: UserProfile = {
       uid: user.uid,
-      displayName: user.isAnonymous ? 'Guest User' : user.displayName || 'New User',
+      displayName: user.isAnonymous ? 'Admin' : user.displayName || 'New User',
       email: user.email || '',
       photoURL: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
       provider: user.providerData[0]?.providerId || 'anonymous',
       points: 0,
       credits: 0,
       level: 1,
+      totalEarned: 0,
       referralCode: generateReferralCode(),
       referredBy: null,
       createdAt: serverTimestamp(),
       lastLogin: serverTimestamp(),
       totalLogins: 1,
-      totalEarned: 0,
       settings: {
         notificationsEnabled: true,
         darkMode: false,

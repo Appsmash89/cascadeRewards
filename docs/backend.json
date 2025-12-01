@@ -1,6 +1,18 @@
 
 {
   "entities": {
+    "AppSettings": {
+      "title": "Application Settings",
+      "description": "Global settings for the entire application.",
+      "type": "object",
+      "properties": {
+        "fontSizeMultiplier": {
+          "type": "number",
+          "description": "A multiplier to adjust the base font size for all users."
+        }
+      },
+      "required": ["fontSizeMultiplier"]
+    },
     "UserProfile": {
       "title": "User Profile",
       "description": "Represents a user's complete profile and application-specific data stored in Firestore.",
@@ -40,6 +52,10 @@
           "type": "number",
           "description": "The user's current level, which may unlock new features or rewards."
         },
+        "totalEarned": {
+            "type": "number",
+            "description": "A lifetime counter of all points ever earned, used for level progression."
+        },
         "referralCode": {
           "type": "string",
           "description": "A unique, auto-generated code for referring other users."
@@ -55,7 +71,7 @@
         },
         "lastLogin": {
           "type": "string",
-f          "format": "date-time",
+          "format": "date-time",
           "description": "The timestamp of the user's last login, updated on every sign-in."
         },
         "totalLogins": {
@@ -87,6 +103,7 @@ f          "format": "date-time",
         "points",
         "credits",
         "level",
+        "totalEarned",
         "referralCode",
         "createdAt",
         "lastLogin",
@@ -102,20 +119,22 @@ f          "format": "date-time",
         "title": { "type": "string" },
         "description": { "type": "string" },
         "points": { "type": "number" },
-        "type": { "type": "string", "enum": ["video", "read"] }
+        "type": { "type": "string", "enum": ["video", "read"] },
+        "link": { "type": "string", "format": "uri" },
+        "content": { "type": "string" }
       },
-      "required": ["title", "description", "points", "type"]
+      "required": ["title", "description", "points", "type", "content"]
     },
     "UserTask": {
       "title": "User Task",
       "description": "Represents the state of a task for a specific user.",
       "type": "object",
       "properties": {
-        "taskId": { "type": "string" },
-        "status": { "type": "string", "enum": ["available", "completed"] },
-        "completedAt": { "type": ["string", "null"], "format": "date-time" }
+        "status": { "type": "string", "enum": ["available", "in-progress", "completed"] },
+        "completedAt": { "type": ["string", "null"], "format": "date-time" },
+        "screenshotURL": { "type": "string" }
       },
-      "required": ["taskId", "status"]
+      "required": ["status"]
     }
   },
   "auth": {
@@ -124,7 +143,7 @@ f          "format": "date-time",
     ]
   },
   "firestore": {
-    "structure": [
+     "structure": [
       {
         "path": "/users/{userId}",
         "definition": {
@@ -146,6 +165,13 @@ f          "format": "date-time",
         "definition": {
           "schema": { "$ref": "#/entities/Task" },
           "description": "A global list of all available tasks in the application."
+        }
+      },
+      {
+        "path": "/app-settings/{settingId}",
+        "definition": {
+          "schema": { "$ref": "#/entities/AppSettings" },
+          "description": "Stores global application settings. Use a single document with a fixed ID like 'global'."
         }
       }
     ]

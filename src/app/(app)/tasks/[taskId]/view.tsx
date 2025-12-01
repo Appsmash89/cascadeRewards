@@ -4,7 +4,7 @@ import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, serverTimestamp, increment, setDoc } from 'firebase/firestore';
 import { useParams } from 'next/navigation';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, Award, ArrowLeft, PlayCircle, FileText } from 'lucide-react';
+import { Loader2, Star, ArrowLeft, PlayCircle, FileText } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -106,7 +106,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
               </div>
             </div>
             <Badge variant="secondary" className="flex items-center gap-1.5 text-lg font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
-              <Award className="h-5 w-5" />
+              <Star className="h-5 w-5" />
               <span>{task.points}</span>
             </Badge>
           </div>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -18,8 +19,11 @@ import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { useToast } from "@/hooks/use-toast";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
+import { Progress } from "@/components/ui/progress";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
+const POINTS_PER_LEVEL = 100;
+
 
 export default function DashboardView() {
   const { user, userProfile } = useUser();
@@ -61,9 +65,34 @@ export default function DashboardView() {
     return null; // or a minimal loader if preferred, but layout handles the main one
   }
 
+  const level = userProfile?.level ?? 1;
+  const totalEarned = userProfile?.totalEarned ?? 0;
+  const pointsInCurrentLevel = totalEarned % POINTS_PER_LEVEL;
+  const levelProgress = (pointsInCurrentLevel / POINTS_PER_LEVEL) * 100;
+
   return (
     <>
+      <Card className="shadow-sm p-4">
+        <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+                <span className="text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded-full h-6 w-6 flex items-center justify-center">
+                    {level}
+                </span>
+                <div className="flex-1">
+                <Progress value={levelProgress} className="h-2" />
+                </div>
+                <span className="text-xs font-bold bg-primary/10 text-primary border border-primary/20 rounded-full h-6 w-6 flex items-center justify-center">
+                    {level+1}
+                </span>
+            </div>
+            <p className="text-xs text-muted-foreground text-center font-medium">
+                {pointsInCurrentLevel} / {POINTS_PER_LEVEL} points to Level {level + 1}
+            </p>
+        </div>
+      </Card>
+
       <StatsCards user={userProfile} referrals={[]} isGuest={isGuestMode} />
+      
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card className="shadow-sm">
           <CardHeader>

@@ -4,7 +4,7 @@
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, collection, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, ArrowLeft, CheckCircle, Award, RotateCcw, Undo2 } from 'lucide-react';
+import { Loader2, ArrowLeft, CheckCircle, Star, RotateCcw, Undo2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo, useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Badge } from '@/components/ui/badge';
 import { PlayCircle, FileText } from 'lucide-react';
 import {
@@ -29,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useRouter } from 'next/navigation';
 
+const POINTS_PER_LEVEL = 100;
 
 const taskIcons = {
   video: <PlayCircle className="h-5 w-5 text-primary" />,
@@ -39,6 +39,7 @@ type PreviousState = {
   userTasks: WithId<UserTask>[];
   points: number;
   totalEarned: number;
+  level: number;
 } | null;
 
 export default function ManageUserTasksView({ userId }: { userId: string }) {
@@ -51,35 +52,30 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
 
   const isGuestMode = adminUser?.email === 'guest.dev@cascade.app';
   
-  // Clear undo state if user navigates away
   useEffect(() => {
     return () => {
       setPreviousState(null);
     }
   }, [router]);
 
-  // Get targeted user's profile
   const userProfileRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'users', userId) : null,
     [firestore, userId]
   );
   const { data: userProfile, isLoading: isUserLoading } = useDoc<UserProfile>(userProfileRef);
 
-  // Get all master tasks
   const masterTasksQuery = useMemoFirebase(() =>
     firestore ? collection(firestore, 'tasks') : null,
     [firestore]
   );
   const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
 
-  // Get targeted user's task progress
   const userTasksQuery = useMemoFirebase(() =>
     firestore ? collection(firestore, 'users', userId, 'tasks') : null,
     [firestore, userId]
   );
   const { data: userTasks, isLoading: isLoadingUserTasks } = useCollection<UserTask>(userTasksQuery);
 
-  // Combine master tasks with user's progress
   const combinedTasks = useMemo((): CombinedTask[] => {
     if (!masterTasks || !userTasks) return [];
     const userTasksMap = new Map(userTasks.map(ut => [ut.id, ut]));
@@ -90,10 +86,10 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     }));
   }, [masterTasks, userTasks]);
 
-  const handleMarkAsComplete = async (task: CombinedTask) => {
+  const handleAwardPoints = async (task: CombinedTask) => {
     if (!firestore || !userProfile) return;
-    if (task.status === 'completed') {
-        toast({ variant: "destructive", title: 'Task already completed.'});
+    if (task.status !== 'in-progress') {
+        toast({ variant: "destructive", title: 'Task not ready', description: "User must start the task first."});
         return;
     }
 
@@ -107,17 +103,26 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
             status: 'completed',
             completedAt: serverTimestamp(),
         }, { merge: true });
+        
+        const newTotalEarned = userProfile.totalEarned + task.points;
+        const newLevel = Math.floor(newTotalEarned / POINTS_PER_LEVEL) + 1;
 
-        batch.update(userProfileDocRef, {
+        const profileUpdate: any = {
             points: increment(task.points),
             totalEarned: increment(task.points)
-        });
+        };
+        
+        if (newLevel > userProfile.level) {
+            profileUpdate.level = newLevel;
+        }
+
+        batch.update(userProfileDocRef, profileUpdate);
 
         await batch.commit();
 
         toast({
-            title: 'Task Completed!',
-            description: `Awarded ${task.points} points to ${userProfile.displayName}.`,
+            title: 'Points Awarded!',
+            description: `${task.points} points given to ${userProfile.displayName}. ${newLevel > userProfile.level ? "They leveled up!" : ""}`,
         });
     } catch(e: any) {
         toast({ variant: "destructive", title: 'Error', description: e.message });
@@ -127,23 +132,22 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
   const handleResetUserProgress = async () => {
     if (!firestore || !userProfile || !userTasks) return;
 
-    // Save the current state for potential undo
     setPreviousState({
       userTasks: [...userTasks],
       points: userProfile.points,
-      totalEarned: userProfile.totalEarned
+      totalEarned: userProfile.totalEarned,
+      level: userProfile.level,
     });
 
     const batch = writeBatch(firestore);
 
-    // Reset points on user profile
     const userDocRef = doc(firestore, 'users', userProfile.uid);
     batch.update(userDocRef, {
       points: 0,
       totalEarned: 0,
+      level: 1,
     });
 
-    // Reset all task statuses for the user
     userTasks.forEach(task => {
       const taskRef = doc(firestore, 'users', userProfile.uid, 'tasks', task.id);
       batch.update(taskRef, { status: 'available', completedAt: null });
@@ -164,21 +168,20 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
 
     const batch = writeBatch(firestore);
 
-    // Restore points on user profile
     const userDocRef = doc(firestore, 'users', userProfile.uid);
     batch.update(userDocRef, {
       points: previousState.points,
       totalEarned: previousState.totalEarned,
+      level: previousState.level,
     });
 
-    // Restore all task documents
     previousState.userTasks.forEach(taskState => {
       const taskRef = doc(firestore, 'users', userProfile.uid, 'tasks', taskState.id);
       batch.set(taskRef, taskState);
     });
 
     await batch.commit();
-    setPreviousState(null); // Clear the undo state
+    setPreviousState(null);
     toast({ title: 'Undo Successful', description: `Restored progress for ${userProfile.displayName}.` });
   };
   
@@ -251,7 +254,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
             <div>
                 <CardTitle>Manage: {userProfile.displayName}</CardTitle>
                 <CardDescription>
-                    Mark tasks as complete to award points. Current points: {userProfile.points}
+                    Manually award points for completed tasks. Current points: {userProfile.points}
                 </CardDescription>
             </div>
         </div>
@@ -262,7 +265,9 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
         {combinedTasks.sort((a,b) => a.title.localeCompare(b.title)).map(task => (
           <div key={task.id} className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-secondary">
              <div className="flex-shrink-0 bg-primary/10 p-2 rounded-full">
-                {task.status === 'completed' ? <CheckCircle className="h-5 w-5 text-green-500" /> : taskIcons[task.type]}
+                {task.status === 'completed' ? <CheckCircle className="h-5 w-5 text-green-500" /> : 
+                 task.status === 'in-progress' ? <Loader2 className="h-5 w-5 animate-spin text-amber-500"/> :
+                 taskIcons[task.type]}
             </div>
             <div className="flex-grow">
               <p className="font-medium">{task.title}</p>
@@ -270,19 +275,21 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
             </div>
             <div className="flex items-center gap-4">
                 <Badge variant="secondary" className="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
-                    <Award className="h-3 w-3 mr-1" />
+                    <Star className="h-3 w-3 mr-1" />
                     {task.points}
                 </Badge>
                 <Button 
                     size="sm" 
-                    variant={task.status === 'completed' ? 'secondary' : 'default'}
-                    onClick={() => handleMarkAsComplete(task)}
-                    disabled={task.status === 'completed' || !isGuestMode}
+                    variant={task.status === 'in-progress' ? 'default' : 'secondary'}
+                    onClick={() => handleAwardPoints(task)}
+                    disabled={task.status !== 'in-progress' || !isGuestMode}
                     className="w-40"
                 >
                     {task.status === 'completed' 
                         ? <> <CheckCircle className="mr-2 h-4 w-4"/> Completed </>
-                        : 'Mark as Complete'
+                        : task.status === 'in-progress'
+                        ? <> <Star className="mr-2 h-4 w-4"/> Award Points </>
+                        : 'Pending'
                     }
                 </Button>
             </div>
@@ -293,5 +300,3 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     </Card>
   );
 }
-
-    
