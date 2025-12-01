@@ -3,15 +3,21 @@
   "entities": {
     "AppSettings": {
       "title": "Application Settings",
-      "description": "Global settings for the entire application.",
+      "description": "Global settings for the entire application. Can be used for feature flags, global messages, or other dynamic configurations.",
       "type": "object",
       "properties": {
         "fontSizeMultiplier": {
           "type": "number",
           "description": "A multiplier to adjust the base font size for all users."
+        },
+        "taskCategories": {
+          "type": "array",
+          "description": "An array of strings representing the available task categories.",
+          "items": {
+            "type": "string"
+          }
         }
-      },
-      "required": ["fontSizeMultiplier"]
+      }
     },
     "UserProfile": {
       "title": "User Profile",
@@ -128,7 +134,7 @@
         "description": { "type": "string" },
         "points": { "type": "number" },
         "type": { "type": "string", "enum": ["video", "read"] },
-        "category": { "type": "string", "enum": ["Technology", "Health", "Gaming", "Books", "Creative"] },
+        "category": { "type": "string" },
         "link": { "type": "string", "format": "uri" },
         "content": { "type": "string" }
       },
@@ -180,7 +186,7 @@
         "path": "/app-settings/{settingId}",
         "definition": {
           "schema": { "$ref": "#/entities/AppSettings" },
-          "description": "Stores global application settings. Use a single document with a fixed ID like 'global'."
+          "description": "Stores global application settings. Use a single document with a fixed ID like 'global' or 'taskCategories'."
         }
       }
     ]

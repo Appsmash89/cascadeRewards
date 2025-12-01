@@ -91,7 +91,7 @@ service cloud.firestore {
 
     // Rules for the global app settings
     match /app-settings/{settingId} {
-        allow get: if true;
+        allow get: if isSignedIn(); // All users can read categories
         allow write: if isDevGuest();
     }
   }

@@ -3,10 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useMemoFirebase } from '@/firebase';
+import { useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { useUser } from '@/hooks/use-user';
 import { doc } from 'firebase/firestore';
-import { taskCategories, TaskCategory } from '@/lib/types';
+import type { TaskCategory, AppSettings } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,9 +16,6 @@ import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// Exclude 'All' from user-selectable categories
-const selectableCategories = taskCategories.filter(c => c !== 'All');
-
 export default function OnboardingView() {
   const { user, userProfile } = useUser();
   const firestore = useFirestore();
@@ -26,6 +23,14 @@ export default function OnboardingView() {
   const { toast } = useToast();
   const [selectedInterests, setSelectedInterests] = useState<Set<TaskCategory>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const categoriesRef = useMemoFirebase(() =>
+    firestore ? doc(firestore, 'app-settings', 'taskCategories') : null, [firestore]
+  );
+  const { data: categoriesData, isLoading: areCategoriesLoading } = useDoc<AppSettings>(categoriesRef);
+  
+  // Exclude 'All' from user-selectable categories
+  const selectableCategories = categoriesData?.taskCategories?.filter(c => c !== 'All') || [];
 
   const isUpdating = userProfile?.interests && userProfile.interests.length > 0;
 
@@ -89,6 +94,14 @@ export default function OnboardingView() {
       setIsSubmitting(false);
     }
   };
+
+  if (areCategoriesLoading) {
+    return (
+       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4">

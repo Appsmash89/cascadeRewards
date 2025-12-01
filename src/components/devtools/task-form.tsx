@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { Task } from '@/lib/types';
-import { taskCategories } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -35,19 +34,18 @@ const taskSchema = z.object({
   type: z.enum(['read', 'video'], {
     required_error: 'You need to select a task type.',
   }),
-  category: z.enum(taskCategories, {
-    required_error: 'You need to select a category.',
-  }),
+  category: z.string().min(1, 'You need to select a category.'),
   link: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   content: z.string().min(1, 'Content must not be empty.'),
 });
 
 type TaskFormProps = {
   task?: Task | null;
+  categories: string[];
   onSubmit: (data: z.infer<typeof taskSchema>) => Promise<void>;
 };
 
-export default function TaskForm({ task, onSubmit }: TaskFormProps) {
+export default function TaskForm({ task, categories, onSubmit }: TaskFormProps) {
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -55,7 +53,7 @@ export default function TaskForm({ task, onSubmit }: TaskFormProps) {
       description: task?.description || '',
       points: task?.points || 50,
       type: task?.type || 'read',
-      category: task?.category || 'Technology',
+      category: task?.category || '',
       link: task?.link || '',
       content: task?.content || 'This is the default content. Please replace it with instructions on how to complete the task.',
     },
@@ -69,7 +67,7 @@ export default function TaskForm({ task, onSubmit }: TaskFormProps) {
       description: task?.description || '',
       points: task?.points || 50,
       type: task?.type || 'read',
-      category: task?.category || 'Technology',
+      category: task?.category || '',
       link: task?.link || '',
       content: task?.content || '',
     });
@@ -155,7 +153,7 @@ export default function TaskForm({ task, onSubmit }: TaskFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {taskCategories.map(category => (
+                    {categories.map(category => (
                       <SelectItem key={category} value={category}>{category}</SelectItem>
                     ))}
                   </SelectContent>
