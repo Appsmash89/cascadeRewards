@@ -7,6 +7,7 @@ import {
 import { Users, Wallet, TrendingUp } from 'lucide-react'
 import type { UserProfile, Referral } from '@/lib/types'
 import { motion } from 'framer-motion'
+import AnimatedCounter from '../animated-counter'
 
 type StatsCardsProps = {
   user: UserProfile | null;
@@ -22,9 +23,9 @@ export default function StatsCards({ user, referrals, isGuest }: StatsCardsProps
   const earnings = isGuest ? 0 : referralEarnings; 
 
   const stats = [
-    { title: "Total Points", value: points.toLocaleString(), icon: Wallet },
+    { title: "Total Points", value: points, icon: Wallet },
     { title: "Referrals", value: referralCount, icon: Users },
-    { title: "Earnings", value: `${earnings.toLocaleString()}`, icon: TrendingUp },
+    { title: "Earnings", value: earnings, icon: TrendingUp },
   ]
 
   const containerVariants = {
@@ -53,7 +54,9 @@ export default function StatsCards({ user, referrals, isGuest }: StatsCardsProps
         <motion.div key={index} variants={itemVariants}>
           <Card className="p-4 flex flex-col items-center justify-center text-center shadow-sm h-full">
             <stat.icon className="h-6 w-6 text-muted-foreground mb-2" />
-            <div className="text-2xl font-bold tracking-tighter">{stat.value}</div>
+            <div className="text-2xl font-bold tracking-tighter">
+              <AnimatedCounter to={stat.value} />
+            </div>
             <p className="text-xs text-muted-foreground">{stat.title}</p>
           </Card>
         </motion.div>

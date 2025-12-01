@@ -27,6 +27,7 @@ service cloud.firestore {
              data.points is number &&
              data.credits is number &&
              data.level is number &&
+             data.totalEarned == 0 &&
              data.referralCode is string &&
              (data.referredBy is string || data.referredBy == null) &&
              data.createdAt is timestamp &&
@@ -43,8 +44,11 @@ service cloud.firestore {
       allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
       allow update: if (isOwner(userId) &&
                        request.resource.data.uid == resource.data.uid &&
-                       request.resource.data.createdAt == resource.data.createdAt) ||
-                       isDevGuest(); // Admin can update user docs (for points)
+                       request.resource.data.createdAt == resource.data.createdAt &&
+                       request.resource.data.referralCode == resource.data.referralCode &&
+                       request.resource.data.totalEarned == resource.data.totalEarned
+                       ) ||
+                       isDevGuest(); // Admin can update user docs
       allow delete: if false;
 
       // Rules for the user's tasks subcollection
@@ -56,7 +60,9 @@ service cloud.firestore {
         allow create: if isOwner(userId) || isDevGuest();
         
         // UPDATE: Allow if user is owner and changing status to 'in-progress' OR if user is admin.
-        allow update: if (isOwner(userId) && request.resource.data.status == 'in-progress' && resource.data.status == 'available') || isDevGuest();
+        allow update: if (isOwner(userId) && 
+                            (request.resource.data.status == 'in-progress' && resource.data.status == 'available')
+                         ) || isDevGuest();
                          
         // DELETE: The dev guest can delete user task entries.
         allow delete: if isDevGuest();

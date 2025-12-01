@@ -52,12 +52,12 @@ export const manageUserDocument = async (
       points: 0,
       credits: 0,
       level: 1,
+      totalEarned: 0,
       referralCode: generateReferralCode(),
       referredBy: null,
       createdAt: serverTimestamp(),
       lastLogin: serverTimestamp(),
       totalLogins: 1,
-      totalEarned: 0,
       settings: {
         notificationsEnabled: true,
         darkMode: false,
