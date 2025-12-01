@@ -64,16 +64,14 @@ service cloud.firestore {
           request.resource.data.points <= resource.data.points &&
 
           // --- Login Timestamp Security ---
-          // lastLogin must be the server time of the request.
-          request.resource.data.lastLogin == request.time &&
-          // totalLogins can only be incremented by 1.
-          request.resource.data.totalLogins == resource.data.totalLogins + 1 &&
+          // if lastLogin is being updated, it must be the server time.
+          (!('lastLogin' in request.resource.data) || request.resource.data.lastLogin == request.time) &&
+          // if totalLogins is being updated, it can only be incremented by 1.
+          (!('totalLogins' in request.resource.data) || request.resource.data.totalLogins == resource.data.totalLogins + 1) &&
 
           // --- Modifiable Fields ---
-          // Allow updates to displayName, photoURL, settings, and interests.
-          // The write request can only contain these modifiable fields
-          // plus the ones explicitly checked above (e.g., points, lastLogin).
           // This uses the `keys()` method to ensure no other fields are being changed.
+          // The request can only contain these modifiable fields or the ones explicitly handled above.
           request.resource.data.keys().hasOnly(['uid', 'displayName', 'email', 'photoURL', 'provider', 'points', 'credits', 'level', 'totalEarned', 'referralCode', 'referredBy', 'createdAt', 'lastLogin', 'totalLogins', 'settings', 'interests'])
         );
         
