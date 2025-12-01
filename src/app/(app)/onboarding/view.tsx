@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import { useUser } from '@/hooks/use-user';
@@ -23,6 +22,14 @@ export default function OnboardingView() {
   const { toast } = useToast();
   const [selectedInterests, setSelectedInterests] = useState<Set<TaskCategory>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isUpdating = userProfile?.interests && userProfile.interests.length > 0;
+
+  useEffect(() => {
+    if (userProfile?.interests) {
+      setSelectedInterests(new Set(userProfile.interests));
+    }
+  }, [userProfile]);
 
   const handleInterestToggle = (category: TaskCategory) => {
     setSelectedInterests(prev => {
@@ -96,8 +103,8 @@ export default function OnboardingView() {
                     >
                         <Sparkles className="h-8 w-8" />
                     </motion.div>
-                    <CardTitle className="text-2xl">Personalize Your Experience</CardTitle>
-                    <CardDescription>Select your interests to get relevant tasks.</CardDescription>
+                    <CardTitle className="text-2xl">{isUpdating ? 'Update Your Preferences' : 'Personalize Your Experience'}</CardTitle>
+                    <CardDescription>{isUpdating ? 'Change your selections to update your task feed.' : 'Select your interests to get relevant tasks.'}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -133,7 +140,7 @@ export default function OnboardingView() {
                         disabled={isSubmitting}
                     >
                         {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                        Continue
+                        {isUpdating ? 'Save Changes' : 'Continue'}
                     </Button>
                 </CardContent>
             </Card>
