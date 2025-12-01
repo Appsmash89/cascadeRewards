@@ -45,19 +45,32 @@ export default function DashboardView() {
   );
   const { data: userTasks } = useCollection<UserTask>(userTasksQuery);
 
-  // 3. Combine master tasks with user statuses
+  // 3. Combine master tasks with user statuses and personalize the order
   const combinedTasks = useMemo((): CombinedTask[] => {
-    if (!masterTasks || !userTasks) return [];
+    if (!masterTasks || !userTasks || !userProfile) return [];
     
     const userTasksMap = new Map(userTasks.map(ut => [ut.id, ut]));
-    
-    return masterTasks.map((mt: WithId<Task>) => ({
+    const userInterests = new Set(userProfile.interests || []);
+
+    const tasks: CombinedTask[] = masterTasks.map((mt: WithId<Task>) => ({
       ...mt,
       status: userTasksMap.get(mt.id)?.status ?? 'available',
       completedAt: userTasksMap.get(mt.id)?.completedAt ?? null,
     }));
+    
+    // Sort tasks: preferred first, then by title
+    tasks.sort((a, b) => {
+      const aIsPreferred = userInterests.has(a.category);
+      const bIsPreferred = userInterests.has(b.category);
 
-  }, [masterTasks, userTasks]);
+      if (aIsPreferred && !bIsPreferred) return -1;
+      if (!aIsPreferred && bIsPreferred) return 1;
+      return a.title.localeCompare(b.title);
+    });
+
+    return tasks;
+
+  }, [masterTasks, userTasks, userProfile]);
 
 
   // The main loading state is handled by the new layout

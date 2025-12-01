@@ -35,7 +35,8 @@ service cloud.firestore {
              data.totalLogins == 1 &&
              data.settings is map &&
              data.settings.notificationsEnabled is bool &&
-             data.settings.darkMode is bool;
+             data.settings.darkMode is bool &&
+             data.interests is list && data.interests.size() == 0;
     }
 
     match /users/{userId} {
@@ -62,10 +63,11 @@ service cloud.firestore {
           request.resource.data.points <= resource.data.points &&
 
           // --- Modifiable Fields ---
-          // Allow updates to displayName, photoURL, and settings.
+          // Allow updates to displayName, photoURL, settings, and interests.
           request.resource.data.displayName == request.resource.data.displayName &&
           request.resource.data.photoURL == request.resource.data.photoURL &&
           request.resource.data.settings == request.resource.data.settings &&
+          request.resource.data.interests == request.resource.data.interests &&
           request.resource.data.lastLogin == request.time &&
           request.resource.data.totalLogins == resource.data.totalLogins + 1
         );

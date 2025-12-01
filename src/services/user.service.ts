@@ -62,6 +62,7 @@ export const manageUserDocument = async (
         notificationsEnabled: true,
         darkMode: false,
       },
+      interests: [],
     };
     // Use a non-blocking write.
     setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
