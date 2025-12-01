@@ -41,7 +41,7 @@ export default function DevToolsView() {
         toast({ variant: "destructive", title: "Error", description: "Firestore not available." });
         return;
     }
-    if (!confirm('Are you sure you want to reset task progress for ALL users? This cannot be undone.')) {
+    if (!confirm('Are you sure you want to reset task progress for ALL non-admin users? This cannot be undone.')) {
         return;
     }
 
@@ -57,8 +57,18 @@ export default function DevToolsView() {
             return;
         }
 
+        let usersResetCount = 0;
+
         // For each user, get their tasks and add resets to the batch
         for (const userDoc of usersSnapshot.docs) {
+            const userData = userDoc.data() as UserProfile;
+
+            // Skip the admin user and non-Google users
+            if (userData.email === GUEST_EMAIL || userData.provider !== 'google.com') {
+                continue;
+            }
+            
+            usersResetCount++;
             const userTasksRef = collection(firestore, 'users', userDoc.id, 'tasks');
             const tasksSnapshot = await getDocs(userTasksRef);
             
@@ -71,12 +81,18 @@ export default function DevToolsView() {
                 });
             }
         }
+        
+        if (usersResetCount === 0) {
+            toast({ title: "No Users to Reset", description: "No Google-signed-in users found." });
+            setIsResetting(false);
+            return;
+        }
 
         await batch.commit();
 
         toast({
             title: "Global Task Reset Successful",
-            description: "All task progress for all users has been reset.",
+            description: `Task progress for ${usersResetCount} user(s) has been reset.`,
         });
 
     } catch (error) {
