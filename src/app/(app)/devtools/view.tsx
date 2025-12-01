@@ -8,21 +8,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { collection, doc, deleteDoc, writeBatch, increment, setDoc } from "firebase/firestore";
+import { useEffect } from "react";
+import { collection, doc, deleteDoc, increment, setDoc } from "firebase/firestore";
 import type { Task, WithId, UserProfile, AppSettings } from "@/lib/types";
 import Link from 'next/link';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -59,17 +48,26 @@ export default function DevToolsView() {
 
   const handleDeleteTask = async (task: WithId<Task>) => {
     if (!firestore || !userProfile) return;
-    if (!confirm(`Are you sure you want to delete "${task.title}"? This cannot be undone.`)) return;
+    
+    // Directly use window.confirm
+    const isConfirmed = window.confirm(`Are you sure you want to delete "${task.title}"? This cannot be undone.`);
+    if (!isConfirmed) return;
 
     try {
         const masterTaskRef = doc(firestore, 'tasks', task.id);
         await deleteDoc(masterTaskRef);
 
-        // Also delete from guest user's subcollection
-        const userTaskRef = doc(firestore, 'users', userProfile.uid, 'tasks', task.id);
-        await deleteDoc(userTaskRef).catch(e => console.warn("Could not delete user task, it might not exist", e));
+        // Also delete from guest user's subcollection for consistency
+        if(users) {
+          const batch = writeBatch(firestore);
+          users.forEach(u => {
+            const userTaskRef = doc(firestore, 'users', u.uid, 'tasks', task.id);
+            batch.delete(userTaskRef);
+          });
+          await batch.commit();
+        }
 
-        toast({ title: 'Task Deleted', description: `"${task.title}" has been removed.` });
+        toast({ title: 'Task Deleted', description: `"${task.title}" has been removed for all users.` });
     } catch (e: any) {
         toast({ variant: "destructive", title: 'Error deleting task', description: e.message });
     }
@@ -78,13 +76,20 @@ export default function DevToolsView() {
   const handleFontSizeChange = async (step: number) => {
     if (!appSettingsRef) return;
     
-    // Ensure the multiplier doesn't go below a reasonable threshold
-    const currentMultiplier = appSettings?.fontSizeMultiplier ?? 1;
-    if (currentMultiplier + step * 0.1 < 0.5) return;
-
+    // The check for minimum size should happen on the UI side if needed, 
+    // but the core logic can rely on Firestore's atomic increment.
+    // This avoids using stale local state `appSettings`.
     await setDoc(appSettingsRef, { 
       fontSizeMultiplier: increment(step * 0.1) 
     }, { merge: true });
+  }
+
+  if (isUserLoading || usersLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   if (!isGuestMode) {
@@ -96,6 +101,9 @@ export default function DevToolsView() {
   }
 
   const sortedTasks = masterTasks?.sort((a, b) => a.title.localeCompare(b.title));
+  
+  // Handle potential floating point inaccuracies for display
+  const displayMultiplier = appSettings?.fontSizeMultiplier ? (Math.round(appSettings.fontSizeMultiplier * 10) / 10).toFixed(1) : '1.0';
 
   return (
     <>
@@ -107,19 +115,19 @@ export default function DevToolsView() {
               </div>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button asChild>
-                <Link href="/devtools/users">
-                  <Users className="mr-2 h-4 w-4" />
-                  Manage User Tasks
-                </Link>
-              </Button>
+               <Button asChild>
+                  <Link href="/devtools/users">
+                    <Users className="mr-2 h-4 w-4" />
+                    Manage Users
+                  </Link>
+                </Button>
               <div className="p-4 py-2 border rounded-lg flex items-center justify-between">
                 <p className="font-medium text-sm">Global Font Size</p>
                 <div className="flex items-center gap-2">
-                  <Button size="icon" variant="outline" onClick={() => handleFontSizeChange(-1)}>
+                  <Button size="icon" variant="outline" onClick={() => handleFontSizeChange(-1)} disabled={(appSettings?.fontSizeMultiplier ?? 1) <= 0.5}>
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <span className="font-bold w-10 text-center">{appSettings?.fontSizeMultiplier.toFixed(1) ?? '1.0'}x</span>
+                  <span className="font-bold w-10 text-center">{displayMultiplier}x</span>
                   <Button size="icon" variant="outline" onClick={() => handleFontSizeChange(1)}>
                     <Plus className="h-4 w-4" />
                   </Button>
@@ -181,3 +189,5 @@ export default function DevToolsView() {
     </>
   );
 }
+
+    
