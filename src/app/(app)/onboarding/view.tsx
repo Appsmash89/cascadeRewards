@@ -113,13 +113,6 @@ export default function OnboardingView() {
         >
             <Card>
                 <CardHeader className="text-center">
-                    <motion.div 
-                        animate={{ scale: [1, 1.2, 1], rotate: [-10, 10, 0] }}
-                        transition={{ duration: 0.8, ease: "easeInOut" }}
-                        className="mx-auto bg-primary/10 border border-primary/20 p-3 rounded-full text-primary w-fit mb-4"
-                    >
-                        <Sparkles className="h-8 w-8" />
-                    </motion.div>
                     <CardTitle className="text-2xl">{isUpdating ? 'Update Your Preferences' : 'Personalize Your Experience'}</CardTitle>
                     <CardDescription>{isUpdating ? 'Change your selections to update your task feed.' : 'Select your interests to get relevant tasks.'}</CardDescription>
                 </CardHeader>
