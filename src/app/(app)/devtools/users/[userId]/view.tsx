@@ -4,14 +4,14 @@
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import { doc, collection, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, ArrowLeft, CheckCircle, Award, RotateCcw } from 'lucide-react';
+import { Loader2, ArrowLeft, CheckCircle, Award, RotateCcw, Undo2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import type { Task, UserProfile, UserTask, CombinedTask, WithId } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useRouter } from 'next/navigation';
 
 
 const taskIcons = {
@@ -44,10 +45,18 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
   const firestore = useFirestore();
   const { user: adminUser } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [previousState, setPreviousState] = useState<PreviousState>(null);
 
   const isGuestMode = adminUser?.email === 'guest.dev@cascade.app';
+  
+  // Clear undo state if user navigates away
+  useEffect(() => {
+    return () => {
+      setPreviousState(null);
+    }
+  }, [router]);
 
   // Get targeted user's profile
   const userProfileRef = useMemoFirebase(() =>
@@ -144,12 +153,6 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     toast({
       title: 'User Progress Reset',
       description: `${userProfile.displayName}'s tasks and points have been reset.`,
-      action: (
-        <Button variant="secondary" size="sm" onClick={handleUndoReset}>
-          <RotateCcw className="mr-2 h-4 w-4" />
-          Undo
-        </Button>
-      ),
     });
   };
 
@@ -207,30 +210,38 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
               Back to Users
             </Link>
           </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Reset User's Progress
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will reset all task progress and points for{' '}
-                    <span className="font-bold">{userProfile.displayName}</span>. This action can be undone
-                    immediately after, but not after navigating away.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleResetUserProgress}>
-                    Yes, Reset Progress
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+          <div className="flex items-center gap-2">
+            {previousState ? (
+              <Button variant="outline" size="sm" onClick={handleUndoReset}>
+                <Undo2 className="mr-2 h-4 w-4" />
+                Undo Reset
+              </Button>
+            ) : (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Reset User's Progress
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will reset all task progress and points for{' '}
+                      <span className="font-bold">{userProfile.displayName}</span>. This can be undone until you navigate away.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleResetUserProgress}>
+                      Yes, Reset Progress
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-4 pt-4">
             <Avatar className="h-16 w-16 border">
@@ -283,3 +294,4 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
   );
 }
 
+    
