@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense } from "react";
 import { useTheme } from "next-themes";
 import { doc } from "firebase/firestore";
 
@@ -85,10 +85,10 @@ function SettingsView() {
         <div className="flex items-center justify-between p-4 rounded-lg bg-secondary border">
           <div className="flex items-center gap-4">
             <Sparkles className="h-5 w-5 text-muted-foreground"/>
-            <Label htmlFor="dark-mode" className="font-medium">Task Preferences</Label>
+            <Label htmlFor="task-preferences" className="font-medium">Task Preferences</Label>
           </div>
           <Button asChild variant="ghost" size="icon" disabled={isGuestMode}>
-            <Link href="/onboarding">
+            <Link href="/onboarding" id="task-preferences">
                 <ArrowRight className="h-5 w-5" />
             </Link>
           </Button>
@@ -100,14 +100,4 @@ function SettingsView() {
 }
 
 
-export default function SettingsPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex flex-1 items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    }>
-      <SettingsView />
-    </Suspense>
-  )
-}
+export default SettingsView;
