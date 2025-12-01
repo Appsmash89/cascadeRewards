@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useRouter } from 'next/navigation';
 
-const POINTS_PER_LEVEL = 1000;
+const POINTS_PER_LEVEL = 100;
 
 const taskIcons = {
   video: <PlayCircle className="h-5 w-5 text-primary" />,

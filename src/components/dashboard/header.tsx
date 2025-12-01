@@ -25,7 +25,7 @@ type DashboardHeaderProps = {
   isGuest: boolean;
 }
 
-const POINTS_PER_LEVEL = 1000;
+const POINTS_PER_LEVEL = 100;
 
 export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps) {
   const getInitials = (name: string) => {
