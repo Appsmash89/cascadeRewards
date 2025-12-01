@@ -91,7 +91,9 @@ service cloud.firestore {
 
     // Rules for the global app settings
     match /app-settings/{settingId} {
-        allow get: if isSignedIn(); // All users can read categories
+        // Anyone can read global app settings (like font size, categories)
+        allow get: if true;
+        // Only the admin can change them.
         allow write: if isDevGuest();
     }
   }
