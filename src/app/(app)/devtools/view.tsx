@@ -5,13 +5,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
-import { collection, doc, deleteDoc, increment, setDoc, writeBatch } from "firebase/firestore";
+import { collection, doc, deleteDoc, writeBatch, increment, setDoc, getDocs } from "firebase/firestore";
 import type { Task, WithId, UserProfile, AppSettings } from "@/lib/types";
 import Link from 'next/link';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -73,6 +84,39 @@ export default function DevToolsView() {
     }
   };
 
+  const handleResetTasks = async () => {
+    if (!firestore || !users) {
+      toast({ variant: "destructive", title: "Error", description: "Could not reset tasks." });
+      return;
+    }
+
+    try {
+      const batch = writeBatch(firestore);
+      
+      for (const u of users) {
+        // Reset points and totalEarned on the user profile
+        const userDocRef = doc(firestore, 'users', u.uid);
+        batch.update(userDocRef, {
+          points: 0,
+          totalEarned: 0
+        });
+
+        // Reset all tasks in the subcollection
+        const userTasksCollectionRef = collection(firestore, 'users', u.uid, 'tasks');
+        const userTasksSnapshot = await getDocs(userTasksCollectionRef);
+        userTasksSnapshot.forEach(taskDoc => {
+          batch.update(taskDoc.ref, { status: 'available', completedAt: null });
+        });
+      }
+
+      await batch.commit();
+      toast({ title: "Success", description: "All user progress has been reset." });
+
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Reset Failed", description: e.message });
+    }
+  };
+
   const handleFontSizeChange = async (step: number) => {
     if (!appSettingsRef) return;
     
@@ -115,15 +159,35 @@ export default function DevToolsView() {
               </div>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Button asChild className="w-full">
-                    <Link href="/devtools/users">
-                      <Users className="mr-2 h-4 w-4" />
-                      Manage Users
-                    </Link>
+              <Button asChild className="w-full">
+                  <Link href="/devtools/users">
+                    <Users className="mr-2 h-4 w-4" />
+                    Manage Users
+                  </Link>
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="w-full">
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Reset All User Progress
                   </Button>
-              </div>
-              <div className="p-2 border rounded-lg flex items-center justify-between">
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will reset all task progress and points for EVERY user, including the admin. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleResetTasks}>
+                      Yes, Reset Everything
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <div className="p-2 border rounded-lg flex items-center justify-between md:col-span-2">
                 <p className="font-medium text-sm pl-2">Global Font Size</p>
                 <div className="flex items-center gap-2">
                   <Button size="icon" variant="outline" onClick={() => handleFontSizeChange(-1)} disabled={(appSettings?.fontSizeMultiplier ?? 1) <= 0.5}>
@@ -191,3 +255,5 @@ export default function DevToolsView() {
     </>
   );
 }
+
+    
