@@ -74,8 +74,8 @@ service cloud.firestore {
 
     // Rules for the global app settings
     match /app-settings/{settingId} {
-        // READ: Any signed-in user can read the global settings.
-        allow get: if isSignedIn();
+        // READ: Any user (authenticated or not) can read the global settings.
+        allow get: if true;
 
         // WRITE: Only the admin can change global settings.
         allow write: if isDevGuest();
