@@ -9,7 +9,7 @@ import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus } from "lu
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
-import { collection, doc, deleteDoc, increment, setDoc } from "firebase/firestore";
+import { collection, doc, deleteDoc, increment, setDoc, writeBatch } from "firebase/firestore";
 import type { Task, WithId, UserProfile, AppSettings } from "@/lib/types";
 import Link from 'next/link';
 
@@ -115,14 +115,16 @@ export default function DevToolsView() {
               </div>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <Button asChild>
-                  <Link href="/devtools/users">
-                    <Users className="mr-2 h-4 w-4" />
-                    Manage Users
-                  </Link>
-                </Button>
-              <div className="p-4 py-2 border rounded-lg flex items-center justify-between">
-                <p className="font-medium text-sm">Global Font Size</p>
+              <div>
+                <Button asChild className="w-full">
+                    <Link href="/devtools/users">
+                      <Users className="mr-2 h-4 w-4" />
+                      Manage Users
+                    </Link>
+                  </Button>
+              </div>
+              <div className="p-2 border rounded-lg flex items-center justify-between">
+                <p className="font-medium text-sm pl-2">Global Font Size</p>
                 <div className="flex items-center gap-2">
                   <Button size="icon" variant="outline" onClick={() => handleFontSizeChange(-1)} disabled={(appSettings?.fontSizeMultiplier ?? 1) <= 0.5}>
                     <Minus className="h-4 w-4" />
@@ -189,5 +191,3 @@ export default function DevToolsView() {
     </>
   );
 }
-
-    
