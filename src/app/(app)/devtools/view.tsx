@@ -8,10 +8,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, Trash2, Edit, Link2, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { collection, doc, deleteDoc } from "firebase/firestore";
 import type { Task, WithId } from "@/lib/types";
 import Link from 'next/link';
+import PinLock from "@/components/auth/pin-lock";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -20,6 +21,8 @@ export default function DevToolsView() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  
   const isGuestMode = user?.email === GUEST_EMAIL;
   
   const masterTasksQuery = useMemoFirebase(() =>
@@ -61,6 +64,10 @@ export default function DevToolsView() {
   }
 
   const sortedTasks = masterTasks?.sort((a, b) => a.title.localeCompare(b.title));
+
+  if (!isUnlocked) {
+    return <PinLock onUnlock={() => setIsUnlocked(true)} />
+  }
 
   return (
     <>

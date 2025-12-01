@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { doc } from "firebase/firestore";
 
@@ -11,9 +11,99 @@ import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks/use-user";
 import { useFirestore } from "@/firebase";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { Loader2, Bell, Moon } from "lucide-react";
+import { Loader2, Bell, Moon, KeyRound } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
+const PIN_STORAGE_KEY = 'cascade-admin-pin';
+
+
+function PinSettings() {
+  const [currentPin, setCurrentPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [error, setError] = useState('');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const storedPin = localStorage.getItem(PIN_STORAGE_KEY);
+    if (storedPin) {
+      setCurrentPin(storedPin);
+    } else {
+      setCurrentPin('----'); // Default if no pin is set
+    }
+  }, []);
+
+  const handleSetPin = () => {
+    setError('');
+    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+      setError('PIN must be 4 digits.');
+      return;
+    }
+    if (newPin !== confirmPin) {
+      setError('PINs do not match.');
+      return;
+    }
+
+    localStorage.setItem(PIN_STORAGE_KEY, newPin);
+    setCurrentPin(newPin);
+    setNewPin('');
+    setConfirmPin('');
+    toast({
+      title: "PIN Updated",
+      description: "Your admin access PIN has been changed.",
+    });
+  };
+
+  return (
+    <>
+      <Separator className="my-6" />
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <KeyRound className="h-5 w-5 text-muted-foreground"/>
+          <h3 className="text-lg font-medium">Admin PIN</h3>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Current PIN: <span className="font-mono tracking-widest">{currentPin}</span>
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="new-pin">New 4-Digit PIN</Label>
+            <Input 
+              id="new-pin" 
+              type="password" 
+              maxLength={4}
+              value={newPin}
+              onChange={(e) => setNewPin(e.target.value)}
+              className="font-mono tracking-widest"
+              placeholder="••••"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirm-pin">Confirm PIN</Label>
+            <Input 
+              id="confirm-pin" 
+              type="password" 
+              maxLength={4}
+              value={confirmPin}
+              onChange={(e) => setConfirmPin(e.target.value)}
+              className="font-mono tracking-widest"
+              placeholder="••••"
+            />
+          </div>
+        </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <div className="flex justify-end">
+          <Button onClick={handleSetPin}>Set New PIN</Button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 
 function SettingsView() {
   const { user, userProfile } = useUser();
@@ -79,6 +169,9 @@ function SettingsView() {
             onCheckedChange={handleThemeChange} 
           />
         </div>
+
+        {isGuestMode && <PinSettings />}
+
       </CardContent>
     </Card>
   );
