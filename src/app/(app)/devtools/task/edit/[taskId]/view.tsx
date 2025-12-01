@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import type { Task } from '@/lib/types';
+import { taskCategories } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import TaskForm from '@/components/devtools/task-form';
 import { z } from 'zod';
@@ -19,6 +20,7 @@ const taskSchema = z.object({
   description: z.string().min(5),
   points: z.coerce.number().int().positive(),
   type: z.enum(['read', 'video']),
+  category: z.enum(taskCategories),
   link: z.string().url().optional().or(z.literal('')),
   content: z.string().min(10),
 });

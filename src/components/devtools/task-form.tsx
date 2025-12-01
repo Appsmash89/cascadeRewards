@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { Task } from '@/lib/types';
+import { taskCategories } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -33,6 +34,9 @@ const taskSchema = z.object({
   points: z.coerce.number().int().positive('Points must be a positive number.'),
   type: z.enum(['read', 'video'], {
     required_error: 'You need to select a task type.',
+  }),
+  category: z.enum(taskCategories, {
+    required_error: 'You need to select a category.',
   }),
   link: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   content: z.string().min(1, 'Content must not be empty.'),
@@ -51,6 +55,7 @@ export default function TaskForm({ task, onSubmit }: TaskFormProps) {
       description: task?.description || '',
       points: task?.points || 50,
       type: task?.type || 'read',
+      category: task?.category || 'Technology',
       link: task?.link || '',
       content: task?.content || 'This is the default content. Please replace it with instructions on how to complete the task.',
     },
@@ -64,6 +69,7 @@ export default function TaskForm({ task, onSubmit }: TaskFormProps) {
       description: task?.description || '',
       points: task?.points || 50,
       type: task?.type || 'read',
+      category: task?.category || 'Technology',
       link: task?.link || '',
       content: task?.content || '',
     });
@@ -101,40 +107,64 @@ export default function TaskForm({ task, onSubmit }: TaskFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="points"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Points</FormLabel>
-              <FormControl>
-                <Input type="number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Task Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <FormField
+            control={form.control}
+            name="points"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Points</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a task type" />
-                  </SelectTrigger>
+                  <Input type="number" {...field} />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="read">Read</SelectItem>
-                  <SelectItem value="video">Video</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Task Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a task type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="read">Read</SelectItem>
+                    <SelectItem value="video">Video</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {taskCategories.map(category => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="link"

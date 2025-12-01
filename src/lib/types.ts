@@ -35,12 +35,16 @@ export type User = {
   referralLevel: number;
 };
 
+export const taskCategories = ["Technology", "Health", "Gaming", "Books", "Creative"] as const;
+export type TaskCategory = typeof taskCategories[number];
+
 // Represents a master task from the global /tasks collection
 export type Task = {
   title: string;
   description: string;
   points: number;
   type: 'video' | 'read';
+  category: TaskCategory;
   link?: string;
   content: string;
 };
