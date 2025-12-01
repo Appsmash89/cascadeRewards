@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PlayCircle, FileText, CheckCircle, Award, History, ArrowRight, Loader2 } from 'lucide-react';
@@ -9,6 +8,7 @@ import type { CombinedTask } from '@/lib/types';
 import { Separator } from '../ui/separator';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type TasksListProps = {
   tasks: CombinedTask[];
@@ -20,61 +20,48 @@ const taskIcons = {
   read: <FileText className="h-5 w-5 text-indigo-500" />,
 };
 
-const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boolean, index: number }) => (
-  <motion.div
-    layout
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
-    exit={{ opacity: 0, x: -30, transition: { duration: 0.2 } }}
-    className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-secondary"
-  >
-    <motion.div 
-      key={task.status}
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      className="flex-shrink-0 bg-primary/10 p-2 rounded-full"
+const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boolean, index: number }) => {
+  const router = useRouter();
+  
+  const handleClick = () => {
+    router.push(`/tasks/${task.id}`);
+  };
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
+      exit={{ opacity: 0, x: -30, transition: { duration: 0.2 } }}
+      className="flex items-center gap-4 p-3 rounded-lg transition-colors hover:bg-secondary cursor-pointer"
+      onClick={handleClick}
     >
-      {task.status === 'completed' ? <CheckCircle className="h-5 w-5 text-green-500" /> : taskIcons[task.type]}
+      <motion.div 
+        key={task.status}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        className="flex-shrink-0 bg-primary/10 p-2 rounded-full"
+      >
+        {task.status === 'completed' ? <CheckCircle className="h-5 w-5 text-green-500" /> : taskIcons[task.type]}
+      </motion.div>
+      <div className="flex-grow">
+        <p className="font-medium leading-tight">{task.title}</p>
+        <p className="text-sm text-muted-foreground">{task.description}</p>
+      </div>
+      <div className="flex items-center gap-4">
+        <Badge variant="secondary" className="flex items-center gap-1 font-bold text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
+          <Award className="h-3 w-3" />
+          <span>{task.points}</span>
+        </Badge>
+        
+        {task.status === 'in-progress' && <Loader2 className="h-4 w-4 animate-spin text-amber-500" />}
+
+        <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
+      </div>
     </motion.div>
-    <div className="flex-grow">
-      <p className="font-medium leading-tight">{task.title}</p>
-      <p className="text-sm text-muted-foreground">{task.description}</p>
-    </div>
-    <div className="flex items-center gap-4">
-      <Badge variant="secondary" className="flex items-center gap-1 font-bold text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
-        <Award className="h-3 w-3" />
-        <span>{task.points}</span>
-      </Badge>
-      
-      {task.status === 'completed' ? (
-        <div
-          className={cn(
-            "flex items-center justify-center w-28 h-9 rounded-md border text-sm",
-            "border-green-500/30 bg-green-500/10 text-green-600 cursor-default"
-          )}
-        >
-          <CheckCircle className="mr-2 h-4 w-4" />
-          Done
-        </div>
-      ) : task.status === 'in-progress' ? (
-        <Button asChild size="sm" variant="outline" className="w-28 border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 hover:text-amber-700">
-           <Link href={`/tasks/${task.id}`}>
-            In Progress
-            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-          </Link>
-        </Button>
-      ) : (
-        <Button asChild size="sm" variant="outline" className="w-28">
-          <Link href={`/tasks/${task.id}`}>
-            Open
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-      )}
-      
-    </div>
-  </motion.div>
-);
+  );
+};
+
 
 export default function TasksList({ tasks, isGuestMode }: TasksListProps) {
   const availableTasks = tasks.filter(task => task.status === 'available' || task.status === 'in-progress');
