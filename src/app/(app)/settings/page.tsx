@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { doc } from "firebase/firestore";
 
@@ -14,6 +14,7 @@ import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Loader2, Bell, Moon } from "lucide-react";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
+
 
 function SettingsView() {
   const { user, userProfile } = useUser();
@@ -79,6 +80,7 @@ function SettingsView() {
             onCheckedChange={handleThemeChange} 
           />
         </div>
+
       </CardContent>
     </Card>
   );
