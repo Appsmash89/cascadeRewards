@@ -45,7 +45,7 @@ export const manageUserDocument = async (
     // User is new, create the document with default values.
     const newUserProfile: UserProfile = {
       uid: user.uid,
-      displayName: user.isAnonymous ? 'Guest User' : user.displayName || 'New User',
+      displayName: user.isAnonymous ? 'Admin' : user.displayName || 'New User',
       email: user.email || '',
       photoURL: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
       provider: user.providerData[0]?.providerId || 'anonymous',

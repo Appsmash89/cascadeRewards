@@ -54,7 +54,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
     }
   };
 
-  const displayName = isGuest ? "Guest User" : user?.displayName ?? "User";
+  const displayName = isGuest ? "Admin" : user?.displayName ?? "User";
   const displayAvatar = user?.photoURL;
   const displayEmail = isGuest ? "guest.dev@cascade.app" : user?.email;
 

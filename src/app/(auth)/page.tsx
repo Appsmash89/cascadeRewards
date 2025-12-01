@@ -128,7 +128,7 @@ export default function LoginPage() {
             {loadingProvider === 'guest' && (
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             )}
-            {loadingProvider === 'guest' ? 'Signing in...' : 'Continue as Guest'}
+            {loadingProvider === 'guest' ? 'Signing in...' : 'Admin'}
           </Button>
         </CardContent>
       </Card>
