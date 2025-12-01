@@ -52,6 +52,10 @@
           "type": "number",
           "description": "The user's current level, which may unlock new features or rewards."
         },
+        "totalEarned": {
+            "type": "number",
+            "description": "A lifetime counter of all points ever earned, used for level progression."
+        },
         "referralCode": {
           "type": "string",
           "description": "A unique, auto-generated code for referring other users."
@@ -67,7 +71,7 @@
         },
         "lastLogin": {
           "type": "string",
-"format": "date-time",
+          "format": "date-time",
           "description": "The timestamp of the user's last login, updated on every sign-in."
         },
         "totalLogins": {
@@ -99,6 +103,7 @@
         "points",
         "credits",
         "level",
+        "totalEarned",
         "referralCode",
         "createdAt",
         "lastLogin",

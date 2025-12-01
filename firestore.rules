@@ -17,73 +17,81 @@ service cloud.firestore {
       return request.auth.token.email == 'guest.dev@cascade.app';
     }
 
-    // Function to validate the structure and types of the UserProfile document.
+    // Function to validate the structure and types of the UserProfile document on creation.
     function isValidUserProfile(data) {
       return data.uid == request.auth.uid &&
              data.displayName is string &&
              data.email is string &&
              data.photoURL is string &&
              data.provider is string &&
-             data.points is number &&
-             data.credits is number &&
-             data.level is number &&
+             data.points == 0 &&
+             data.credits == 0 &&
+             data.level == 1 &&
              data.totalEarned == 0 &&
              data.referralCode is string &&
              (data.referredBy is string || data.referredBy == null) &&
              data.createdAt is timestamp &&
              data.lastLogin is timestamp &&
-             data.totalLogins is number && data.totalLogins > 0 &&
+             data.totalLogins == 1 &&
              data.settings is map &&
              data.settings.notificationsEnabled is bool &&
              data.settings.darkMode is bool;
     }
-    
+
     match /users/{userId} {
-      allow get: if isOwner(userId) || isDevGuest(); // Admin can read user profiles
-      allow list: if isDevGuest(); // Admin can list users
+      allow get: if isOwner(userId) || isDevGuest();
+      allow list: if isDevGuest();
       allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
-      allow update: if (isOwner(userId) &&
-                       request.resource.data.uid == resource.data.uid &&
-                       request.resource.data.createdAt == resource.data.createdAt &&
-                       request.resource.data.referralCode == resource.data.referralCode &&
-                       request.resource.data.totalEarned == resource.data.totalEarned
-                       ) ||
-                       isDevGuest(); // Admin can update user docs
+      allow update: if 
+        // Admin can update anything.
+        isDevGuest() || 
+        // Regular users have very restricted write access.
+        (isOwner(userId) &&
+          // --- Immutable Fields ---
+          // These fields cannot be changed by the user after creation.
+          request.resource.data.uid == resource.data.uid &&
+          request.resource.data.createdAt == resource.data.createdAt &&
+          request.resource.data.referralCode == resource.data.referralCode &&
+          
+          // --- Points & Level Security ---
+          // User cannot increase their own points, totalEarned, or level.
+          request.resource.data.points >= 0 &&
+          request.resource.data.totalEarned == resource.data.totalEarned &&
+          request.resource.data.level == resource.data.level &&
+          // They can only DECREASE points (e.g., redeeming rewards).
+          request.resource.data.points <= resource.data.points &&
+
+          // --- Modifiable Fields ---
+          // Allow updates to displayName, photoURL, and settings.
+          request.resource.data.displayName == request.resource.data.displayName &&
+          request.resource.data.photoURL == request.resource.data.photoURL &&
+          request.resource.data.settings == request.resource.data.settings &&
+          request.resource.data.lastLogin == request.time &&
+          request.resource.data.totalLogins == resource.data.totalLogins + 1
+        );
+        
       allow delete: if false;
 
       // Rules for the user's tasks subcollection
       match /tasks/{taskId} {
-        // READ: A user can read their own task list, admin can read anyone's.
         allow get, list: if isOwner(userId) || isDevGuest();
-        
-        // CREATE: A user can create their own task entries (on first start). Admin can also.
         allow create: if isOwner(userId) || isDevGuest();
-        
-        // UPDATE: Allow if user is owner and changing status to 'in-progress' OR if user is admin.
         allow update: if (isOwner(userId) && 
                             (request.resource.data.status == 'in-progress' && resource.data.status == 'available')
                          ) || isDevGuest();
-                         
-        // DELETE: The dev guest can delete user task entries.
         allow delete: if isDevGuest();
       }
     }
 
     // Rules for the global tasks collection
     match /tasks/{taskId} {
-        // READ: Any signed-in user can read the master list of tasks.
         allow get, list: if isSignedIn();
-
-        // WRITE: Only allow the special dev guest account to manage tasks.
         allow write: if isDevGuest();
     }
 
     // Rules for the global app settings
     match /app-settings/{settingId} {
-        // READ: Any user (authenticated or not) can read the global settings.
         allow get: if true;
-
-        // WRITE: Only the admin can change global settings.
         allow write: if isDevGuest();
     }
   }
