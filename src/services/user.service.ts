@@ -24,6 +24,43 @@ const generateReferralCode = (): string => {
 };
 
 /**
+ * Ensures the essential application settings, like the default 'All' category, exist.
+ * This should be called once when the application is first initialized.
+ * @param firestore The Firestore database instance.
+ */
+const seedInitialAppSettings = async (firestore: Firestore): Promise<void> => {
+    const categoriesDocRef = doc(firestore, 'app-settings', 'taskCategories');
+    const categoriesDoc = await getDoc(categoriesDocRef);
+
+    if (!categoriesDoc.exists()) {
+        console.log("Seeding initial 'All' task category...");
+        try {
+            await setDoc(categoriesDocRef, {
+                taskCategories: ['All']
+            });
+            console.log("'All' category seeded successfully.");
+        } catch (error) {
+            console.error("Error seeding 'All' category:", error);
+        }
+    }
+     const globalSettingsRef = doc(firestore, 'app-settings', 'global');
+    const globalSettingsDoc = await getDoc(globalSettingsRef);
+
+    if (!globalSettingsDoc.exists()) {
+        console.log("Seeding initial global settings...");
+        try {
+            await setDoc(globalSettingsRef, {
+                fontSizeMultiplier: 1.0
+            });
+            console.log("Global settings seeded successfully.");
+        } catch (error) {
+            console.error("Error seeding global settings:", error);
+        }
+    }
+};
+
+
+/**
  * Manages a user's document in Firestore.
  * On first login, it creates the document.
  * On subsequent logins, it updates the last login time and other syncable fields.
@@ -42,7 +79,11 @@ export const manageUserDocument = async (
   const userDoc = await getDoc(userRef);
 
   if (!userDoc.exists()) {
-    // User is new, create the document with default values.
+    // This is the first time this user has logged in.
+    // Before creating the user, let's ensure initial app settings are in place.
+    await seedInitialAppSettings(firestore);
+
+    // Now, create the new user's profile.
     const newUserProfile: UserProfile = {
       uid: user.uid,
       displayName: user.isAnonymous ? 'Admin' : user.displayName || 'New User',
