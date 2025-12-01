@@ -2,6 +2,7 @@
 
 
 
+
 // This represents the user document in Firestore
 export type UserProfile = {
   uid: string;
@@ -38,7 +39,7 @@ export type User = {
   referralLevel: number;
 };
 
-export const taskCategories = ["Technology", "Health", "Gaming", "Books", "Creative", "All"] as const;
+export const taskCategories = ["Technology", "Health", "Gaming", "Books", "Creative", "Finance", "Sports", "All"] as const;
 export type TaskCategory = typeof taskCategories[number];
 
 // Represents a master task from the global /tasks collection
