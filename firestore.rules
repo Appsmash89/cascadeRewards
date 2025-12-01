@@ -55,8 +55,8 @@ service cloud.firestore {
         // CREATE: A user can create their own task entries (on first start). Admin can also.
         allow create: if isOwner(userId) || isDevGuest();
         
-        // UPDATE: Only the Admin can update a task's status.
-        allow update: if isDevGuest();
+        // UPDATE: Allow if user is owner and changing status to 'in-progress' OR if user is admin.
+        allow update: if (isOwner(userId) && request.resource.data.status == 'in-progress' && resource.data.status == 'available') || isDevGuest();
                          
         // DELETE: The dev guest can delete user task entries.
         allow delete: if isDevGuest();
