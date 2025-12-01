@@ -1,20 +1,32 @@
+
 'use client';
 
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import { doc, collection, setDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { doc, collection, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, ArrowLeft, CheckCircle, Award } from 'lucide-react';
+import { Loader2, ArrowLeft, CheckCircle, Award, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import type { Task, UserProfile, UserTask, CombinedTask, WithId } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Badge } from '@/components/ui/badge';
 import { PlayCircle, FileText } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 
 const taskIcons = {
@@ -22,10 +34,18 @@ const taskIcons = {
   read: <FileText className="h-5 w-5 text-indigo-500" />,
 };
 
+type PreviousState = {
+  userTasks: WithId<UserTask>[];
+  points: number;
+  totalEarned: number;
+} | null;
+
 export default function ManageUserTasksView({ userId }: { userId: string }) {
   const firestore = useFirestore();
   const { user: adminUser } = useUser();
   const { toast } = useToast();
+
+  const [previousState, setPreviousState] = useState<PreviousState>(null);
 
   const isGuestMode = adminUser?.email === 'guest.dev@cascade.app';
 
@@ -72,14 +92,19 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     const userProfileDocRef = doc(firestore, 'users', userProfile.uid);
 
     try {
-        // Use non-blocking writes for better perceived performance in admin tool
-        updateDocumentNonBlocking(userTaskRef, {
+        const batch = writeBatch(firestore);
+        
+        batch.set(userTaskRef, {
             status: 'completed',
             completedAt: serverTimestamp(),
+        }, { merge: true });
+
+        batch.update(userProfileDocRef, {
+            points: increment(task.points),
+            totalEarned: increment(task.points)
         });
-        updateDocumentNonBlocking(userProfileDocRef, {
-            points: increment(task.points)
-        });
+
+        await batch.commit();
 
         toast({
             title: 'Task Completed!',
@@ -88,6 +113,70 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     } catch(e: any) {
         toast({ variant: "destructive", title: 'Error', description: e.message });
     }
+  };
+
+  const handleResetUserProgress = async () => {
+    if (!firestore || !userProfile || !userTasks) return;
+
+    // Save the current state for potential undo
+    setPreviousState({
+      userTasks: [...userTasks],
+      points: userProfile.points,
+      totalEarned: userProfile.totalEarned
+    });
+
+    const batch = writeBatch(firestore);
+
+    // Reset points on user profile
+    const userDocRef = doc(firestore, 'users', userProfile.uid);
+    batch.update(userDocRef, {
+      points: 0,
+      totalEarned: 0,
+    });
+
+    // Reset all task statuses for the user
+    userTasks.forEach(task => {
+      const taskRef = doc(firestore, 'users', userProfile.uid, 'tasks', task.id);
+      batch.update(taskRef, { status: 'available', completedAt: null });
+    });
+
+    await batch.commit();
+    toast({
+      title: 'User Progress Reset',
+      description: `${userProfile.displayName}'s tasks and points have been reset.`,
+      action: (
+        <Button variant="secondary" size="sm" onClick={handleUndoReset}>
+          <RotateCcw className="mr-2 h-4 w-4" />
+          Undo
+        </Button>
+      ),
+    });
+  };
+
+  const handleUndoReset = async () => {
+    if (!firestore || !userProfile || !previousState) {
+        toast({ variant: "destructive", title: 'Undo Failed', description: 'No previous state to restore.'});
+        return;
+    };
+
+    const batch = writeBatch(firestore);
+
+    // Restore points on user profile
+    const userDocRef = doc(firestore, 'users', userProfile.uid);
+    batch.update(userDocRef, {
+      points: previousState.points,
+      totalEarned: previousState.totalEarned,
+    });
+
+    // Restore all task documents
+    previousState.userTasks.forEach(taskState => {
+      const taskRef = doc(firestore, 'users', userProfile.uid, 'tasks', taskState.id);
+      batch.set(taskRef, taskState);
+    });
+
+    await batch.commit();
+    setPreviousState(null); // Clear the undo state
+    toast({ title: 'Undo Successful', description: `Restored progress for ${userProfile.displayName}.` });
   };
   
   const getInitials = (name: string | null) => {
@@ -111,13 +200,39 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
   return (
     <Card>
       <CardHeader>
-        <Button asChild variant="ghost" size="sm" className="mb-4 -ml-4 justify-start w-fit">
-          <Link href="/devtools/users">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Users
-          </Link>
-        </Button>
-        <div className="flex items-center gap-4">
+        <div className="flex justify-between items-start">
+          <Button asChild variant="ghost" size="sm" className="mb-4 -ml-4 justify-start w-fit">
+            <Link href="/devtools/users">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Users
+            </Link>
+          </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Reset User's Progress
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will reset all task progress and points for{' '}
+                    <span className="font-bold">{userProfile.displayName}</span>. This action can be undone
+                    immediately after, but not after navigating away.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleResetUserProgress}>
+                    Yes, Reset Progress
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        </div>
+        <div className="flex items-center gap-4 pt-4">
             <Avatar className="h-16 w-16 border">
                 <AvatarImage src={userProfile.photoURL ?? undefined} />
                 <AvatarFallback>{getInitials(userProfile.displayName)}</AvatarFallback>
@@ -125,7 +240,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
             <div>
                 <CardTitle>Manage: {userProfile.displayName}</CardTitle>
                 <CardDescription>
-                    Mark tasks as complete to award points.
+                    Mark tasks as complete to award points. Current points: {userProfile.points}
                 </CardDescription>
             </div>
         </div>
@@ -167,3 +282,4 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     </Card>
   );
 }
+
