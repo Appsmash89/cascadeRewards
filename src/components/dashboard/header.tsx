@@ -1,4 +1,3 @@
-
 'use client';
 import {
   DropdownMenu,
@@ -64,8 +63,8 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
 
   
   return (
-    <header className="sticky top-0 flex flex-col border-b bg-background/80 backdrop-blur-lg px-4 z-10">
-      <div className="flex h-16 items-center gap-4">
+    <header className="sticky top-0 flex border-b bg-background/80 backdrop-blur-lg px-4 z-10">
+      <div className="flex h-16 items-center gap-4 w-full">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <Gift className="h-6 w-6 text-primary" />
           <span className="font-bold text-xl tracking-tight">Cascade</span>
