@@ -36,7 +36,7 @@ service cloud.firestore {
              data.settings is map &&
              data.settings.notificationsEnabled is bool &&
              data.settings.darkMode is bool &&
-             data.interests is list && data.interests.size() == 0;
+             data.interests is list;
     }
 
     match /users/{userId} {
@@ -53,23 +53,28 @@ service cloud.firestore {
           request.resource.data.uid == resource.data.uid &&
           request.resource.data.createdAt == resource.data.createdAt &&
           request.resource.data.referralCode == resource.data.referralCode &&
+          request.resource.data.referredBy == resource.data.referredBy &&
           
           // --- Points & Level Security ---
           // User cannot increase their own points, totalEarned, or level.
-          request.resource.data.points >= 0 &&
           request.resource.data.totalEarned == resource.data.totalEarned &&
           request.resource.data.level == resource.data.level &&
-          // They can only DECREASE points (e.g., redeeming rewards).
+          // They can only DECREASE points (e.g., redeeming rewards), but not go below 0.
+          request.resource.data.points >= 0 &&
           request.resource.data.points <= resource.data.points &&
+
+          // --- Login Timestamp Security ---
+          // lastLogin must be the server time of the request.
+          request.resource.data.lastLogin == request.time &&
+          // totalLogins can only be incremented by 1.
+          request.resource.data.totalLogins == resource.data.totalLogins + 1 &&
 
           // --- Modifiable Fields ---
           // Allow updates to displayName, photoURL, settings, and interests.
-          request.resource.data.displayName == request.resource.data.displayName &&
-          request.resource.data.photoURL == request.resource.data.photoURL &&
-          request.resource.data.settings == request.resource.data.settings &&
-          request.resource.data.interests == request.resource.data.interests &&
-          request.resource.data.lastLogin == request.time &&
-          request.resource.data.totalLogins == resource.data.totalLogins + 1
+          // The write request can only contain these modifiable fields
+          // plus the ones explicitly checked above (e.g., points, lastLogin).
+          // This uses the `keys()` method to ensure no other fields are being changed.
+          request.resource.data.keys().hasOnly(['uid', 'displayName', 'email', 'photoURL', 'provider', 'points', 'credits', 'level', 'totalEarned', 'referralCode', 'referredBy', 'createdAt', 'lastLogin', 'totalLogins', 'settings', 'interests'])
         );
         
       allow delete: if false;
