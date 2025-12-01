@@ -38,28 +38,28 @@ service cloud.firestore {
     }
     
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isOwner(userId) || isDevGuest(); // Admin can read user profiles
+      allow list: if isDevGuest(); // Admin can list users
       allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
-      allow update: if isOwner(userId) &&
-                     request.resource.data.uid == resource.data.uid &&
-                     request.resource.data.createdAt == resource.data.createdAt;
+      allow update: if (isOwner(userId) &&
+                       request.resource.data.uid == resource.data.uid &&
+                       request.resource.data.createdAt == resource.data.createdAt) ||
+                       isDevGuest(); // Admin can update user docs (for points)
       allow delete: if false;
 
       // Rules for the user's tasks subcollection
       match /tasks/{taskId} {
-        // READ: A user can read their own task list.
-        allow get, list: if isOwner(userId);
+        // READ: A user can read their own task list, admin can read anyone's.
+        allow get, list: if isOwner(userId) || isDevGuest();
         
-        // CREATE: A user can create their own task entries.
+        // CREATE: A user can create their own task entries (on first start). Admin can also.
         allow create: if isOwner(userId) || isDevGuest();
         
-        // UPDATE: A user can only update the status of their own task.
-        allow update: if isOwner(userId) && 
-                         request.resource.data.status != resource.data.status;
+        // UPDATE: Only the Admin can update a task's status.
+        allow update: if isDevGuest();
                          
-        // DELETE: The dev guest can delete their own task entries.
-        allow delete: if isOwner(userId) && isDevGuest();
+        // DELETE: The dev guest can delete user task entries.
+        allow delete: if isDevGuest();
       }
     }
 

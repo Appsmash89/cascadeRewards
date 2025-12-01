@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2 } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -66,7 +66,7 @@ export default function DevToolsView() {
 
         toast({
             title: "Tasks Reset",
-            description: "All user task progress has been reset.",
+            description: "All your personal task progress has been reset.",
         });
 
     } catch (error) {
@@ -119,9 +119,17 @@ export default function DevToolsView() {
             </div>
             <Button onClick={handleResetTasks} variant="outline" size="sm" disabled={isResetting}>
                 {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Reset User Progress
+                Reset My Progress
             </Button>
             </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link href="/devtools/users">
+                  <Users className="mr-2 h-4 w-4" />
+                  Manage User Tasks
+                </Link>
+              </Button>
+            </CardContent>
         </Card>
 
         <Card className="shadow-sm">

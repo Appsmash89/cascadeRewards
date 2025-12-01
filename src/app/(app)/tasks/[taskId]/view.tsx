@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, serverTimestamp, increment, setDoc } from 'firebase/firestore';
 import { useParams } from 'next/navigation';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, Award, ArrowLeft, PlayCircle, FileText, Upload } from 'lucide-react';
+import { Loader2, Award, ArrowLeft, PlayCircle, FileText } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,17 +65,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       });
     }
   };
-  
-  const handleUpload = () => {
-     if (!userProfile || !firestore || !task) return;
-     // This is a placeholder for the actual upload logic
-     // You would trigger a file input, upload to Firebase Storage,
-     // then get the URL and update the userTask document.
-     toast({
-         title: "Upload not implemented",
-         description: "This is where the screenshot upload would be triggered.",
-     });
-  };
 
   const isLoading = isTaskLoading || isUserTaskLoading;
 
@@ -94,7 +82,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
 
   const isCompleted = userTask?.status === 'completed';
   const isInProgress = userTask?.status === 'in-progress';
-  const isAvailable = !userTask || userTask.status === 'available';
 
   return (
     <Card>
@@ -136,17 +123,6 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.3 }}
         >
-          {isInProgress && (
-              <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="h-12 rounded-lg text-lg"
-                  onClick={handleUpload}
-              >
-                  <Upload className="mr-2 h-5 w-5"/>
-                  Upload
-              </Button>
-          )}
           <Button 
               asChild={!!task.link}
               size="lg" 
@@ -159,7 +135,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 {isCompleted ? 'Completed' : (isInProgress ? 'Continue' : 'Start')}
               </Link>
             ) : (
-              <span>{isCompleted ? 'Completed' : (isInProgress ? 'Continue' : 'Start')}</span>
+              <span>{isCompleted ? 'Completed' : (isInProgress ? 'Pending Review' : 'Start')}</span>
             )}
           </Button>
         </motion.div>
