@@ -29,6 +29,9 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* Global font size multiplier */
+    --font-size-multiplier: 1;
   }
 
   .dark {
@@ -66,5 +69,6 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-size: calc(16px * var(--font-size-multiplier)); /* Apply global font size */
   }
 }

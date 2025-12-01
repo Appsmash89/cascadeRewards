@@ -71,5 +71,14 @@ service cloud.firestore {
         // WRITE: Only allow the special dev guest account to manage tasks.
         allow write: if isDevGuest();
     }
+
+    // Rules for the global app settings
+    match /app-settings/{settingId} {
+        // READ: Any signed-in user can read the global settings.
+        allow get: if isSignedIn();
+
+        // WRITE: Only the admin can change global settings.
+        allow write: if isDevGuest();
+    }
   }
 }
