@@ -59,11 +59,10 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
   const displayName = isGuest ? "Admin" : user?.displayName ?? "User";
   const displayAvatar = user?.photoURL;
   const displayEmail = isGuest ? "guest.dev@cascade.app" : user?.email;
-  const points = user?.points ?? 0;
 
   
   return (
-    <header className="sticky top-0 flex border-b bg-background/80 backdrop-blur-lg px-4 z-10">
+    <header className="sticky top-0 flex h-16 border-b bg-background/80 backdrop-blur-lg px-4 z-10">
       <div className="flex h-16 items-center gap-4 w-full">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <Gift className="h-6 w-6 text-primary" />
@@ -71,13 +70,6 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
-          <Star className="h-5 w-5 text-amber-500" />
-          <div className="flex items-center justify-center bg-amber-500/10 text-amber-500 rounded-full px-3 py-1 border border-amber-500/20">
-             <span className="font-bold text-sm tabular-nums">
-                <AnimatedCounter to={points} />
-             </span>
-          </div>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
