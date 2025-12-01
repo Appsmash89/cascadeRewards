@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -69,7 +70,7 @@ export default function UserManagementView() {
       </CardHeader>
       <CardContent>
         <div className="divide-y rounded-lg border">
-          {users && users.filter(u => u.email !== GUEST_EMAIL).map(user => (
+          {users && users.map(user => (
             <Link key={user.uid} href={`/devtools/users/${user.uid}`} className="flex items-center justify-between p-3 gap-4 hover:bg-secondary transition-colors">
               <div className="flex items-center gap-3">
                  <Avatar>
