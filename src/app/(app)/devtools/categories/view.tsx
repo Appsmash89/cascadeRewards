@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import type { AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 
 export default function CategoriesView() {
@@ -24,11 +23,17 @@ export default function CategoriesView() {
     [firestore]
   );
   const { data: categoriesData, isLoading } = useDoc<AppSettings>(categoriesRef);
-  const categories = categoriesData?.taskCategories || [];
+  
+  const categories = useMemo(() => {
+    const cats = categoriesData?.taskCategories || [];
+    // Sort alphabetically
+    return cats.sort((a, b) => a.localeCompare(b));
+  }, [categoriesData]);
+
 
   const handleAddCategory = async () => {
     if (!categoriesRef || !newCategory.trim()) return;
-    if (categories.includes(newCategory.trim())) {
+    if ((categoriesData?.taskCategories || []).includes(newCategory.trim())) {
       toast({
         variant: 'destructive',
         title: 'Category already exists',
