@@ -120,10 +120,11 @@
         "description": { "type": "string" },
         "points": { "type": "number" },
         "type": { "type": "string", "enum": ["video", "read"] },
+        "category": { "type": "string", "enum": ["Technology", "Health", "Gaming", "Books", "Creative"] },
         "link": { "type": "string", "format": "uri" },
         "content": { "type": "string" }
       },
-      "required": ["title", "description", "points", "type", "content"]
+      "required": ["title", "description", "points", "type", "category", "content"]
     },
     "UserTask": {
       "title": "User Task",

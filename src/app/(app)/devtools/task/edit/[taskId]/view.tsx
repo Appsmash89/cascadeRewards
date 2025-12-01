@@ -9,7 +9,7 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import type { Task } from '@/lib/types';
+import type { Task, AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import TaskForm from '@/components/devtools/task-form';
 import { z } from 'zod';
@@ -19,6 +19,7 @@ const taskSchema = z.object({
   description: z.string().min(5),
   points: z.coerce.number().int().positive(),
   type: z.enum(['read', 'video']),
+  category: z.string().min(1, "Please select a category."),
   link: z.string().url().optional().or(z.literal('')),
   content: z.string().min(10),
 });
@@ -35,6 +36,13 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
     [firestore, taskId]
   );
   const { data: task, isLoading: isTaskLoading } = useDoc<Task>(taskRef);
+
+  const categoriesRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'taskCategories') : null,
+    [firestore]
+  );
+  const { data: categoriesData, isLoading: areCategoriesLoading } = useDoc<AppSettings>(categoriesRef);
+  const categories = categoriesData?.taskCategories || [];
 
   const handleTaskSubmit = async (data: z.infer<typeof taskSchema>) => {
     if (!firestore || !userProfile) return;
@@ -58,7 +66,9 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
     }
   };
 
-  if (isTaskLoading) {
+  const isLoading = isTaskLoading || areCategoriesLoading;
+
+  if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -85,10 +95,10 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            {/* Only render form if not loading and we either have a task or are creating a new one */}
-            {(!isTaskLoading && (task || isNew)) && (
+            {(!isLoading && (task || isNew)) && (
                 <TaskForm 
                     task={task} 
+                    categories={categories}
                     onSubmit={handleTaskSubmit}
                 />
             )}

@@ -20,7 +20,6 @@ const topLevelNavItems = [
 
 const guestTopLevelNavItems = [...topLevelNavItems, '/devtools'];
 
-
 export default function AppLayout({
   children,
 }: {
@@ -34,7 +33,13 @@ export default function AppLayout({
     if (!isUserLoading && !user) {
       router.push('/');
     }
-  }, [user, isUserLoading, router]);
+    
+    // Redirect to onboarding if user is new (has no interests set)
+    if (userProfile && (!userProfile.interests || userProfile.interests.length === 0) && pathname !== '/onboarding' && user?.email !== GUEST_EMAIL) {
+        router.push('/onboarding');
+    }
+
+  }, [user, userProfile, isUserLoading, router, pathname]);
 
   const isGuestMode = user?.email === GUEST_EMAIL;
 
@@ -72,6 +77,11 @@ export default function AppLayout({
         </motion.div>
       </div>
     );
+  }
+  
+  // Don't render layout for onboarding page
+  if (pathname === '/onboarding') {
+    return <main className="flex flex-1 flex-col p-4">{children}</main>;
   }
 
   return (

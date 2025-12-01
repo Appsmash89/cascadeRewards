@@ -8,6 +8,7 @@ import {
   serverTimestamp,
   increment,
   type Firestore,
+  arrayUnion,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
@@ -22,6 +23,50 @@ const generateReferralCode = (): string => {
   const code = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `CASC-${code}`;
 };
+
+/**
+ * Ensures the essential application settings, like the default 'All' category, exist.
+ * This should be called once when the application is first initialized.
+ * @param firestore The Firestore database instance.
+ */
+const seedInitialAppSettings = async (firestore: Firestore): Promise<void> => {
+    const categoriesDocRef = doc(firestore, 'app-settings', 'taskCategories');
+    const categoriesDoc = await getDoc(categoriesDocRef);
+
+    if (!categoriesDoc.exists()) {
+        console.log("Seeding initial 'All' task category...");
+        try {
+            await setDoc(categoriesDocRef, {
+                taskCategories: ['All']
+            });
+            console.log("'All' category seeded successfully.");
+        } catch (error) {
+            console.error("Error seeding 'All' category:", error);
+        }
+    } else {
+        const data = categoriesDoc.data();
+        if (data && !data.taskCategories.includes('All')) {
+            console.log("Adding missing 'All' category...");
+            await setDoc(categoriesDocRef, { taskCategories: arrayUnion('All') }, { merge: true });
+        }
+    }
+
+     const globalSettingsRef = doc(firestore, 'app-settings', 'global');
+    const globalSettingsDoc = await getDoc(globalSettingsRef);
+
+    if (!globalSettingsDoc.exists()) {
+        console.log("Seeding initial global settings...");
+        try {
+            await setDoc(globalSettingsRef, {
+                fontSizeMultiplier: 1.0
+            });
+            console.log("Global settings seeded successfully.");
+        } catch (error) {
+            console.error("Error seeding global settings:", error);
+        }
+    }
+};
+
 
 /**
  * Manages a user's document in Firestore.
@@ -42,7 +87,11 @@ export const manageUserDocument = async (
   const userDoc = await getDoc(userRef);
 
   if (!userDoc.exists()) {
-    // User is new, create the document with default values.
+    // This is the first time this user has logged in.
+    // Before creating the user, let's ensure initial app settings are in place.
+    await seedInitialAppSettings(firestore);
+
+    // Now, create the new user's profile.
     const newUserProfile: UserProfile = {
       uid: user.uid,
       displayName: user.isAnonymous ? 'Admin' : user.displayName || 'New User',
@@ -62,6 +111,7 @@ export const manageUserDocument = async (
         notificationsEnabled: true,
         darkMode: false,
       },
+      interests: [],
     };
     // Use a non-blocking write.
     setDocumentNonBlocking(userRef, newUserProfile, { merge: false });

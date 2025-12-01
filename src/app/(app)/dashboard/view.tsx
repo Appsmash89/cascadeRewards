@@ -11,12 +11,9 @@ import {
 import StatsCards from "@/components/dashboard/stats-cards";
 import TasksList from "@/components/dashboard/tasks-list";
 import { useUser } from "@/hooks/use-user";
-import { Loader2 } from "lucide-react";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import type { CombinedTask, Task, UserTask, WithId } from "@/lib/types";
-import { collection, doc, increment, serverTimestamp } from "firebase/firestore";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { useToast } from "@/hooks/use-toast";
+import { collection } from "firebase/firestore";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
@@ -28,7 +25,6 @@ const POINTS_PER_LEVEL = 100;
 export default function DashboardView() {
   const { user, userProfile } = useUser();
   const firestore = useFirestore();
-  const { toast } = useToast();
   const isGuestMode = user?.email === GUEST_EMAIL;
 
   // 1. Fetch all master tasks
@@ -45,19 +41,32 @@ export default function DashboardView() {
   );
   const { data: userTasks } = useCollection<UserTask>(userTasksQuery);
 
-  // 3. Combine master tasks with user statuses
+  // 3. Combine master tasks with user statuses and personalize the order
   const combinedTasks = useMemo((): CombinedTask[] => {
-    if (!masterTasks || !userTasks) return [];
+    if (!masterTasks || !userTasks || !userProfile) return [];
     
     const userTasksMap = new Map(userTasks.map(ut => [ut.id, ut]));
-    
-    return masterTasks.map((mt: WithId<Task>) => ({
+    const userInterests = new Set(userProfile.interests || []);
+
+    const tasks: CombinedTask[] = masterTasks.map((mt: WithId<Task>) => ({
       ...mt,
       status: userTasksMap.get(mt.id)?.status ?? 'available',
       completedAt: userTasksMap.get(mt.id)?.completedAt ?? null,
     }));
+    
+    // Sort tasks: preferred first (matches interests or is 'All'), then by title
+    tasks.sort((a, b) => {
+      const aIsPreferred = userInterests.has(a.category) || a.category === 'All';
+      const bIsPreferred = userInterests.has(b.category) || b.category === 'All';
 
-  }, [masterTasks, userTasks]);
+      if (aIsPreferred && !bIsPreferred) return -1;
+      if (!aIsPreferred && bIsPreferred) return 1;
+      return a.title.localeCompare(b.title);
+    });
+
+    return tasks;
+
+  }, [masterTasks, userTasks, userProfile]);
 
 
   // The main loading state is handled by the new layout

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
@@ -165,6 +165,12 @@ export default function DevToolsView() {
                     Manage Users
                   </Link>
               </Button>
+               <Button asChild className="w-full">
+                  <Link href="/devtools/categories">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Manage Categories
+                  </Link>
+              </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" className="w-full">
@@ -255,5 +261,3 @@ export default function DevToolsView() {
     </>
   );
 }
-
-    

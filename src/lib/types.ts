@@ -1,5 +1,9 @@
 
 
+
+
+
+
 // This represents the user document in Firestore
 export type UserProfile = {
   uid: string;
@@ -20,10 +24,12 @@ export type UserProfile = {
     notificationsEnabled: boolean;
     darkMode: boolean;
   };
+  interests: TaskCategory[];
 };
 
 export type AppSettings = {
   fontSizeMultiplier: number;
+  taskCategories?: string[];
 }
 
 export type User = {
@@ -35,12 +41,15 @@ export type User = {
   referralLevel: number;
 };
 
+export type TaskCategory = string;
+
 // Represents a master task from the global /tasks collection
 export type Task = {
   title: string;
   description: string;
   points: number;
   type: 'video' | 'read';
+  category: TaskCategory;
   link?: string;
   content: string;
 };
