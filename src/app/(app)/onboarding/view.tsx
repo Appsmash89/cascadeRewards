@@ -3,7 +3,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore } from '@/firebase';
+import { useUser } from '@/hooks/use-user';
 import { doc } from 'firebase/firestore';
 import { taskCategories, TaskCategory } from '@/lib/types';
 import { Button } from '@/components/ui/button';
