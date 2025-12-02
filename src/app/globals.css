@@ -73,12 +73,9 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-secondary text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-size: calc(16px * var(--font-size-multiplier)); /* Apply global font size */
   }
 
-  body.pastel-bg {
-    background-color: hsl(var(--pastel-background));
-  }
 }

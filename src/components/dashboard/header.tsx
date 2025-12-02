@@ -11,13 +11,15 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Gift, LogOut, User as UserIcon, Star } from "lucide-react"
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/firebase";
+import { useAuth, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
-import type { UserProfile } from "@/lib/types";
+import type { UserProfile, AppSettings } from "@/lib/types";
 import { Progress } from "../ui/progress";
 import { motion } from "framer-motion";
 import AnimatedCounter from "../animated-counter";
+import { doc } from "firebase/firestore";
+import { cn } from "@/lib/utils";
 
 type DashboardHeaderProps = {
   user: UserProfile | null;
@@ -31,8 +33,14 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
   const router = useRouter();
-  const { auth } = useAuth();
+  const { auth, firestore } = useAuth();
   const { toast } = useToast();
+
+  const settingsRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'global') : null, 
+    [firestore]
+  );
+  const { data: appSettings } = useDoc<AppSettings>(settingsRef);
 
   const handleLogout = async () => {
     if (!auth) {
@@ -62,7 +70,10 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
 
   
   return (
-    <header className="sticky top-0 flex h-16 border-b bg-background/80 backdrop-blur-lg px-4 z-10">
+    <header className={cn(
+      "sticky top-0 flex h-16 border-b bg-background/80 backdrop-blur-lg px-4 z-10",
+      appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background),0.8)]"
+    )}>
       <div className="flex h-16 items-center gap-4 w-full">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <Gift className="h-6 w-6 text-primary" />

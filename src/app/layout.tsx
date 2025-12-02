@@ -31,16 +31,19 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const multiplier = appSettings?.fontSizeMultiplier ?? 1;
     document.documentElement.style.setProperty('--font-size-multiplier', String(multiplier));
-    
-    if (appSettings?.pastelBackgroundEnabled) {
-      document.body.classList.add('pastel-bg');
-    } else {
-      document.body.classList.remove('pastel-bg');
-    }
 
   }, [appSettings]);
 
-  return <>{children}</>;
+  return (
+    <div 
+      className={cn(
+        "relative w-full max-w-md bg-background min-h-[100svh] flex flex-col shadow-2xl shadow-black/10",
+        appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background))]"
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 
@@ -66,22 +69,20 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <FirebaseClientProvider>
-            <GlobalSettingsManager>
-              <AppProvider>
-                <div className="relative w-full max-w-md bg-background min-h-[100svh] flex flex-col shadow-2xl shadow-black/10">
-                  <Suspense fallback={
-                    <div className="flex min-h-screen w-full items-center justify-center bg-background">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                  }>
-                    <AnimatePresence mode="wait">
-                      {children}
-                    </AnimatePresence>
-                  </Suspense>
-                  <Toaster />
-                </div>
-              </AppProvider>
-            </GlobalSettingsManager>
+            <AppProvider>
+              <GlobalSettingsManager>
+                <Suspense fallback={
+                  <div className="flex min-h-screen w-full items-center justify-center bg-background">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                }>
+                  <AnimatePresence mode="wait">
+                    {children}
+                  </AnimatePresence>
+                </Suspense>
+                <Toaster />
+              </GlobalSettingsManager>
+            </AppProvider>
           </FirebaseClientProvider>
         </ThemeProvider>
       </body>
