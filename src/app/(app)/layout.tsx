@@ -96,7 +96,7 @@ export default function AppLayout({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="flex flex-1 flex-col gap-4 p-4 pb-24"
+            className="flex flex-1 flex-col gap-4 p-4 pb-20"
         >
             {children}
         </motion.main>
