@@ -1,3 +1,4 @@
+
 'use client';
 import {
   DropdownMenu,
@@ -16,10 +17,10 @@ import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile, AppSettings } from "@/lib/types";
 import { Progress } from "../ui/progress";
-import { motion } from "framer-motion";
-import AnimatedCounter from "../animated-counter";
+import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 type DashboardHeaderProps = {
   user: UserProfile | null;
@@ -29,6 +30,19 @@ type DashboardHeaderProps = {
 const POINTS_PER_LEVEL = 100;
 
 export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps) {
+  const { scrollY } = useScroll();
+  const [hidden, setHidden] = useState(false);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious();
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
+
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
@@ -70,9 +84,16 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
 
   
   return (
-    <header className={cn(
-      "sticky top-0 flex h-16 border-b bg-background/80 backdrop-blur-lg px-4 z-10",
-      appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background),0.8)]"
+    <motion.header 
+      variants={{
+        visible: { y: 0 },
+        hidden: { y: "-100%" },
+      }}
+      animate={hidden ? "hidden" : "visible"}
+      transition={{ duration: 0.35, ease: "easeInOut" }}
+      className={cn(
+        "sticky top-0 flex h-16 border-b bg-background/80 backdrop-blur-lg px-4 z-10",
+        appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background),0.8)]"
     )}>
       <div className="flex h-16 items-center gap-4 w-full">
         <div className="flex items-center gap-2 text-lg font-semibold">
@@ -114,6 +135,6 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
           </DropdownMenu>
         </div>
       </div>
-    </header>
+    </motion.header>
   )
 }
