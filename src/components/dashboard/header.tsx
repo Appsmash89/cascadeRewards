@@ -1,4 +1,3 @@
-
 'use client';
 import {
   DropdownMenu,
@@ -109,7 +108,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="h-9 w-9">
+                <Avatar className="h-8 w-8">
                   <AvatarImage src={displayAvatar ?? undefined} alt={displayName} data-ai-hint="person portrait" />
                   <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
                 </Avatar>
