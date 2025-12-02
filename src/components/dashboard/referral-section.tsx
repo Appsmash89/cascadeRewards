@@ -33,11 +33,17 @@ export default function ReferralSection({ user, referrals, isGuest }: ReferralSe
   const referralLevel = user?.level ?? 0;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(referralCode);
+    if (referralCode.startsWith('CASC-')) {
+        const uniquePart = referralCode.substring(5);
+        navigator.clipboard.writeText(uniquePart);
+    } else {
+        navigator.clipboard.writeText(referralCode);
+    }
+    
     setIsCopied(true);
     toast({
       title: "Copied to clipboard!",
-      description: "Your referral code is ready to be shared.",
+      description: "Your unique referral code is ready to be shared.",
     });
     setTimeout(() => setIsCopied(false), 2000);
   };
