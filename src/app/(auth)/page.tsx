@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -25,11 +24,19 @@ export default function LoginPage() {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const [loadingProvider, setLoadingProvider] = useState<null | 'google' | 'guest'>(null);
+  const [showLoader, setShowLoader] = useState(true);
 
 
   useEffect(() => {
+    // If the user is authenticated, redirect to the dashboard.
     if (!isUserLoading && user) {
       router.push('/dashboard');
+    }
+    
+    // Only hide the loader on the client-side after the initial render
+    // and if auth state is not loading.
+    if (!isUserLoading && !user) {
+        setShowLoader(false);
     }
   }, [user, isUserLoading, router]);
 
@@ -80,11 +87,10 @@ export default function LoginPage() {
     }
   };
 
-  if (isUserLoading || user) {
+  if (showLoader) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
       </div>
     );
   }
@@ -95,7 +101,7 @@ export default function LoginPage() {
         <div className="bg-primary/10 border border-primary/20 p-3 rounded-full text-primary">
           <Gift className="h-10 w-10" />
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">Cascade</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Cascade</h1>
         <p className="text-muted-foreground max-w-xs">The next-generation platform for rewards and referrals.</p>
       </div>
       <Card className="w-full max-w-sm border-0 shadow-xl shadow-primary/5">

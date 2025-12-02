@@ -100,9 +100,9 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
         appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background),0.8)]"
     )}>
       <div className="flex h-16 items-center gap-4 w-full">
-        <div className="flex items-center gap-2 text-lg font-semibold">
+        <div className="flex items-center gap-2 font-semibold">
           <Gift className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl tracking-tight">Cascade</span>
+          <span className="font-bold text-lg tracking-tight">Cascade</span>
         </div>
 
         <div className="flex items-center gap-2 ml-auto">

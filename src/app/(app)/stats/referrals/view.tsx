@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,7 +30,7 @@ export default function StatsReferralsView() {
             Your referral network is a count of how many new members have joined Cascade using your unique referral code. Each successful referral expands your network and increases your potential for earning bonuses.
         </p>
         
-        <h4>How Referrals Work</h4>
+        <h4 className="font-semibold">How Referrals Work</h4>
         <ol className="space-y-2">
             <li className="flex items-start gap-3">
                 <span className="font-bold text-primary">1.</span>
@@ -47,7 +46,7 @@ export default function StatsReferralsView() {
             </li>
         </ol>
 
-        <h4>Why Referrals Matter</h4>
+        <h4 className="font-semibold">Why Referrals Matter</h4>
         <p>
             Referring new users is the key to unlocking referral earnings. For every task your referred user completes, you get a 10% bonus. The more people you refer, the more passive points you can earn!
         </p>
@@ -55,5 +54,3 @@ export default function StatsReferralsView() {
     </Card>
   );
 }
-
-    
