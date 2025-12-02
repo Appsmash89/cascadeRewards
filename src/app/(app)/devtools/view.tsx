@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
@@ -23,6 +23,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -128,6 +130,13 @@ export default function DevToolsView() {
     }, { merge: true });
   }
 
+  const handlePastelModeChange = async (enabled: boolean) => {
+    if (!appSettingsRef) return;
+    await setDoc(appSettingsRef, {
+      pastelBackgroundEnabled: enabled
+    }, { merge: true });
+  }
+
   if (isUserLoading || usersLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -193,7 +202,7 @@ export default function DevToolsView() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <div className="p-2 border rounded-lg flex items-center justify-between md:col-span-2">
+              <div className="p-2 border rounded-lg flex items-center justify-between">
                 <p className="font-medium text-sm pl-2">Global Font Size</p>
                 <div className="flex items-center gap-2">
                   <Button size="icon" variant="outline" onClick={() => handleFontSizeChange(-1)} disabled={(appSettings?.fontSizeMultiplier ?? 1) <= 0.5}>
@@ -204,6 +213,17 @@ export default function DevToolsView() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
+              </div>
+              <div className="p-3 border rounded-lg flex items-center justify-between md:col-span-2">
+                <div className="flex items-center gap-3">
+                  <PaintBucket className="h-5 w-5 text-muted-foreground"/>
+                  <Label htmlFor="pastel-mode" className="font-medium text-sm">Pastel Mode</Label>
+                </div>
+                <Switch 
+                  id="pastel-mode" 
+                  checked={appSettings?.pastelBackgroundEnabled ?? false} 
+                  onCheckedChange={handlePastelModeChange}
+                />
               </div>
             </CardContent>
         </Card>

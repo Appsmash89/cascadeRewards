@@ -58,7 +58,8 @@ const seedInitialAppSettings = async (firestore: Firestore): Promise<void> => {
         console.log("Seeding initial global settings...");
         try {
             await setDoc(globalSettingsRef, {
-                fontSizeMultiplier: 1.0
+                fontSizeMultiplier: 1.0,
+                pastelBackgroundEnabled: false,
             });
             console.log("Global settings seeded successfully.");
         } catch (error) {

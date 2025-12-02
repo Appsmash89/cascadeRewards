@@ -31,6 +31,13 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const multiplier = appSettings?.fontSizeMultiplier ?? 1;
     document.documentElement.style.setProperty('--font-size-multiplier', String(multiplier));
+    
+    if (appSettings?.pastelBackgroundEnabled) {
+      document.body.classList.add('pastel-bg');
+    } else {
+      document.body.classList.remove('pastel-bg');
+    }
+
   }, [appSettings]);
 
   return <>{children}</>;
