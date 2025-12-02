@@ -25,11 +25,19 @@ export default function LoginPage() {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const [loadingProvider, setLoadingProvider] = useState<null | 'google' | 'guest'>(null);
+  const [showLoader, setShowLoader] = useState(false);
 
 
   useEffect(() => {
+    // If the user is authenticated, redirect to the dashboard.
     if (!isUserLoading && user) {
       router.push('/dashboard');
+    }
+    
+    // Only show the loader on the client-side after the initial render
+    // and if auth state is still loading.
+    if (isUserLoading || user) {
+        setShowLoader(true);
     }
   }, [user, isUserLoading, router]);
 
@@ -80,7 +88,7 @@ export default function LoginPage() {
     }
   };
 
-  if (isUserLoading || user) {
+  if (showLoader) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
