@@ -36,7 +36,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() ?? 0;
 
-    // If scrolling down, hide the header
+    // If scrolling down past 150px, hide the header
     if (latest > previous && latest > 150) {
       setHidden(true);
     } 
