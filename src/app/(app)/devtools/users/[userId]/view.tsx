@@ -48,7 +48,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
   const { toast } = useToast();
   const router = useRouter();
 
-  const [previousState, setPreviousState] = useState<PreviousState>(null);
+  const [previousState, setPreviousState] = useState<PreviousState | null>(null);
 
   const isGuestMode = adminUser?.email === 'guest.dev@cascade.app';
   
@@ -117,6 +117,18 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
         }
 
         batch.update(userProfileDocRef, profileUpdate);
+        
+        // Referral bonus logic
+        if (userProfile.referredBy) {
+            const referralBonus = Math.floor(task.points * 0.1);
+            if (referralBonus > 0) {
+                const referrerRef = doc(firestore, 'users', userProfile.referredBy);
+                batch.update(referrerRef, {
+                    points: increment(referralBonus),
+                    totalEarned: increment(referralBonus)
+                });
+            }
+        }
 
         await batch.commit();
 
@@ -300,3 +312,5 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     </Card>
   );
 }
+
+    
