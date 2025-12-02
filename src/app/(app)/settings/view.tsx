@@ -55,8 +55,9 @@ function SettingsView() {
   };
 
   const handleReferrerCodeSubmit = async () => {
-    const trimmedCode = referrerCode.trim().toUpperCase();
-    if (!firestore || !userProfile || !trimmedCode) {
+    // Construct the full code from the prefix and user input
+    const fullCode = `CASC-${referrerCode.trim().toUpperCase()}`;
+    if (!firestore || !userProfile || !referrerCode.trim()) {
       toast({ variant: 'destructive', title: 'Invalid Code', description: 'Please enter a valid referral code.' });
       return;
     }
@@ -65,7 +66,8 @@ function SettingsView() {
 
     try {
       const usersRef = collection(firestore, 'users');
-      const q = query(usersRef, where('referralCode', '==', trimmedCode));
+      // Query using the full, constructed code
+      const q = query(usersRef, where('referralCode', '==', fullCode));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
@@ -153,13 +155,17 @@ function SettingsView() {
               </Button>
             </div>
             <div className="flex items-center gap-2">
-              <Input 
-                id="referrer-code" 
-                placeholder="CASC-XXXXXX"
-                value={referrerCode}
-                onChange={e => setReferrerCode(e.target.value)}
-                disabled={isSubmittingCode}
-              />
+              <div className="flex h-10 items-center rounded-md border border-input bg-background px-3">
+                <span className="text-sm text-muted-foreground">CASC-</span>
+                <Input 
+                  id="referrer-code" 
+                  placeholder="XXXXXX"
+                  value={referrerCode}
+                  onChange={e => setReferrerCode(e.target.value)}
+                  disabled={isSubmittingCode}
+                  className="border-0 h-auto p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
+              </div>
               <Button onClick={handleReferrerCodeSubmit} disabled={isSubmittingCode || !referrerCode.trim()}>
                 {isSubmittingCode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Submit
