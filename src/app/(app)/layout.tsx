@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser } from "@/hooks/use-user";
@@ -88,6 +87,10 @@ export default function AppLayout({
     <div className="flex min-h-screen w-full flex-col bg-background overflow-x-hidden">
       <DashboardHeader user={userProfile} isGuest={isGuestMode}/>
         <motion.main
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.1}
+            onDragEnd={handleDragEnd}
             key={pathname}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
