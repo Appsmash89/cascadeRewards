@@ -14,7 +14,7 @@ service cloud.firestore {
     
     // Check if the user is the specific hardcoded guest user for dev purposes
     function isDevGuest() {
-      return request.auth.token.email == 'guest.dev@cascade.app';
+      return isSignedIn() && request.auth.token.email == 'guest.dev@cascade.app';
     }
 
     // Function to validate the structure and types of the UserProfile document on creation.
@@ -37,6 +37,15 @@ service cloud.firestore {
              data.settings.notificationsEnabled is bool &&
              data.settings.darkMode is bool &&
              data.interests is list;
+    }
+
+    // Rules for the global app settings.
+    // This rule is intentionally broad to allow the app to load settings before a user is authenticated.
+    match /app-settings/{settingId} {
+        allow get: if true;
+        allow list: if true;
+        // Only the admin can change them.
+        allow write: if isDevGuest();
     }
 
     match /users/{userId} {
@@ -74,26 +83,15 @@ service cloud.firestore {
 
       // Rules for the user's tasks subcollection
       match /tasks/{taskId} {
-        allow get, list: if isOwner(userId) || isDevGuest();
-        allow create: if isOwner(userId) || isDevGuest();
-        allow update: if (isOwner(userId) && 
-                            (request.resource.data.status == 'in-progress' && resource.data.status == 'available')
-                         ) || isDevGuest();
-        allow delete: if isDevGuest();
+        // A user can read and write to their own tasks subcollection.
+        // The admin can also read and write to any user's tasks.
+        allow read, write: if isOwner(userId) || isDevGuest();
       }
     }
 
     // Rules for the global tasks collection
     match /tasks/{taskId} {
         allow get, list: if isSignedIn();
-        allow write: if isDevGuest();
-    }
-
-    // Rules for the global app settings
-    match /app-settings/{settingId} {
-        // Anyone can read global app settings (like font size, categories)
-        allow get: if true;
-        // Only the admin can change them.
         allow write: if isDevGuest();
     }
   }
