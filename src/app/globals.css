@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -32,6 +33,9 @@
 
     /* Global font size multiplier */
     --font-size-multiplier: 1;
+
+    /* Pastel background color HSL values */
+    --pastel-background-hsl: 240 60% 95%;
   }
 
   .dark {
@@ -67,8 +71,26 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-secondary text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-size: calc(16px * var(--font-size-multiplier)); /* Apply global font size */
+  }
+
+  /* When pastel theme is active, apply the background color */
+  .pastel-theme-active .bg-background {
+      background-color: hsl(var(--pastel-background-hsl));
+  }
+  
+  /* When pastel theme is active in dark mode, adjust lightness */
+  .dark.pastel-theme-active .bg-background {
+      background-color: hsl(var(--pastel-background-hsl), 0.8);
+  }
+
+  .pastel-theme-active .bg-background\/80 {
+      background-color: hsl(var(--pastel-background-hsl) / 0.8);
+  }
+
+  .dark.pastel-theme-active .bg-background\/80 {
+      background-color: hsl(var(--pastel-background-hsl), 0.8 / 0.8);
   }
 }

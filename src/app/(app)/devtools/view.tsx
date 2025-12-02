@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { collection, doc, deleteDoc, writeBatch, increment, setDoc, getDocs } from "firebase/firestore";
 import type { Task, WithId, UserProfile, AppSettings } from "@/lib/types";
 import Link from 'next/link';
@@ -23,8 +23,74 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
+
+// Helper to convert hex to HSL string
+function hexToHsl(hex: string): string | null {
+    if (!hex) return null;
+    let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return null;
+    
+    let r = parseInt(result[1], 16) / 255;
+    let g = parseInt(result[2], 16) / 255;
+    let b = parseInt(result[3], 16) / 255;
+
+    let max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+        let d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    
+    h = Math.round(h * 360);
+    s = Math.round(s * 100);
+    l = Math.round(l * 100);
+
+    return `${h} ${s}% ${l}%`;
+}
+
+// Helper to convert HSL string to hex
+function hslToHex(hsl: string): string | null {
+    if (!hsl) return null;
+    const parts = hsl.match(/(\d+)\s*(\d+)%?\s*(\d+)%?/);
+    if (!parts) return "#ffffff";
+
+    let h = parseInt(parts[1]), s = parseInt(parts[2]), l = parseInt(parts[3]);
+    s /= 100;
+    l /= 100;
+
+    let c = (1 - Math.abs(2 * l - 1)) * s,
+        x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+        m = l - c/2,
+        r = 0,
+        g = 0,
+        b = 0;
+
+    if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+    else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+    else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+    else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+    else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+    else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+    
+    let R = Math.round((r + m) * 255).toString(16).padStart(2, '0');
+    let G = Math.round((g + m) * 255).toString(16).padStart(2, '0');
+    let B = Math.round((b + m) * 255).toString(16).padStart(2, '0');
+
+    return `#${R}${G}${B}`;
+}
+
 
 export default function DevToolsView() {
   const { user, userProfile, isUserLoading } = useUser();
@@ -38,14 +104,22 @@ export default function DevToolsView() {
     firestore ? doc(firestore, 'app-settings', 'global') : null, [firestore]
   );
   const { data: appSettings } = useDoc<AppSettings>(appSettingsRef);
+
+  const [localColor, setLocalColor] = useState('#ffffff');
   
+  useEffect(() => {
+    if (appSettings?.pastelBackgroundColor) {
+      setLocalColor(hslToHex(appSettings.pastelBackgroundColor) || '#ffffff');
+    }
+  }, [appSettings]);
+
   const masterTasksQuery = useMemoFirebase(() =>
     userProfile ? collection(firestore, 'tasks') : null,
     [userProfile, firestore]
   );
   const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
 
-    const usersQuery = useMemoFirebase(() => 
+  const usersQuery = useMemoFirebase(() => 
     firestore && isGuestMode ? collection(firestore, 'users') : null,
     [firestore, isGuestMode]
   );
@@ -60,7 +134,6 @@ export default function DevToolsView() {
   const handleDeleteTask = async (task: WithId<Task>) => {
     if (!firestore || !userProfile) return;
     
-    // Directly use window.confirm
     const isConfirmed = window.confirm(`Are you sure you want to delete "${task.title}"? This cannot be undone.`);
     if (!isConfirmed) return;
 
@@ -68,7 +141,6 @@ export default function DevToolsView() {
         const masterTaskRef = doc(firestore, 'tasks', task.id);
         await deleteDoc(masterTaskRef);
 
-        // Also delete from guest user's subcollection for consistency
         if(users) {
           const batch = writeBatch(firestore);
           users.forEach(u => {
@@ -94,14 +166,12 @@ export default function DevToolsView() {
       const batch = writeBatch(firestore);
       
       for (const u of users) {
-        // Reset points and totalEarned on the user profile
         const userDocRef = doc(firestore, 'users', u.uid);
         batch.update(userDocRef, {
           points: 0,
           totalEarned: 0
         });
 
-        // Reset all tasks in the subcollection
         const userTasksCollectionRef = collection(firestore, 'users', u.uid, 'tasks');
         const userTasksSnapshot = await getDocs(userTasksCollectionRef);
         userTasksSnapshot.forEach(taskDoc => {
@@ -119,14 +189,29 @@ export default function DevToolsView() {
 
   const handleFontSizeChange = async (step: number) => {
     if (!appSettingsRef) return;
-    
-    // The check for minimum size should happen on the UI side if needed, 
-    // but the core logic can rely on Firestore's atomic increment.
-    // This avoids using stale local state `appSettings`.
     await setDoc(appSettingsRef, { 
       fontSizeMultiplier: increment(step * 0.1) 
     }, { merge: true });
   }
+
+  const handlePastelModeChange = async (enabled: boolean) => {
+    if (!appSettingsRef) return;
+    await setDoc(appSettingsRef, {
+      pastelBackgroundEnabled: enabled
+    }, { merge: true });
+  }
+
+  const handleColorChange = useCallback(async (hexColor: string) => {
+    if (!appSettingsRef) return;
+    setLocalColor(hexColor);
+    const hslColor = hexToHsl(hexColor);
+    if (hslColor) {
+      await setDoc(appSettingsRef, {
+        pastelBackgroundColor: hslColor
+      }, { merge: true });
+    }
+  }, [appSettingsRef]);
+
 
   if (isUserLoading || usersLoading) {
     return (
@@ -146,7 +231,6 @@ export default function DevToolsView() {
 
   const sortedTasks = masterTasks?.sort((a, b) => a.title.localeCompare(b.title));
   
-  // Handle potential floating point inaccuracies for display
   const displayMultiplier = appSettings?.fontSizeMultiplier ? (Math.round(appSettings.fontSizeMultiplier * 10) / 10).toFixed(1) : '1.0';
 
   return (
@@ -193,7 +277,7 @@ export default function DevToolsView() {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <div className="p-2 border rounded-lg flex items-center justify-between md:col-span-2">
+              <div className="p-2 border rounded-lg flex items-center justify-between">
                 <p className="font-medium text-sm pl-2">Global Font Size</p>
                 <div className="flex items-center gap-2">
                   <Button size="icon" variant="outline" onClick={() => handleFontSizeChange(-1)} disabled={(appSettings?.fontSizeMultiplier ?? 1) <= 0.5}>
@@ -204,6 +288,31 @@ export default function DevToolsView() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
+              </div>
+              <div className="p-3 border rounded-lg md:col-span-2 space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <PaintBucket className="h-5 w-5 text-muted-foreground"/>
+                      <Label htmlFor="pastel-mode" className="font-medium text-sm">Pastel Mode</Label>
+                    </div>
+                    <Switch 
+                      id="pastel-mode" 
+                      checked={appSettings?.pastelBackgroundEnabled ?? false} 
+                      onCheckedChange={handlePastelModeChange}
+                    />
+                </div>
+                {appSettings?.pastelBackgroundEnabled && (
+                  <div className="flex items-center gap-4">
+                     <Label htmlFor="pastel-color-picker" className="font-medium text-sm">Color</Label>
+                    <Input
+                      id="pastel-color-picker"
+                      type="color"
+                      value={localColor}
+                      onChange={(e) => handleColorChange(e.target.value)}
+                      className="w-24 h-10 p-1"
+                    />
+                  </div>
+                )}
               </div>
             </CardContent>
         </Card>

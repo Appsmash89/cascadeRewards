@@ -1,9 +1,4 @@
 
-
-
-
-
-
 // This represents the user document in Firestore
 export type UserProfile = {
   uid: string;
@@ -30,6 +25,8 @@ export type UserProfile = {
 export type AppSettings = {
   fontSizeMultiplier: number;
   taskCategories?: string[];
+  pastelBackgroundEnabled?: boolean;
+  pastelBackgroundColor?: string; // HSL value string e.g. "240 60% 95%"
 }
 
 export type User = {

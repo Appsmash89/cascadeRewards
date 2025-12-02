@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/tooltip"
 import { useUser } from '@/hooks/use-user';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { AppSettings } from '@/lib/types';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -26,13 +29,23 @@ const navItems = [
 export default function BottomNav() {
   const pathname = usePathname();
   const { user } = useUser();
+  const firestore = useFirestore();
   const isGuestMode = user?.email === GUEST_EMAIL;
+
+  const settingsRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'global') : null, 
+    [firestore]
+  );
+  const { data: appSettings } = useDoc<AppSettings>(settingsRef);
 
   const allNavItems = isGuestMode ? [...navItems, { href: '/devtools', label: 'DevTools', icon: Bot }] : navItems;
   const navGridCols = isGuestMode ? 'grid-cols-5' : 'grid-cols-4';
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto">
+    <div className={cn(
+      "fixed bottom-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto",
+      appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background),0.8)]"
+    )}>
       <div className={cn("grid h-full", navGridCols)}>
         {allNavItems.map((item) => {
           const isActive = pathname === item.href;

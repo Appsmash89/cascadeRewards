@@ -94,10 +94,6 @@ export default function AppLayout({
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="flex flex-1 flex-col gap-4 p-4 pb-24"
-            drag={isSwipeEnabled ? "x" : false}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
-            onDragEnd={handleDragEnd}
         >
             {children}
         </motion.main>
