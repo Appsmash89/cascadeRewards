@@ -43,7 +43,7 @@ export default function BottomNav() {
 
   return (
     <div className={cn(
-      "fixed bottom-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto",
+      "fixed bottom-0 left-0 right-0 h-14 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto",
       appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background),0.8)]"
     )}>
       <div className={cn("grid h-full", navGridCols)}>
@@ -51,7 +51,7 @@ export default function BottomNav() {
           const isActive = pathname === item.href;
           return (
             <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors relative">
-                <item.icon className={cn('h-6 w-6', isActive && 'text-primary')} />
+                <item.icon className={cn('h-5 w-5', isActive && 'text-primary')} />
               <AnimatePresence>
                 {isActive && (
                   <motion.div 
