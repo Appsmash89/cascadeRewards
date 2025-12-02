@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks/use-user";
 import { useFirestore } from "@/firebase";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { Loader2, Bell, Moon, Sparkles, ArrowRight, Link as LinkIcon, UserPlus } from "lucide-react";
+import { Loader2, Bell, Moon, Sparkles, ArrowRight, Link as LinkIcon, UserPlus, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -139,9 +139,16 @@ function SettingsView() {
 
         {!userProfile.referredBy && !isGuestMode && (
           <div className="space-y-3 p-4 rounded-lg bg-secondary border">
-            <div className="flex items-center gap-4">
-              <UserPlus className="h-5 w-5 text-muted-foreground"/>
-              <Label htmlFor="referrer-code" className="font-medium">Enter Referrer Code</Label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <UserPlus className="h-5 w-5 text-muted-foreground"/>
+                <Label htmlFor="referrer-code" className="font-medium">Enter Referrer Code</Label>
+              </div>
+              <Button asChild variant="ghost" size="icon">
+                <Link href="/stats/referrer-info">
+                  <Info className="h-4 w-4 text-muted-foreground" />
+                </Link>
+              </Button>
             </div>
             <div className="flex items-center gap-2">
               <Input 

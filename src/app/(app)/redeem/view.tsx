@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUser } from "@/hooks/use-user";
-import { Loader2, Star } from "lucide-react";
+import { Loader2, Star, Edit } from "lucide-react";
 import { rewards as rewardsData } from "@/lib/data";
 import RewardCard from "@/components/rewards/reward-card";
 import { useToast } from "@/hooks/use-toast";
@@ -10,8 +10,11 @@ import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { doc, increment } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 import { motion } from 'framer-motion';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
+const CREATE_TASK_REWARD_ID = 'create-task-reward';
 
 export default function RedeemView() {
   const { user, userProfile } = useUser();
@@ -19,33 +22,66 @@ export default function RedeemView() {
   const { toast } = useToast();
   const isGuestMode = user?.email === GUEST_EMAIL;
 
-  // The main loading state is handled by the new layout
+  const rewards = [
+    ...rewardsData,
+    {
+      id: CREATE_TASK_REWARD_ID,
+      title: 'Create a Custom Task',
+      description: 'Spend 250 points to create a task for other users to complete.',
+      points: 250,
+      imageUrl: 'https://picsum.photos/seed/createtask/300/200'
+    }
+  ];
+
   if (!userProfile) {
     return null;
   }
 
   const currentPoints = userProfile?.points ?? 0;
 
-  const handleRedeem = (pointsCost: number, title: string) => {
+  const handleRedeem = (pointsCost: number, title: string, id: string) => {
     if (isGuestMode) {
-        toast({
-          variant: "destructive",
-          title: "Guest Mode",
-          description: "Please sign in with Google to redeem rewards.",
-        });
-        return;
+      toast({
+        variant: "destructive",
+        title: "Guest Mode",
+        description: "Please sign in with Google to redeem rewards.",
+      });
+      return;
     }
       
     if (userProfile && firestore) {
+       if (!userProfile.referredBy) {
+        toast({
+            variant: "destructive",
+            title: "Referrer Required",
+            description: "You must have a referrer to redeem rewards. Please enter one in your settings.",
+        });
+        return;
+       }
+
        if (userProfile.points >= pointsCost) {
         const userDocRef = doc(firestore, 'users', userProfile.uid);
         updateDocumentNonBlocking(userDocRef, {
             points: increment(-pointsCost)
         });
-        toast({
-          title: "Redemption Successful!",
-          description: `You have redeemed the ${title}.`,
-        });
+        
+        if (id === CREATE_TASK_REWARD_ID) {
+          // Special handling for the create task reward
+           toast({
+            title: "Task Credit Purchased!",
+            description: "You can now create a new task.",
+            action: (
+              <Link href="/tasks/new">
+                <Button variant="outline" size="sm">Create Task</Button>
+              </Link>
+            )
+          });
+        } else {
+          toast({
+            title: "Redemption Successful!",
+            description: `You have redeemed the ${title}.`,
+          });
+        }
       } else {
          toast({
           variant: "destructive",
@@ -81,14 +117,14 @@ export default function RedeemView() {
           </motion.div>
 
           <div className="space-y-4">
-              <h3 className="text-base font-semibold tracking-tight">Available Gift Cards</h3>
+              <h3 className="text-base font-semibold tracking-tight">Available Rewards</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {rewardsData.map((reward, i) => (
+              {rewards.map((reward, i) => (
                   <RewardCard 
                       key={reward.id}
                       reward={reward}
                       userPoints={currentPoints}
-                      onRedeem={handleRedeem}
+                      onRedeem={() => handleRedeem(reward.points, reward.title, reward.id)}
                       isGuest={isGuestMode}
                       index={i}
                   />
