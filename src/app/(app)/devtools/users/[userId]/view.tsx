@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
@@ -312,5 +311,3 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     </Card>
   );
 }
-
-    

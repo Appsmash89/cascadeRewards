@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,7 +30,7 @@ export default function StatsPointsView() {
           Your total points balance is a reflection of your activity and engagement within the Cascade platform. The more you participate, the more you earn!
         </p>
         
-        <h4>How to Earn Points</h4>
+        <h4 className="font-semibold">How to Earn Points</h4>
         <ul className="space-y-2">
             <li className="flex items-start gap-3">
                 <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
@@ -43,12 +42,12 @@ export default function StatsPointsView() {
             </li>
         </ul>
 
-        <h4>What are Points Used For?</h4>
+        <h4 className="font-semibold">What are Points Used For?</h4>
         <p>
           Points can be redeemed for a variety of rewards, such as gift cards, in the "Redeem" section of the app. Your points balance is your currency for awesome perks.
         </p>
 
-        <h4>Points vs. Total Earned</h4>
+        <h4 className="font-semibold">Points vs. Total Earned</h4>
         <p>
             You might notice a difference between your current points and your "Total Earned" points (used for leveling up). Your current points balance is what you have available to spend. Your "Total Earned" is a lifetime counter that never decreases and is used to calculate your level.
         </p>
@@ -56,5 +55,3 @@ export default function StatsPointsView() {
     </Card>
   );
 }
-
-    

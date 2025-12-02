@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -102,12 +101,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
                 {taskIcons[task.type]}
               </div>
               <div>
-                <CardTitle className="text-2xl">{task.title}</CardTitle>
+                <CardTitle>{task.title}</CardTitle>
                 <CardDescription>{task.description}</CardDescription>
               </div>
             </div>
-            <Badge variant="secondary" className="flex items-center gap-1.5 text-lg font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
-              <Star className="h-5 w-5" />
+            <Badge variant="secondary" className="flex items-center gap-1.5 text-base font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
+              <Star className="h-4 w-4" />
               <span>{task.points}</span>
             </Badge>
           </div>
@@ -115,7 +114,7 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
       </CardHeader>
       <CardContent>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="prose dark:prose-invert max-w-none mt-4 border-t pt-6">
-          <h3 className="text-lg font-semibold">How to Complete This Task</h3>
+          <h3 className="font-semibold">How to Complete This Task</h3>
           <div className="whitespace-pre-wrap">{task.content}</div>
         </motion.div>
         <motion.div 

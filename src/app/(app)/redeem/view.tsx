@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,13 +75,13 @@ export default function RedeemView() {
           >
               <div>
                   <p className="text-sm text-muted-foreground">Your Balance</p>
-                  <p className="text-2xl font-bold tracking-tight">{currentPoints.toLocaleString()} Points</p>
+                  <p className="text-xl font-bold tracking-tight">{currentPoints.toLocaleString()} Points</p>
               </div>
               <Star className="h-8 w-8 text-amber-500" />
           </motion.div>
 
           <div className="space-y-4">
-              <h3 className="text-lg font-semibold tracking-tight">Available Gift Cards</h3>
+              <h3 className="text-base font-semibold tracking-tight">Available Gift Cards</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {rewardsData.map((reward, i) => (
                   <RewardCard 

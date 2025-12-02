@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -113,7 +112,7 @@ export default function OnboardingView() {
         >
             <Card>
                 <CardHeader className="text-center">
-                    <CardTitle className="text-2xl">{isUpdating ? 'Update Your Preferences' : 'Personalize Your Experience'}</CardTitle>
+                    <CardTitle>{isUpdating ? 'Update Your Preferences' : 'Personalize Your Experience'}</CardTitle>
                     <CardDescription>{isUpdating ? 'Change your selections to update your task feed.' : 'Select your interests to get relevant tasks.'}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

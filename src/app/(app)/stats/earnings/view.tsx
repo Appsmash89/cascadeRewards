@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,7 +30,7 @@ export default function StatsEarningsView() {
           Referral Earnings are bonus points you receive automatically when people in your referral network complete tasks. It's a powerful way to accelerate your progress towards rewards.
         </p>
         
-        <h4>How Earnings are Calculated</h4>
+        <h4 className="font-semibold">How Earnings are Calculated</h4>
         <div className="p-4 border rounded-lg bg-secondary">
           <p className="font-bold">
             <span className="text-primary">Your Bonus</span> = <span className="text-primary">10%</span> of the points your referral earns from a task.
@@ -53,5 +52,3 @@ export default function StatsEarningsView() {
     </Card>
   );
 }
-
-    
