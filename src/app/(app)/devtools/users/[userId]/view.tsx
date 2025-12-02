@@ -1,7 +1,7 @@
 'use client';
 
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import { doc, collection, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
+import { doc, collection, writeBatch, serverTimestamp, increment, getDoc } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
 import { Loader2, ArrowLeft, CheckCircle, Star, RotateCcw, Undo2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +28,8 @@ import {
 import { useRouter } from 'next/navigation';
 
 const POINTS_PER_LEVEL = 100;
+const TIER_1_BONUS_RATE = 0.10; // 10%
+const TIER_2_BONUS_RATE = 0.02; // 2%
 
 const taskIcons = {
   video: <PlayCircle className="h-5 w-5 text-primary" />,
@@ -94,6 +96,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
 
     const userTaskRef = doc(firestore, 'users', userProfile.uid, 'tasks', task.id);
     const userProfileDocRef = doc(firestore, 'users', userProfile.uid);
+    let toasts = [];
 
     try {
         const batch = writeBatch(firestore);
@@ -113,27 +116,45 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
         
         if (newLevel > userProfile.level) {
             profileUpdate.level = newLevel;
+            toasts.push(`${userProfile.displayName} leveled up to Level ${newLevel}!`);
         }
 
         batch.update(userProfileDocRef, profileUpdate);
+        toasts.push(`${task.points} points given to ${userProfile.displayName}.`);
         
-        // Referral bonus logic
+        // Tier 1 Referral Bonus
         if (userProfile.referredBy) {
-            const referralBonus = Math.floor(task.points * 0.1);
-            if (referralBonus > 0) {
-                const referrerRef = doc(firestore, 'users', userProfile.referredBy);
-                batch.update(referrerRef, {
-                    points: increment(referralBonus),
-                    totalEarned: increment(referralBonus)
+            const tier1Bonus = Math.floor(task.points * TIER_1_BONUS_RATE);
+            if (tier1Bonus > 0) {
+                const tier1ReferrerRef = doc(firestore, 'users', userProfile.referredBy);
+                batch.update(tier1ReferrerRef, {
+                    points: increment(tier1Bonus),
+                    totalEarned: increment(tier1Bonus)
                 });
+                toasts.push(`Gave ${tier1Bonus} bonus points to Tier 1 referrer.`);
+
+                // Tier 2 Referral Bonus
+                const tier1ReferrerSnap = await getDoc(tier1ReferrerRef);
+                const tier1ReferrerProfile = tier1ReferrerSnap.data() as UserProfile;
+                if (tier1ReferrerProfile && tier1ReferrerProfile.referredBy) {
+                    const tier2Bonus = Math.floor(task.points * TIER_2_BONUS_RATE);
+                    if (tier2Bonus > 0) {
+                        const tier2ReferrerRef = doc(firestore, 'users', tier1ReferrerProfile.referredBy);
+                        batch.update(tier2ReferrerRef, {
+                            points: increment(tier2Bonus),
+                            totalEarned: increment(tier2Bonus)
+                        });
+                        toasts.push(`Gave ${tier2Bonus} bonus points to Tier 2 referrer.`);
+                    }
+                }
             }
         }
 
         await batch.commit();
 
         toast({
-            title: 'Points Awarded!',
-            description: `${task.points} points given to ${userProfile.displayName}. ${newLevel > userProfile.level ? "They leveled up!" : ""}`,
+            title: 'Points & Bonuses Awarded!',
+            description: toasts.join(' '),
         });
     } catch(e: any) {
         toast({ variant: "destructive", title: 'Error', description: e.message });
