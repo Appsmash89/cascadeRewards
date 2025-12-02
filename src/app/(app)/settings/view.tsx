@@ -55,7 +55,8 @@ function SettingsView() {
   };
 
   const handleReferrerCodeSubmit = async () => {
-    if (!firestore || !userProfile || !referrerCode.trim()) {
+    const trimmedCode = referrerCode.trim().toUpperCase();
+    if (!firestore || !userProfile || !trimmedCode) {
       toast({ variant: 'destructive', title: 'Invalid Code', description: 'Please enter a valid referral code.' });
       return;
     }
@@ -64,7 +65,7 @@ function SettingsView() {
 
     try {
       const usersRef = collection(firestore, 'users');
-      const q = query(usersRef, where('referralCode', '==', referrerCode.trim()));
+      const q = query(usersRef, where('referralCode', '==', trimmedCode));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
