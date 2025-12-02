@@ -49,20 +49,21 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isDevGuest();
-      allow list: if isDevGuest();
+      // Any signed-in user can read any user's profile or list all users.
+      // This is necessary for leaderboards and viewing referral networks.
+      allow get, list: if isSignedIn() || isDevGuest();
+      
       allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
       allow update: if 
         // Admin can update anything.
         isDevGuest() || 
-        // Regular users have very restricted write access.
+        // Regular users have restricted write access.
         (isOwner(userId) &&
           // --- Immutable Fields ---
           // These fields cannot be changed by the user after creation.
           request.resource.data.uid == resource.data.uid &&
           request.resource.data.createdAt == resource.data.createdAt &&
           request.resource.data.referralCode == resource.data.referralCode &&
-          request.resource.data.referredBy == resource.data.referredBy &&
           
           // --- Points & Level Security ---
           // User cannot increase their own points, totalEarned, or level.
