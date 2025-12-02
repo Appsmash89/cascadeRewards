@@ -20,6 +20,10 @@
         "pastelBackgroundEnabled": {
           "type": "boolean",
           "description": "Whether the pastel background is enabled for all users."
+        },
+        "pastelBackgroundColor": {
+          "type": "string",
+          "description": "The HSL value for the pastel background color (e.g., '240 60% 95%')."
         }
       }
     },

@@ -29,16 +29,27 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
   const { data: appSettings } = useDoc<AppSettings>(settingsRef);
 
   useEffect(() => {
+    const root = document.documentElement;
+    
     const multiplier = appSettings?.fontSizeMultiplier ?? 1;
-    document.documentElement.style.setProperty('--font-size-multiplier', String(multiplier));
+    root.style.setProperty('--font-size-multiplier', String(multiplier));
+
+    const pastelEnabled = appSettings?.pastelBackgroundEnabled ?? false;
+    const pastelColor = appSettings?.pastelBackgroundColor ?? '240 60% 95%';
+
+    if (pastelEnabled) {
+      root.style.setProperty('--pastel-background-hsl', pastelColor);
+      root.classList.add('pastel-theme-active');
+    } else {
+      root.classList.remove('pastel-theme-active');
+    }
 
   }, [appSettings]);
 
   return (
     <div 
       className={cn(
-        "relative w-full max-w-md bg-background min-h-[100svh] flex flex-col shadow-2xl shadow-black/10",
-        appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background))]"
+        "relative w-full max-w-md bg-background min-h-[100svh] flex flex-col shadow-2xl shadow-black/10"
       )}
     >
       {children}

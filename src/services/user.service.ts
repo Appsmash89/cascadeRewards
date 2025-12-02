@@ -60,6 +60,7 @@ const seedInitialAppSettings = async (firestore: Firestore): Promise<void> => {
             await setDoc(globalSettingsRef, {
                 fontSizeMultiplier: 1.0,
                 pastelBackgroundEnabled: false,
+                pastelBackgroundColor: '220 60% 95%', // Default pastel blue
             });
             console.log("Global settings seeded successfully.");
         } catch (error) {
