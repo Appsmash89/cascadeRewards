@@ -30,7 +30,7 @@ const GUEST_EMAIL = 'guest.dev@cascade.app';
 function SettingsView() {
   const { user, userProfile } = useUser();
   const firestore = useFirestore();
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const { toast } = useToast();
 
   const [referrerCode, setReferrerCode] = useState('');
@@ -116,8 +116,8 @@ function SettingsView() {
               <Palette className="h-5 w-5 text-muted-foreground"/>
               <Label htmlFor="theme-switcher" className="font-medium">App Theme</Label>
             </div>
-            <Select value={currentTheme} onValueChange={handleThemeChange} disabled={isGuestMode}>
-              <SelectTrigger id="theme-switcher" className={cn(isGuestMode && "cursor-not-allowed")}>
+            <Select value={currentTheme} onValueChange={handleThemeChange}>
+              <SelectTrigger id="theme-switcher">
                 <SelectValue placeholder="Select a theme" />
               </SelectTrigger>
               <SelectContent>
