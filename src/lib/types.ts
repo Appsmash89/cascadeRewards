@@ -28,7 +28,7 @@ export type AppSettings = {
   pastelBackgroundEnabled?: boolean;
   pastelBackgroundColor?: string; // HSL value string e.g. "240 60% 95%"
   adminEmails?: string[];
-  theme?: 'default' | 'reactbits';
+  theme?: 'default' | 'reactbits' | 'midnight';
 }
 
 export type User = {

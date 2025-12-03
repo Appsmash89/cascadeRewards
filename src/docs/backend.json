@@ -36,7 +36,7 @@
         "theme": {
           "type": "string",
           "description": "The currently active global theme for the application.",
-          "enum": ["default", "reactbits"]
+          "enum": ["default", "reactbits", "midnight"]
         }
       }
     },

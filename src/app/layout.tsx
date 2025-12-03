@@ -30,6 +30,7 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
+    const body = document.body;
     
     // Apply font size multiplier
     const multiplier = appSettings?.fontSizeMultiplier ?? 1;
@@ -48,13 +49,8 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
 
     // Apply global theme
     const theme = appSettings?.theme ?? 'default';
-    if (theme === 'reactbits') {
-      document.body.classList.remove('theme-default');
-      document.body.classList.add('theme-reactbits');
-    } else {
-      document.body.classList.remove('theme-reactbits');
-      document.body.classList.add('theme-default');
-    }
+    body.classList.remove('theme-default', 'theme-reactbits', 'theme-midnight');
+    body.classList.add(`theme-${theme}`);
 
   }, [appSettings]);
 

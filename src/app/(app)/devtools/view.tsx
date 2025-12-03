@@ -220,7 +220,7 @@ export default function DevToolsView() {
     }
   }, [appSettingsRef]);
 
-  const handleThemeChange = async (theme: 'default' | 'reactbits') => {
+  const handleThemeChange = async (theme: 'default' | 'reactbits' | 'midnight') => {
     if (!appSettingsRef) return;
     await setDoc(appSettingsRef, { theme }, { merge: true });
   }
@@ -328,6 +328,7 @@ export default function DevToolsView() {
                     <SelectContent>
                       <SelectItem value="default">Default</SelectItem>
                       <SelectItem value="reactbits">ReactBits</SelectItem>
+                      <SelectItem value="midnight">Midnight</SelectItem>
                     </SelectContent>
                   </Select>
               </div>
