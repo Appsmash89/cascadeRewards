@@ -157,7 +157,8 @@
         "type": { "type": "string", "enum": ["video", "read"] },
         "category": { "type": "string" },
         "link": { "type": "string", "format": "uri" },
-        "content": { "type": "string" }
+        "content": { "type": "string" },
+        "creatorUid": { "type": "string", "description": "The UID of the user who created this task." }
       },
       "required": ["title", "description", "points", "type", "category", "content"]
     },

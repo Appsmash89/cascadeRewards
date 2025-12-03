@@ -23,7 +23,6 @@ const taskSchema = z.object({
   category: z.string().min(1, "Please select a category."),
   link: z.string().url().optional().or(z.literal('')),
   content: z.string().min(10),
-  creatorUid: z.string().optional(),
 });
 
 export default function EditTaskView({ taskId }: { taskId: string | null }) {
@@ -55,17 +54,20 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
   const handleTaskSubmit = async (data: z.infer<typeof taskSchema>) => {
     if (!firestore || !user) return;
     try {
-      const taskData = { ...data, creatorUid: user.uid };
+      const taskDataWithCreator = { ...data, creatorUid: user.uid };
+
       if (isNew) {
         // Add new task
         const collectionRef = collection(firestore, 'tasks');
-        await addDoc(collectionRef, taskData);
+        await addDoc(collectionRef, taskDataWithCreator);
         
         toast({ title: 'Task Added', description: `"${data.title}" has been added globally.` });
       } else {
-        // Update existing task
+        // Update existing task, preserving original creator
+        const originalCreator = task?.creatorUid ?? user.uid;
+        const taskDataForUpdate = { ...data, creatorUid: originalCreator };
         const masterTaskRef = doc(firestore, 'tasks', taskId!);
-        await setDoc(masterTaskRef, data, { merge: true });
+        await setDoc(masterTaskRef, taskDataForUpdate, { merge: true });
         toast({ title: 'Task Updated', description: `"${data.title}" has been updated.` });
       }
       router.push('/devtools');
