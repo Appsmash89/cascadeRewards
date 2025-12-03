@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Users, CheckCircle, Star, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Users, CheckCircle, Star } from 'lucide-react';
 import AnimatedCounter from '../animated-counter';
 
 const LiveInfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: number }) => (
@@ -20,12 +19,63 @@ const LiveInfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: st
   </div>
 );
 
+// Constants for localStorage keys and timeout duration
+const STORAGE_KEY = 'liveInfoStats';
+const TIMEOUT_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+type StoredStats = {
+  timestamp: number;
+  users: number;
+  tasks: number;
+};
+
 export default function LiveInfoCard() {
   const [onlineUsers, setOnlineUsers] = useState(1342);
   const [tasksCompleted, setTasksCompleted] = useState(8934);
   const [pointsAwarded, setPointsAwarded] = useState(446700);
 
   useEffect(() => {
+    const now = Date.now();
+    let storedStats: StoredStats | null = null;
+    
+    try {
+      const storedItem = localStorage.getItem(STORAGE_KEY);
+      if (storedItem) {
+        storedStats = JSON.parse(storedItem);
+      }
+    } catch (e) {
+      console.error("Failed to parse live stats from localStorage", e);
+    }
+
+    let baseUsers: number;
+    let baseTasks: number;
+
+    // Check if stored data exists and is not expired
+    if (storedStats && (now - storedStats.timestamp < TIMEOUT_MS)) {
+      // Use persistent values
+      baseUsers = storedStats.users;
+      baseTasks = storedStats.tasks;
+    } else {
+      // Randomize values
+      baseUsers = Math.floor(Math.random() * 500) + 1000; // Random between 1000-1500
+      baseTasks = Math.floor(Math.random() * 2000) + 8000; // Random between 8000-10000
+    }
+    
+    setOnlineUsers(baseUsers);
+    setTasksCompleted(baseTasks);
+
+    // Save the new base values and timestamp to localStorage
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        timestamp: now,
+        users: baseUsers,
+        tasks: baseTasks
+      }));
+    } catch (e) {
+      console.error("Failed to save live stats to localStorage", e);
+    }
+
+    // Interval for small, continuous updates to give a "live" feel
     const usersInterval = setInterval(() => {
       setOnlineUsers(prev => prev + Math.floor(Math.random() * 5) - 2);
     }, 2500);
@@ -33,10 +83,11 @@ export default function LiveInfoCard() {
     const tasksInterval = setInterval(() => {
       setTasksCompleted(prev => prev + Math.floor(Math.random() * 3));
     }, 3500);
-
+    
     const pointsInterval = setInterval(() => {
       setPointsAwarded(prev => prev + Math.floor(Math.random() * 150));
     }, 1500);
+
 
     return () => {
       clearInterval(usersInterval);
