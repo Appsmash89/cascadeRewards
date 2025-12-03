@@ -78,7 +78,7 @@ export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps)
       <div className="flex h-full items-center gap-4 w-full">
         <div className="flex items-center gap-2 font-semibold">
           <Gift className="h-6 w-6 text-primary" />
-          <span className="font-gliker text-lg tracking-tight">Cascade</span>
+          <span className="font-gliker text-lg tracking-tight font-bold">Cascade</span>
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
