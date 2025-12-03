@@ -8,7 +8,7 @@ import { Loader2, ArrowLeft, CheckCircle, Star, RotateCcw, Undo2 } from 'lucide-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import type { Task, UserProfile, UserTask, CombinedTask, WithId, AppSettings } from '@/lib/types';
+import type { Task, UserProfile, UserTask, CombinedTask, WithId } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo, useState, useEffect } from 'react';
@@ -31,7 +31,6 @@ import { useRouter } from 'next/navigation';
 const POINTS_PER_LEVEL = 100;
 const TIER_1_BONUS_RATE = 0.10; // 10%
 const TIER_2_BONUS_RATE = 0.02; // 2%
-const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 const taskIcons = {
   video: <PlayCircle className="h-5 w-5 text-primary" />,
@@ -47,22 +46,11 @@ type PreviousState = {
 
 export default function ManageUserTasksView({ userId }: { userId: string }) {
   const firestore = useFirestore();
-  const { user: adminUser, isUserLoading: isAdminLoading } = useUser();
+  const { isAdmin, isUserLoading: isAdminLoading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
 
   const [previousState, setPreviousState] = useState<PreviousState | null>(null);
-
-  const settingsRef = useMemoFirebase(() => 
-    firestore ? doc(firestore, 'app-settings', 'global') : null, 
-    [firestore]
-  );
-  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
-  
-  const isAdmin = useMemo(() => {
-    if (isAdminLoading || appSettingsLoading || !adminUser) return false;
-    return adminUser.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(adminUser.email);
-  }, [adminUser, appSettings, isAdminLoading, appSettingsLoading]);
 
   useEffect(() => {
     return () => {
@@ -71,10 +59,10 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
   }, [router]);
   
   useEffect(() => {
-    if (!isAdminLoading && !appSettingsLoading && !isAdmin) {
+    if (!isAdminLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isAdminLoading, appSettingsLoading, router]);
+  }, [isAdmin, isAdminLoading, router]);
 
   const userProfileRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'users', userId) : null,
@@ -236,7 +224,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   }
 
-  const isLoading = isUserLoading || isLoadingMasterTasks || isLoadingUserTasks || appSettingsLoading || isAdminLoading;
+  const isLoading = isUserLoading || isLoadingMasterTasks || isLoadingUserTasks || isAdminLoading;
 
   if (isLoading) {
     return (

@@ -1,35 +1,22 @@
 
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
 import { Loader2, ArrowLeft, User as UserIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import type { UserProfile, AppSettings } from '@/lib/types';
+import type { UserProfile } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
-
-const GUEST_EMAIL = 'guest.dev@cascade.app';
+import { useEffect } from 'react';
 
 export default function UserManagementView() {
   const firestore = useFirestore();
-  const { user: adminUser, isUserLoading } = useUser();
+  const { isAdmin, isUserLoading } = useUser();
   const router = useRouter();
-
-  const settingsRef = useMemoFirebase(() => 
-    firestore ? doc(firestore, 'app-settings', 'global') : null, 
-    [firestore]
-  );
-  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
-  
-  const isAdmin = useMemo(() => {
-    if (isUserLoading || appSettingsLoading || !adminUser) return false;
-    return adminUser.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(adminUser.email);
-  }, [adminUser, appSettings, isUserLoading, appSettingsLoading]);
 
   const usersQuery = useMemoFirebase(() => 
     firestore && isAdmin ? collection(firestore, 'users') : null,
@@ -38,16 +25,16 @@ export default function UserManagementView() {
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !usersLoading && !isAdmin) {
+    if (!isUserLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, usersLoading, router]);
+  }, [isAdmin, isUserLoading, router]);
 
   const getInitials = (name: string | null) => {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   }
 
-  const isLoading = isUserLoading || usersLoading || appSettingsLoading;
+  const isLoading = isUserLoading || usersLoading;
 
   if (isLoading) {
     return (

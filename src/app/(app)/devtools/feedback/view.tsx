@@ -1,37 +1,23 @@
 
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
 import { Loader2, ArrowLeft, User, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import type { Feedback, WithId, AppSettings } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
-import { useEffect, useMemo } from 'react';
+import type { Feedback, WithId } from '@/lib/types';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
-
 export default function FeedbackListView() {
   const firestore = useFirestore();
-  const { user, isUserLoading } = useUser();
+  const { isAdmin, isUserLoading } = useUser();
   const router = useRouter();
   
-  const settingsRef = useMemoFirebase(() => 
-    firestore ? doc(firestore, 'app-settings', 'global') : null, 
-    [firestore]
-  );
-  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
-  
-  const isAdmin = useMemo(() => {
-    if (isUserLoading || appSettingsLoading || !user) return false;
-    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
-  }, [user, appSettings, isUserLoading, appSettingsLoading]);
-
   const feedbackQuery = useMemoFirebase(() => {
     if (!firestore || !isAdmin) return null;
     return query(collection(firestore, 'feedback'), orderBy('createdAt', 'desc'));
@@ -40,12 +26,12 @@ export default function FeedbackListView() {
   const { data: feedbackList, isLoading: isFeedbackLoading } = useCollection<Feedback>(feedbackQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !isFeedbackLoading && !isAdmin) {
+    if (!isUserLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, isFeedbackLoading, router]);
+  }, [isAdmin, isUserLoading, router]);
 
-  const isLoading = isFeedbackLoading || isUserLoading || appSettingsLoading;
+  const isLoading = isFeedbackLoading || isUserLoading;
 
   if (isLoading) {
     return (

@@ -18,7 +18,7 @@ const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 export default function ManageAdminsView() {
   const firestore = useFirestore();
-  const { user, isUserLoading } = useUser();
+  const { isAdmin, isUserLoading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
   const [newAdminEmail, setNewAdminEmail] = useState('');
@@ -29,11 +29,6 @@ export default function ManageAdminsView() {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
-  const isAdmin = useMemo(() => {
-    if (isUserLoading || appSettingsLoading || !user) return false;
-    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
-  }, [user, appSettings, isUserLoading, appSettingsLoading]);
-
   const adminEmails = useMemo(() => {
     const emails = appSettings?.adminEmails || [];
     // Ensure the main guest admin is always in the list for display, but don't duplicate it.
@@ -44,11 +39,10 @@ export default function ManageAdminsView() {
   }, [appSettings]);
   
   useEffect(() => {
-    // Wait until loading is complete before checking admin status
-    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
+    if (!isUserLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
+  }, [isAdmin, isUserLoading, router]);
 
   const handleAddAdmin = async () => {
     if (!settingsRef || !newAdminEmail.trim()) return;

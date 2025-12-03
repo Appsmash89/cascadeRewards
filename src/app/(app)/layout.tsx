@@ -28,26 +28,12 @@ export default function AppLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, userProfile, isUserLoading } = useUser();
+  const { user, userProfile, isAdmin, isUserLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
-  const firestore = useFirestore();
-
-  const settingsRef = useMemoFirebase(() => 
-    firestore ? doc(firestore, 'app-settings', 'global') : null, 
-    [firestore]
-  );
-  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
-
-  const isAdmin = useMemo(() => {
-    if (isUserLoading || appSettingsLoading || !user) return false;
-    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
-  }, [user, appSettings, isUserLoading, appSettingsLoading]);
-
-  const isLoading = isUserLoading || appSettingsLoading;
 
   useEffect(() => {
-    if (isLoading) return; // Wait until everything is loaded
+    if (isUserLoading) return; // Wait until everything is loaded
 
     if (!user) {
       router.push('/');
@@ -59,7 +45,7 @@ export default function AppLayout({
         router.push('/onboarding');
     }
 
-  }, [user, userProfile, isLoading, router, pathname, isAdmin]);
+  }, [user, userProfile, isUserLoading, router, pathname, isAdmin]);
 
   const currentNavs = useMemo(() => isAdmin ? guestTopLevelNavItems : topLevelNavItems, [isAdmin]);
   
@@ -85,7 +71,7 @@ export default function AppLayout({
     }
   };
 
-  if (isLoading || !user || !userProfile) {
+  if (isUserLoading || !user || !userProfile) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

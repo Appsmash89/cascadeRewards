@@ -29,8 +29,6 @@ import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
-
 // Helper to convert hex to HSL string
 function hexToHsl(hex: string): string | null {
     if (!hex) return null;
@@ -95,7 +93,7 @@ function hslToHex(hsl: string): string | null {
 
 
 export default function DevToolsView() {
-  const { user, isUserLoading } = useUser();
+  const { isAdmin, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
@@ -106,11 +104,6 @@ export default function DevToolsView() {
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(appSettingsRef);
 
   const [localBgColor, setLocalBgColor] = useState('#ffffff');
-  
-  const isAdmin = useMemo(() => {
-    if (isUserLoading || appSettingsLoading || !user) return false;
-    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
-  }, [user, appSettings, isUserLoading, appSettingsLoading]);
 
   useEffect(() => {
     if (appSettings) {
@@ -133,10 +126,10 @@ export default function DevToolsView() {
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !usersLoading && !isLoadingMasterTasks && !isAdmin) {
+    if (!isUserLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, usersLoading, isLoadingMasterTasks, router]);
+  }, [isAdmin, isUserLoading, router]);
 
   const handleDeleteTask = async (task: WithId<Task>) => {
     if (!firestore || !isAdmin) return;

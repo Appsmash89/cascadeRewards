@@ -17,8 +17,6 @@ import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { AppSettings } from '@/lib/types';
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
-
 const navItems = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/redeem', label: 'Redeem', icon: Star },
@@ -28,7 +26,7 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { isAdmin, isUserLoading } = useUser();
   const firestore = useFirestore();
   
   const settingsRef = useMemoFirebase(() => 
@@ -37,10 +35,12 @@ export default function BottomNav() {
   );
   const { data: appSettings } = useDoc<AppSettings>(settingsRef);
 
-  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
-
   const allNavItems = isAdmin ? [...navItems, { href: '/devtools', label: 'DevTools', icon: Bot }] : navItems;
   const navGridCols = isAdmin ? 'grid-cols-5' : 'grid-cols-4';
+
+  if (isUserLoading) {
+    return null; // Don't render nav while we confirm admin status
+  }
 
   return (
     <div className={cn(

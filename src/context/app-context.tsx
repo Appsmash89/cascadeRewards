@@ -11,9 +11,11 @@ import React, {
 import { useAuth, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
-import type { UserProfile } from '@/lib/types';
+import type { AppSettings, UserProfile } from '@/lib/types';
 import { manageUserDocument } from '@/services/user.service';
 import { useTheme } from 'next-themes';
+
+const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 /**
  * Defines the shape of the application's global context.
@@ -21,6 +23,7 @@ import { useTheme } from 'next-themes';
 interface AppContextType {
   user: User | null;
   userProfile: UserProfile | null;
+  isAdmin: boolean;
   isUserLoading: boolean; // True if either auth state or profile is loading.
   error: Error | null; // Combines auth and Firestore errors.
 }
@@ -64,6 +67,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     isLoading: isProfileLoading,
     error: profileError,
   } = useDoc<UserProfile>(userProfileRef);
+
+  const settingsRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'global') : null, 
+    [firestore]
+  );
+  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
   // Effect to sync Firestore dark mode setting with the theme.
   useEffect(() => {
@@ -73,16 +82,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [userProfile, setTheme]);
 
+  const isAdmin = useMemo(() => {
+    if (!authUser || !appSettings) return false;
+    return authUser.email === GUEST_EMAIL || (appSettings.adminEmails || []).includes(authUser.email!);
+  }, [authUser, appSettings]);
+
   // Memoize the context value to prevent unnecessary re-renders of consumers.
   const contextValue = useMemo<AppContextType>(
     () => ({
       user: authUser,
       userProfile,
-      // The user is considered loading if auth state is pending OR (we have a user but their profile is still fetching).
-      isUserLoading: isAuthLoading || (!!authUser && isProfileLoading),
+      isAdmin,
+      // The user is considered loading if auth state is pending, or profile is fetching, or settings are fetching.
+      isUserLoading: isAuthLoading || (!!authUser && isProfileLoading) || (!!authUser && appSettingsLoading),
       error: authError || profileError,
     }),
-    [authUser, userProfile, isAuthLoading, isProfileLoading, authError, profileError]
+    [authUser, userProfile, isAdmin, isAuthLoading, isProfileLoading, appSettingsLoading, authError, profileError]
   );
 
   return (

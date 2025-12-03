@@ -14,25 +14,12 @@ import { useState, useMemo, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
-
 export default function CategoriesView() {
   const firestore = useFirestore();
-  const { user, isUserLoading } = useUser();
+  const { isAdmin, isUserLoading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
   const [newCategory, setNewCategory] = useState('');
-
-  const settingsRef = useMemoFirebase(() =>
-    firestore ? doc(firestore, 'app-settings', 'global') : null,
-    [firestore]
-  );
-  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
-  
-  const isAdmin = useMemo(() => {
-    if (isUserLoading || appSettingsLoading || !user) return false;
-    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
-  }, [user, appSettings, isUserLoading, appSettingsLoading]);
 
   const categoriesRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'app-settings', 'taskCategories') : null,
@@ -46,10 +33,10 @@ export default function CategoriesView() {
   }, [categoriesData]);
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !categoriesLoading && !isAdmin) {
+    if (!isUserLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, categoriesLoading, router]);
+  }, [isAdmin, isUserLoading, router]);
 
 
   const handleAddCategory = async () => {
@@ -86,7 +73,7 @@ export default function CategoriesView() {
   };
 
 
-  const isLoading = categoriesLoading || isUserLoading || appSettingsLoading;
+  const isLoading = categoriesLoading || isUserLoading;
 
   if (isLoading) {
     return (

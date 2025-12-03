@@ -26,25 +26,12 @@ const taskSchema = z.object({
   creatorUid: z.string().optional(),
 });
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
-
 export default function EditTaskView({ taskId }: { taskId: string | null }) {
   const firestore = useFirestore();
-  const { user, isUserLoading } = useUser();
+  const { user, isAdmin, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const isNew = taskId === null;
-
-  const settingsRef = useMemoFirebase(() => 
-    firestore ? doc(firestore, 'app-settings', 'global') : null, 
-    [firestore]
-  );
-  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
-
-  const isAdmin = useMemo(() => {
-    if (isUserLoading || appSettingsLoading || !user) return false;
-    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
-  }, [user, appSettings, isUserLoading, appSettingsLoading]);
 
   const taskRef = useMemoFirebase(() => 
     firestore && taskId ? doc(firestore, 'tasks', taskId) : null,
@@ -60,10 +47,10 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
   const categories = categoriesData?.taskCategories || [];
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !isTaskLoading && !areCategoriesLoading && !isAdmin) {
+    if (!isUserLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, isTaskLoading, areCategoriesLoading, router]);
+  }, [isAdmin, isUserLoading, router]);
 
   const handleTaskSubmit = async (data: z.infer<typeof taskSchema>) => {
     if (!firestore || !user) return;
@@ -88,7 +75,7 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
     }
   };
 
-  const isLoading = isTaskLoading || areCategoriesLoading || isUserLoading || appSettingsLoading;
+  const isLoading = isTaskLoading || areCategoriesLoading || isUserLoading;
 
   if (isLoading) {
     return (
