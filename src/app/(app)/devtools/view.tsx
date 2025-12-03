@@ -109,15 +109,11 @@ export default function DevToolsView() {
   const { data: appSettings } = useDoc<AppSettings>(appSettingsRef);
 
   const [localBgColor, setLocalBgColor] = useState('#ffffff');
-  const [localCardColor, setLocalCardColor] = useState('#ffffff');
   
   useEffect(() => {
     if (appSettings) {
       if (appSettings.pastelBackgroundColor) {
         setLocalBgColor(hslToHex(appSettings.pastelBackgroundColor) || '#ffffff');
-      }
-      if (appSettings.cardColor) {
-        setLocalCardColor(hslToHex(appSettings.cardColor) || '#ffffff');
       }
     }
   }, [appSettings]);
@@ -217,17 +213,6 @@ export default function DevToolsView() {
     if (hslColor) {
       await setDoc(appSettingsRef, {
         pastelBackgroundColor: hslColor
-      }, { merge: true });
-    }
-  }, [appSettingsRef]);
-
-  const handleCardColorChange = useCallback(async (hexColor: string) => {
-    if (!appSettingsRef) return;
-    setLocalCardColor(hexColor);
-    const hslColor = hexToHsl(hexColor);
-    if (hslColor) {
-      await setDoc(appSettingsRef, {
-        cardColor: hslColor
       }, { merge: true });
     }
   }, [appSettingsRef]);
@@ -333,19 +318,6 @@ export default function DevToolsView() {
                     />
                   </div>
                 )}
-                 <div className={cn("flex items-center gap-4", isDarkMode && "opacity-50")}>
-                   <Label htmlFor="card-color-picker" className={cn("font-medium text-sm", isDarkMode && "text-muted-foreground")}>
-                      Card Color
-                    </Label>
-                  <Input
-                    id="card-color-picker"
-                    type="color"
-                    value={localCardColor}
-                    onChange={(e) => handleCardColorChange(e.target.value)}
-                    className="w-24 h-10 p-1"
-                    disabled={isDarkMode}
-                  />
-                </div>
               </div>
             </CardContent>
         </Card>
