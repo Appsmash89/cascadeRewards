@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -12,7 +13,7 @@ import type { Task, AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import TaskForm from '@/components/devtools/task-form';
 import { z } from 'zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 const taskSchema = z.object({
   title: z.string().min(3),
@@ -40,7 +41,10 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
 
-  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || appSettingsLoading || !user) return false;
+    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
+  }, [user, appSettings, isUserLoading, appSettingsLoading]);
 
   const taskRef = useMemoFirebase(() => 
     firestore && taskId ? doc(firestore, 'tasks', taskId) : null,
@@ -56,10 +60,10 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
   const categories = categoriesData?.taskCategories || [];
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
+    if (!isUserLoading && !appSettingsLoading && !isTaskLoading && !areCategoriesLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
+  }, [isAdmin, isUserLoading, appSettingsLoading, isTaskLoading, areCategoriesLoading, router]);
 
   const handleTaskSubmit = async (data: z.infer<typeof taskSchema>) => {
     if (!firestore || !user) return;
@@ -96,8 +100,8 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
 
   if (!isAdmin) {
     return (
-     <div className="flex min-h-screen w-full items-center justify-center bg-background">
-       <p>Access denied.</p>
+     <div className="flex flex-1 items-center justify-center bg-background">
+       <p>Access denied. Redirecting...</p>
      </div>
    );
  }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket, MessageSquare, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { collection, doc, deleteDoc, writeBatch, increment, setDoc, getDocs } from "firebase/firestore";
 import type { Task, WithId, UserProfile, AppSettings } from "@/lib/types";
 import Link from 'next/link';
@@ -98,7 +99,6 @@ export default function DevToolsView() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
-  const { theme } = useTheme();
   
   const appSettingsRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'app-settings', 'global') : null, [firestore]
@@ -107,7 +107,10 @@ export default function DevToolsView() {
 
   const [localBgColor, setLocalBgColor] = useState('#ffffff');
   
-  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || appSettingsLoading || !user) return false;
+    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
+  }, [user, appSettings, isUserLoading, appSettingsLoading]);
 
   useEffect(() => {
     if (appSettings) {
@@ -130,10 +133,10 @@ export default function DevToolsView() {
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
+    if (!isUserLoading && !appSettingsLoading && !usersLoading && !isLoadingMasterTasks && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
+  }, [isAdmin, isUserLoading, appSettingsLoading, usersLoading, isLoadingMasterTasks, router]);
 
   const handleDeleteTask = async (task: WithId<Task>) => {
     if (!firestore || !isAdmin) return;
@@ -216,8 +219,9 @@ export default function DevToolsView() {
     }
   }, [appSettingsRef]);
 
+  const isLoading = isUserLoading || usersLoading || appSettingsLoading || isLoadingMasterTasks;
 
-  if (isUserLoading || usersLoading || appSettingsLoading) {
+  if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -227,8 +231,8 @@ export default function DevToolsView() {
 
   if (!isAdmin) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <p>Access denied.</p>
+      <div className="flex flex-1 items-center justify-center bg-background">
+        <p>Access denied. Redirecting...</p>
       </div>
     );
   }

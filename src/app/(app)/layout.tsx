@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from "@/hooks/use-user";
@@ -38,11 +39,19 @@ export default function AppLayout({
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
 
-  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || appSettingsLoading || !user) return false;
+    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
+  }, [user, appSettings, isUserLoading, appSettingsLoading]);
+
+  const isLoading = isUserLoading || appSettingsLoading;
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (isLoading) return; // Wait until everything is loaded
+
+    if (!user) {
       router.push('/');
+      return;
     }
     
     // Redirect to onboarding if user is new (has no interests set)
@@ -50,7 +59,7 @@ export default function AppLayout({
         router.push('/onboarding');
     }
 
-  }, [user, userProfile, isUserLoading, router, pathname, isAdmin]);
+  }, [user, userProfile, isLoading, router, pathname, isAdmin]);
 
   const currentNavs = useMemo(() => isAdmin ? guestTopLevelNavItems : topLevelNavItems, [isAdmin]);
   
@@ -76,7 +85,7 @@ export default function AppLayout({
     }
   };
 
-  if (isUserLoading || !user || !userProfile || appSettingsLoading) {
+  if (isLoading || !user || !userProfile) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

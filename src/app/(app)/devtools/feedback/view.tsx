@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import type { Feedback, WithId, AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -20,7 +20,6 @@ export default function FeedbackListView() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const { toast } = useToast();
   
   const settingsRef = useMemoFirebase(() => 
     firestore ? doc(firestore, 'app-settings', 'global') : null, 
@@ -28,7 +27,10 @@ export default function FeedbackListView() {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
-  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || appSettingsLoading || !user) return false;
+    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
+  }, [user, appSettings, isUserLoading, appSettingsLoading]);
 
   const feedbackQuery = useMemoFirebase(() => {
     if (!firestore || !isAdmin) return null;
@@ -38,12 +40,14 @@ export default function FeedbackListView() {
   const { data: feedbackList, isLoading: isFeedbackLoading } = useCollection<Feedback>(feedbackQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
+    if (!isUserLoading && !appSettingsLoading && !isFeedbackLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
+  }, [isAdmin, isUserLoading, appSettingsLoading, isFeedbackLoading, router]);
 
-  if (isFeedbackLoading || isUserLoading || appSettingsLoading) {
+  const isLoading = isFeedbackLoading || isUserLoading || appSettingsLoading;
+
+  if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -53,8 +57,8 @@ export default function FeedbackListView() {
 
   if (!isAdmin) {
      return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <p>Access denied.</p>
+      <div className="flex flex-1 items-center justify-center bg-background">
+        <p>Access denied. Redirecting...</p>
       </div>
     );
   }

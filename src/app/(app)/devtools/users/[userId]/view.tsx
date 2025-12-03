@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
@@ -58,7 +59,10 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
-  const isAdmin = adminUser && (adminUser.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(adminUser.email));
+  const isAdmin = useMemo(() => {
+    if (isAdminLoading || appSettingsLoading || !adminUser) return false;
+    return adminUser.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(adminUser.email);
+  }, [adminUser, appSettings, isAdminLoading, appSettingsLoading]);
 
   useEffect(() => {
     return () => {
@@ -244,8 +248,8 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
 
   if (!isAdmin) {
     return (
-     <div className="flex min-h-screen w-full items-center justify-center bg-background">
-       <p>Access denied.</p>
+     <div className="flex flex-1 items-center justify-center bg-background">
+       <p>Access denied. Redirecting...</p>
      </div>
    );
  }

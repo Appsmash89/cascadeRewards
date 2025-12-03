@@ -29,14 +29,22 @@ export default function ManageAdminsView() {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
-  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || appSettingsLoading || !user) return false;
+    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
+  }, [user, appSettings, isUserLoading, appSettingsLoading]);
 
   const adminEmails = useMemo(() => {
     const emails = appSettings?.adminEmails || [];
-    return [GUEST_EMAIL, ...emails.filter(email => email !== GUEST_EMAIL)].sort();
+    // Ensure the main guest admin is always in the list for display, but don't duplicate it.
+    if (!emails.includes(GUEST_EMAIL)) {
+        emails.push(GUEST_EMAIL);
+    }
+    return emails.sort();
   }, [appSettings]);
   
   useEffect(() => {
+    // Wait until loading is complete before checking admin status
     if (!isUserLoading && !appSettingsLoading && !isAdmin) {
       router.push('/dashboard');
     }
@@ -87,8 +95,8 @@ export default function ManageAdminsView() {
 
   if (!isAdmin) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <p>Access denied.</p>
+      <div className="flex flex-1 items-center justify-center bg-background">
+        <p>Access denied. Redirecting...</p>
       </div>
     );
   }

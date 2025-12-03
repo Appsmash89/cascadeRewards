@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
@@ -10,7 +11,7 @@ import Link from 'next/link';
 import type { UserProfile, AppSettings } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -25,7 +26,10 @@ export default function UserManagementView() {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
-  const isAdmin = adminUser && (adminUser.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(adminUser.email));
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || appSettingsLoading || !adminUser) return false;
+    return adminUser.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(adminUser.email);
+  }, [adminUser, appSettings, isUserLoading, appSettingsLoading]);
 
   const usersQuery = useMemoFirebase(() => 
     firestore && isAdmin ? collection(firestore, 'users') : null,
@@ -34,16 +38,18 @@ export default function UserManagementView() {
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
+    if (!isUserLoading && !appSettingsLoading && !usersLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
+  }, [isAdmin, isUserLoading, appSettingsLoading, usersLoading, router]);
 
   const getInitials = (name: string | null) => {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   }
 
-  if (isUserLoading || usersLoading || appSettingsLoading) {
+  const isLoading = isUserLoading || usersLoading || appSettingsLoading;
+
+  if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -53,8 +59,8 @@ export default function UserManagementView() {
   
   if (!isAdmin) {
      return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <p>Access denied.</p>
+      <div className="flex flex-1 items-center justify-center bg-background">
+        <p>Access denied. Redirecting...</p>
       </div>
     );
   }

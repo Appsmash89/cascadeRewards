@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -28,7 +29,10 @@ export default function CategoriesView() {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
-  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
+  const isAdmin = useMemo(() => {
+    if (isUserLoading || appSettingsLoading || !user) return false;
+    return user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email);
+  }, [user, appSettings, isUserLoading, appSettingsLoading]);
 
   const categoriesRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'app-settings', 'taskCategories') : null,
@@ -42,10 +46,10 @@ export default function CategoriesView() {
   }, [categoriesData]);
 
   useEffect(() => {
-    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
+    if (!isUserLoading && !appSettingsLoading && !categoriesLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
+  }, [isAdmin, isUserLoading, appSettingsLoading, categoriesLoading, router]);
 
 
   const handleAddCategory = async () => {
@@ -94,8 +98,8 @@ export default function CategoriesView() {
 
   if (!isAdmin) {
      return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <p>Access denied.</p>
+      <div className="flex flex-1 items-center justify-center bg-background">
+        <p>Access denied. Redirecting...</p>
       </div>
     );
   }
