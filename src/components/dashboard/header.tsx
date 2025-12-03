@@ -1,3 +1,4 @@
+
 'use client';
 import {
   DropdownMenu,
@@ -9,43 +10,22 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Gift, LogOut, User as UserIcon, Star } from "lucide-react"
+import { Gift, LogOut, User as UserIcon } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useAuth, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile, AppSettings } from "@/lib/types";
-import { Progress } from "../ui/progress";
-import { motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { motion } from "framer-motion";
 import { doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 type DashboardHeaderProps = {
   user: UserProfile | null;
-  isGuest: boolean;
+  isAdmin: boolean;
 }
 
-const POINTS_PER_LEVEL = 100;
-
-export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps) {
-  const { scrollY } = useScroll();
-  const [hidden, setHidden] = useState(false);
-
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    const previous = scrollY.getPrevious() ?? 0;
-
-    // If scrolling down past 150px, hide the header
-    if (latest > previous && latest > 150) {
-      setHidden(true);
-    } 
-    // Else if scrolling up, show the header
-    else if (latest < previous) {
-      setHidden(false);
-    }
-  });
-
-
+export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps) {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
@@ -81,27 +61,24 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
     }
   };
 
-  const displayName = isGuest ? "Admin" : user?.displayName ?? "User";
+  const displayName = isAdmin ? "Admin" : user?.displayName ?? "User";
   const displayAvatar = user?.photoURL;
-  const displayEmail = isGuest ? "guest.dev@cascade.app" : user?.email;
+  const displayEmail = isAdmin ? user?.email : user?.email;
 
-  
   return (
-    <motion.header 
-      variants={{
-        visible: { y: 0 },
-        hidden: { y: "-100%" },
-      }}
-      animate={hidden ? "hidden" : "visible"}
+    <motion.div
+      initial={{ y: 0 }}
+      animate={{ y: 0 }}
       transition={{ duration: 0.35, ease: "easeInOut" }}
       className={cn(
-        "sticky top-0 flex h-16 border-b bg-background/80 backdrop-blur-lg px-4 z-10",
+        "fixed top-0 left-0 right-0 h-16 border-b bg-background/80 backdrop-blur-lg px-4 z-10 max-w-md mx-auto",
         appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background),0.8)]"
-    )}>
-      <div className="flex h-16 items-center gap-4 w-full">
+      )}
+    >
+      <div className="flex h-full items-center gap-4 w-full">
         <div className="flex items-center gap-2 font-semibold">
           <Gift className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg tracking-tight">Cascade</span>
+          <span className="font-gliker text-lg tracking-tight">Cascade</span>
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
@@ -125,7 +102,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem disabled={isGuest} className="cursor-pointer">
+              <DropdownMenuItem disabled={isAdmin} className="cursor-pointer">
                 <UserIcon className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
@@ -138,6 +115,6 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
           </DropdownMenu>
         </div>
       </div>
-    </motion.header>
+    </motion.div>
   )
 }

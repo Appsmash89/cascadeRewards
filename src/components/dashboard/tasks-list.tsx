@@ -44,9 +44,9 @@ const TaskItem = ({ task, disabled, index }: { task: CombinedTask, disabled: boo
       >
         {task.status === 'completed' ? <CheckCircle className="h-5 w-5 text-green-500" /> : taskIcons[task.type]}
       </motion.div>
-      <div className="flex-grow">
-        <p className="font-medium leading-tight">{task.title}</p>
-        <p className="text-sm text-muted-foreground">{task.description}</p>
+      <div className="flex-grow min-w-0">
+        <p className="font-medium leading-tight break-words">{task.title}</p>
+        <p className="text-sm text-muted-foreground break-words">{task.description}</p>
       </div>
       <div className="flex items-center gap-4">
         <Badge variant="secondary" className="flex items-center gap-1 font-bold text-sm text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">

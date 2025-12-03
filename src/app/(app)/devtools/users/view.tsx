@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -12,32 +13,30 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
-
 export default function UserManagementView() {
   const firestore = useFirestore();
-  const { user: adminUser, isUserLoading } = useUser();
+  const { isAdmin, isUserLoading } = useUser();
   const router = useRouter();
 
-  const isGuestMode = adminUser?.email === GUEST_EMAIL;
-
   const usersQuery = useMemoFirebase(() => 
-    firestore && isGuestMode ? collection(firestore, 'users') : null,
-    [firestore, isGuestMode]
+    firestore && isAdmin ? collection(firestore, 'users') : null,
+    [firestore, isAdmin]
   );
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !isGuestMode) {
+    if (!isUserLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isGuestMode, isUserLoading, router]);
+  }, [isAdmin, isUserLoading, router]);
 
   const getInitials = (name: string | null) => {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   }
 
-  if (isUserLoading || usersLoading) {
+  const isLoading = isUserLoading || usersLoading;
+
+  if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -45,10 +44,10 @@ export default function UserManagementView() {
     );
   }
   
-  if (!isGuestMode) {
+  if (!isAdmin) {
      return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <p>Access denied.</p>
+      <div className="flex flex-1 items-center justify-center bg-background">
+        <p>Access denied. Redirecting...</p>
       </div>
     );
   }

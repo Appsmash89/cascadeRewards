@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 const { fontFamily } = require("tailwindcss/defaultTheme")
 
@@ -20,6 +19,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["var(--font-inter)", ...fontFamily.sans],
+        gliker: ["Gliker", ...fontFamily.sans],
       },
       colors: {
         background: 'hsl(var(--background))',

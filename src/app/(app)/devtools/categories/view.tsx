@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -9,26 +10,33 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import type { AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { useRouter } from 'next/navigation';
 
 export default function CategoriesView() {
   const firestore = useFirestore();
-  const { user } = useUser();
+  const { isAdmin, isUserLoading } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
   const [newCategory, setNewCategory] = useState('');
 
   const categoriesRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'app-settings', 'taskCategories') : null,
     [firestore]
   );
-  const { data: categoriesData, isLoading } = useDoc<AppSettings>(categoriesRef);
+  const { data: categoriesData, isLoading: categoriesLoading } = useDoc<AppSettings>(categoriesRef);
   
   const categories = useMemo(() => {
     const cats = categoriesData?.taskCategories || [];
-    // Sort alphabetically
     return cats.sort((a, b) => a.localeCompare(b));
   }, [categoriesData]);
+
+  useEffect(() => {
+    if (!isUserLoading && !isAdmin) {
+      router.push('/dashboard');
+    }
+  }, [isAdmin, isUserLoading, router]);
 
 
   const handleAddCategory = async () => {
@@ -65,10 +73,20 @@ export default function CategoriesView() {
   };
 
 
+  const isLoading = categoriesLoading || isUserLoading;
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+     return (
+      <div className="flex flex-1 items-center justify-center bg-background">
+        <p>Access denied. Redirecting...</p>
       </div>
     );
   }

@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import { doc, collection, writeBatch, serverTimestamp, increment } from 'firebase/firestore';
+import { doc, collection, writeBatch, serverTimestamp, increment, getDoc } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
 import { Loader2, ArrowLeft, CheckCircle, Star, RotateCcw, Undo2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +29,8 @@ import {
 import { useRouter } from 'next/navigation';
 
 const POINTS_PER_LEVEL = 100;
+const TIER_1_BONUS_RATE = 0.10; // 10%
+const TIER_2_BONUS_RATE = 0.02; // 2%
 
 const taskIcons = {
   video: <PlayCircle className="h-5 w-5 text-primary" />,
@@ -43,19 +46,23 @@ type PreviousState = {
 
 export default function ManageUserTasksView({ userId }: { userId: string }) {
   const firestore = useFirestore();
-  const { user: adminUser } = useUser();
+  const { isAdmin, isUserLoading: isAdminLoading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
 
   const [previousState, setPreviousState] = useState<PreviousState | null>(null);
 
-  const isGuestMode = adminUser?.email === 'guest.dev@cascade.app';
-  
   useEffect(() => {
     return () => {
       setPreviousState(null);
     }
   }, [router]);
+  
+  useEffect(() => {
+    if (!isAdminLoading && !isAdmin) {
+      router.push('/dashboard');
+    }
+  }, [isAdmin, isAdminLoading, router]);
 
   const userProfileRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'users', userId) : null,
@@ -94,6 +101,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
 
     const userTaskRef = doc(firestore, 'users', userProfile.uid, 'tasks', task.id);
     const userProfileDocRef = doc(firestore, 'users', userProfile.uid);
+    let toasts = [];
 
     try {
         const batch = writeBatch(firestore);
@@ -113,27 +121,43 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
         
         if (newLevel > userProfile.level) {
             profileUpdate.level = newLevel;
+            toasts.push(`${userProfile.displayName} leveled up to Level ${newLevel}!`);
         }
 
         batch.update(userProfileDocRef, profileUpdate);
+        toasts.push(`${task.points} points given to ${userProfile.displayName}.`);
         
-        // Referral bonus logic
         if (userProfile.referredBy) {
-            const referralBonus = Math.floor(task.points * 0.1);
-            if (referralBonus > 0) {
-                const referrerRef = doc(firestore, 'users', userProfile.referredBy);
-                batch.update(referrerRef, {
-                    points: increment(referralBonus),
-                    totalEarned: increment(referralBonus)
+            const tier1Bonus = Math.floor(task.points * TIER_1_BONUS_RATE);
+            if (tier1Bonus > 0) {
+                const tier1ReferrerRef = doc(firestore, 'users', userProfile.referredBy);
+                batch.update(tier1ReferrerRef, {
+                    points: increment(tier1Bonus),
+                    totalEarned: increment(tier1Bonus)
                 });
+                toasts.push(`Gave ${tier1Bonus} bonus points to Tier 1 referrer.`);
+
+                const tier1ReferrerSnap = await getDoc(tier1ReferrerRef);
+                const tier1ReferrerProfile = tier1ReferrerSnap.data() as UserProfile;
+                if (tier1ReferrerProfile && tier1ReferrerProfile.referredBy) {
+                    const tier2Bonus = Math.floor(task.points * TIER_2_BONUS_RATE);
+                    if (tier2Bonus > 0) {
+                        const tier2ReferrerRef = doc(firestore, 'users', tier1ReferrerProfile.referredBy);
+                        batch.update(tier2ReferrerRef, {
+                            points: increment(tier2Bonus),
+                            totalEarned: increment(tier2Bonus)
+                        });
+                        toasts.push(`Gave ${tier2Bonus} bonus points to Tier 2 referrer.`);
+                    }
+                }
             }
         }
 
         await batch.commit();
 
         toast({
-            title: 'Points Awarded!',
-            description: `${task.points} points given to ${userProfile.displayName}. ${newLevel > userProfile.level ? "They leveled up!" : ""}`,
+            title: 'Points & Bonuses Awarded!',
+            description: toasts.join(' '),
         });
     } catch(e: any) {
         toast({ variant: "destructive", title: 'Error', description: e.message });
@@ -200,7 +224,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   }
 
-  const isLoading = isUserLoading || isLoadingMasterTasks || isLoadingUserTasks;
+  const isLoading = isUserLoading || isLoadingMasterTasks || isLoadingUserTasks || isAdminLoading;
 
   if (isLoading) {
     return (
@@ -209,6 +233,14 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
       </div>
     );
   }
+
+  if (!isAdmin) {
+    return (
+     <div className="flex flex-1 items-center justify-center bg-background">
+       <p>Access denied. Redirecting...</p>
+     </div>
+   );
+ }
 
   if (!userProfile) {
     return <p>User not found.</p>;
@@ -280,9 +312,9 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
                  task.status === 'in-progress' ? <Loader2 className="h-5 w-5 animate-spin text-amber-500"/> :
                  taskIcons[task.type]}
             </div>
-            <div className="flex-grow">
-              <p className="font-medium">{task.title}</p>
-               <p className="text-sm text-muted-foreground">{task.description}</p>
+            <div className="flex-grow min-w-0">
+              <p className="font-medium break-words">{task.title}</p>
+               <p className="text-sm text-muted-foreground break-words">{task.description}</p>
             </div>
             <div className="flex items-center gap-4">
                 <Badge variant="secondary" className="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
@@ -293,7 +325,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
                     size="sm" 
                     variant={task.status === 'in-progress' ? 'default' : 'secondary'}
                     onClick={() => handleAwardPoints(task)}
-                    disabled={task.status !== 'in-progress' || !isGuestMode}
+                    disabled={task.status !== 'in-progress' || !isAdmin}
                     className="w-40"
                 >
                     {task.status === 'completed' 

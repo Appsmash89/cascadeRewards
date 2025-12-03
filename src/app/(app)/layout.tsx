@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from "@/hooks/use-user";
@@ -7,6 +8,9 @@ import { Loader2 } from "lucide-react";
 import { motion, PanInfo, AnimatePresence } from 'framer-motion';
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { AppSettings } from '@/lib/types';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -24,27 +28,27 @@ export default function AppLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, userProfile, isUserLoading } = useUser();
+  const { user, userProfile, isAdmin, isUserLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (isUserLoading) return; // Wait until everything is loaded
+
+    if (!user) {
       router.push('/');
+      return;
     }
     
     // Redirect to onboarding if user is new (has no interests set)
-    if (userProfile && (!userProfile.interests || userProfile.interests.length === 0) && pathname !== '/onboarding' && user?.email !== GUEST_EMAIL) {
+    if (userProfile && (!userProfile.interests || userProfile.interests.length === 0) && pathname !== '/onboarding' && !isAdmin) {
         router.push('/onboarding');
     }
 
-  }, [user, userProfile, isUserLoading, router, pathname]);
+  }, [user, userProfile, isUserLoading, router, pathname, isAdmin]);
 
-  const isGuestMode = user?.email === GUEST_EMAIL;
-
-  const currentNavs = useMemo(() => isGuestMode ? guestTopLevelNavItems : topLevelNavItems, [isGuestMode]);
+  const currentNavs = useMemo(() => isAdmin ? guestTopLevelNavItems : topLevelNavItems, [isAdmin]);
   
-  // Only allow swipe navigation on top-level pages
   const isSwipeEnabled = currentNavs.includes(pathname);
   
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -67,7 +71,6 @@ export default function AppLayout({
     }
   };
 
-
   if (isUserLoading || !user || !userProfile) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
@@ -85,7 +88,7 @@ export default function AppLayout({
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background overflow-x-hidden">
-      <DashboardHeader user={userProfile} isGuest={isGuestMode}/>
+      <DashboardHeader user={userProfile} isAdmin={isAdmin}/>
         <motion.main
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
@@ -96,7 +99,7 @@ export default function AppLayout({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="flex flex-1 flex-col gap-4 p-4 pb-20"
+            className="flex flex-1 flex-col gap-4 p-4 pt-20 pb-20"
         >
             {children}
         </motion.main>

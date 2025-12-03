@@ -1,13 +1,14 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket, MessageSquare, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { collection, doc, deleteDoc, writeBatch, increment, setDoc, getDocs } from "firebase/firestore";
 import type { Task, WithId, UserProfile, AppSettings } from "@/lib/types";
 import Link from 'next/link';
@@ -25,8 +26,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
-const GUEST_EMAIL = 'guest.dev@cascade.app';
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 // Helper to convert hex to HSL string
 function hexToHsl(hex: string): string | null {
@@ -92,46 +93,46 @@ function hslToHex(hsl: string): string | null {
 
 
 export default function DevToolsView() {
-  const { user, userProfile, isUserLoading } = useUser();
+  const { isAdmin, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   
-  const isGuestMode = user?.email === GUEST_EMAIL;
-
   const appSettingsRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'app-settings', 'global') : null, [firestore]
   );
-  const { data: appSettings } = useDoc<AppSettings>(appSettingsRef);
+  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(appSettingsRef);
 
-  const [localColor, setLocalColor] = useState('#ffffff');
-  
+  const [localBgColor, setLocalBgColor] = useState('#ffffff');
+
   useEffect(() => {
-    if (appSettings?.pastelBackgroundColor) {
-      setLocalColor(hslToHex(appSettings.pastelBackgroundColor) || '#ffffff');
+    if (appSettings) {
+      if (appSettings.pastelBackgroundColor) {
+        setLocalBgColor(hslToHex(appSettings.pastelBackgroundColor) || '#ffffff');
+      }
     }
   }, [appSettings]);
 
   const masterTasksQuery = useMemoFirebase(() =>
-    userProfile ? collection(firestore, 'tasks') : null,
-    [userProfile, firestore]
+    isAdmin ? collection(firestore, 'tasks') : null,
+    [isAdmin, firestore]
   );
   const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
 
   const usersQuery = useMemoFirebase(() => 
-    firestore && isGuestMode ? collection(firestore, 'users') : null,
-    [firestore, isGuestMode]
+    firestore && isAdmin ? collection(firestore, 'users') : null,
+    [firestore, isAdmin]
   );
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !isGuestMode) {
+    if (!isUserLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isGuestMode, isUserLoading, router]);
+  }, [isAdmin, isUserLoading, router]);
 
   const handleDeleteTask = async (task: WithId<Task>) => {
-    if (!firestore || !userProfile) return;
+    if (!firestore || !isAdmin) return;
     
     const isConfirmed = window.confirm(`Are you sure you want to delete "${task.title}"? This cannot be undone.`);
     if (!isConfirmed) return;
@@ -200,9 +201,9 @@ export default function DevToolsView() {
     }, { merge: true });
   }
 
-  const handleColorChange = useCallback(async (hexColor: string) => {
+  const handleBgColorChange = useCallback(async (hexColor: string) => {
     if (!appSettingsRef) return;
-    setLocalColor(hexColor);
+    setLocalBgColor(hexColor);
     const hslColor = hexToHsl(hexColor);
     if (hslColor) {
       await setDoc(appSettingsRef, {
@@ -211,8 +212,9 @@ export default function DevToolsView() {
     }
   }, [appSettingsRef]);
 
+  const isLoading = isUserLoading || usersLoading || appSettingsLoading || isLoadingMasterTasks;
 
-  if (isUserLoading || usersLoading) {
+  if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -220,10 +222,10 @@ export default function DevToolsView() {
     );
   }
 
-  if (!isGuestMode) {
+  if (!isAdmin) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <p>Access denied.</p>
+      <div className="flex flex-1 items-center justify-center bg-background">
+        <p>Access denied. Redirecting...</p>
       </div>
     );
   }
@@ -252,6 +254,18 @@ export default function DevToolsView() {
                   <Link href="/devtools/categories">
                     <Sparkles className="mr-2 h-4 w-4" />
                     Manage Categories
+                  </Link>
+              </Button>
+              <Button asChild className="w-full">
+                  <Link href="/devtools/admins">
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Manage Admins
+                  </Link>
+              </Button>
+               <Button asChild className="w-full">
+                  <Link href="/devtools/feedback">
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    View Feedback
                   </Link>
               </Button>
               <AlertDialog>
@@ -292,7 +306,7 @@ export default function DevToolsView() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <PaintBucket className="h-5 w-5 text-muted-foreground"/>
-                      <Label htmlFor="pastel-mode" className="font-medium text-sm">Pastel Mode</Label>
+                      <Label htmlFor="pastel-mode" className="font-medium text-sm">BG Color Mode</Label>
                     </div>
                     <Switch 
                       id="pastel-mode" 
@@ -302,12 +316,12 @@ export default function DevToolsView() {
                 </div>
                 {appSettings?.pastelBackgroundEnabled && (
                   <div className="flex items-center gap-4">
-                     <Label htmlFor="pastel-color-picker" className="font-medium text-sm">Color</Label>
+                     <Label htmlFor="bg-color-picker" className="font-medium text-sm">BG Color</Label>
                     <Input
-                      id="pastel-color-picker"
+                      id="bg-color-picker"
                       type="color"
-                      value={localColor}
-                      onChange={(e) => handleColorChange(e.target.value)}
+                      value={localBgColor}
+                      onChange={(e) => handleBgColorChange(e.target.value)}
                       className="w-24 h-10 p-1"
                     />
                   </div>
@@ -339,13 +353,13 @@ export default function DevToolsView() {
                     <div className="divide-y">
                         {sortedTasks && sortedTasks.map(task => (
                             <div key={task.id} className="flex items-center justify-between p-3 gap-2">
-                                <div className="flex-1">
-                                    <p className="font-medium">{task.title}</p>
-                                    <p className="text-sm text-muted-foreground">{task.points} points</p>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium break-words">{task.title}</p>
+                                    <p className="text-sm text-muted-foreground break-words">{task.points} points</p>
                                     {task.link && (
-                                        <Link href={task.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
-                                            <Link2 className="h-3 w-3" />
-                                            {task.link}
+                                        <Link href={task.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1 break-all">
+                                            <Link2 className="h-3 w-3 flex-shrink-0" />
+                                            <span className="truncate">{task.link}</span>
                                         </Link>
                                     )}
                                 </div>
