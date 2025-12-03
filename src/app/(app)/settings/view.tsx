@@ -109,6 +109,41 @@ function SettingsView() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {!userProfile.referredBy && (
+            <div className="p-4 rounded-lg bg-secondary border space-y-4">
+                <div className="flex items-center gap-3">
+                    <UserPlus className="h-5 w-5 text-muted-foreground"/>
+                    <div>
+                        <Label htmlFor="referrer-code" className="font-medium">Enter Referrer ID</Label>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <span>Required to redeem rewards.</span>
+                            <Link href="/stats/referrer-info" className="text-primary hover:underline">
+                                <Info className="h-3 w-3" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="relative flex-grow">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-mono">CASC-</span>
+                        <Input 
+                            id="referrer-code"
+                            value={referrerCode}
+                            onChange={(e) => setReferrerCode(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleReferrerCodeSubmit()}
+                            className="pl-14 font-mono tracking-wider"
+                            placeholder="CODE"
+                            maxLength={6}
+                            disabled={isSubmittingCode}
+                            autoCapitalize="characters"
+                        />
+                    </div>
+                    <Button onClick={handleReferrerCodeSubmit} disabled={isSubmittingCode || referrerCode.length < 1}>
+                        {isSubmittingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus />}
+                    </Button>
+                </div>
+            </div>
+        )}
         <div className="p-4 rounded-lg bg-secondary border space-y-4">
             <div className="flex items-center gap-3">
               <Palette className="h-5 w-5 text-muted-foreground"/>
