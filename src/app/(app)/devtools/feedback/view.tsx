@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
 import { Loader2, ArrowLeft, User, Calendar } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import type { Feedback, WithId } from '@/lib/types';
+import type { Feedback, WithId, AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -22,25 +22,39 @@ export default function FeedbackListView() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const isGuestMode = user?.email === GUEST_EMAIL;
+  const settingsRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'global') : null, 
+    [firestore]
+  );
+  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
+  
+  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
 
   const feedbackQuery = useMemoFirebase(() => {
-    if (!firestore || !isGuestMode) return null;
+    if (!firestore || !isAdmin) return null;
     return query(collection(firestore, 'feedback'), orderBy('createdAt', 'desc'));
-  }, [firestore, isGuestMode]);
+  }, [firestore, isAdmin]);
 
   const { data: feedbackList, isLoading: isFeedbackLoading } = useCollection<Feedback>(feedbackQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !isGuestMode) {
+    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isGuestMode, isUserLoading, router]);
+  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
 
-  if (isFeedbackLoading) {
+  if (isFeedbackLoading || isUserLoading || appSettingsLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+     return (
+      <div className="flex min-h-screen w-full items-center justify-center bg-background">
+        <p>Access denied.</p>
       </div>
     );
   }

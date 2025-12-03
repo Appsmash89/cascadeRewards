@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket, MessageSquare } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket, MessageSquare, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, useCallback } from "react";
@@ -94,22 +94,21 @@ function hslToHex(hsl: string): string | null {
 
 
 export default function DevToolsView() {
-  const { user, userProfile, isUserLoading } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   const { theme } = useTheme();
   
-  const isGuestMode = user?.email === GUEST_EMAIL;
-  const isDarkMode = theme === 'dark';
-
   const appSettingsRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'app-settings', 'global') : null, [firestore]
   );
-  const { data: appSettings } = useDoc<AppSettings>(appSettingsRef);
+  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(appSettingsRef);
 
   const [localBgColor, setLocalBgColor] = useState('#ffffff');
   
+  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
+
   useEffect(() => {
     if (appSettings) {
       if (appSettings.pastelBackgroundColor) {
@@ -119,25 +118,25 @@ export default function DevToolsView() {
   }, [appSettings]);
 
   const masterTasksQuery = useMemoFirebase(() =>
-    userProfile ? collection(firestore, 'tasks') : null,
-    [userProfile, firestore]
+    isAdmin ? collection(firestore, 'tasks') : null,
+    [isAdmin, firestore]
   );
   const { data: masterTasks, isLoading: isLoadingMasterTasks } = useCollection<Task>(masterTasksQuery);
 
   const usersQuery = useMemoFirebase(() => 
-    firestore && isGuestMode ? collection(firestore, 'users') : null,
-    [firestore, isGuestMode]
+    firestore && isAdmin ? collection(firestore, 'users') : null,
+    [firestore, isAdmin]
   );
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !isGuestMode) {
+    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isGuestMode, isUserLoading, router]);
+  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
 
   const handleDeleteTask = async (task: WithId<Task>) => {
-    if (!firestore || !userProfile) return;
+    if (!firestore || !isAdmin) return;
     
     const isConfirmed = window.confirm(`Are you sure you want to delete "${task.title}"? This cannot be undone.`);
     if (!isConfirmed) return;
@@ -218,7 +217,7 @@ export default function DevToolsView() {
   }, [appSettingsRef]);
 
 
-  if (isUserLoading || usersLoading) {
+  if (isUserLoading || usersLoading || appSettingsLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -226,7 +225,7 @@ export default function DevToolsView() {
     );
   }
 
-  if (!isGuestMode) {
+  if (!isAdmin) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Access denied.</p>
@@ -258,6 +257,12 @@ export default function DevToolsView() {
                   <Link href="/devtools/categories">
                     <Sparkles className="mr-2 h-4 w-4" />
                     Manage Categories
+                  </Link>
+              </Button>
+              <Button asChild className="w-full">
+                  <Link href="/devtools/admins">
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    Manage Admins
                   </Link>
               </Button>
                <Button asChild className="w-full">

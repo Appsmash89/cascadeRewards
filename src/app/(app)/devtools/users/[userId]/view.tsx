@@ -7,7 +7,7 @@ import { Loader2, ArrowLeft, CheckCircle, Star, RotateCcw, Undo2 } from 'lucide-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import type { Task, UserProfile, UserTask, CombinedTask, WithId } from '@/lib/types';
+import type { Task, UserProfile, UserTask, CombinedTask, WithId, AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo, useState, useEffect } from 'react';
@@ -30,6 +30,7 @@ import { useRouter } from 'next/navigation';
 const POINTS_PER_LEVEL = 100;
 const TIER_1_BONUS_RATE = 0.10; // 10%
 const TIER_2_BONUS_RATE = 0.02; // 2%
+const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 const taskIcons = {
   video: <PlayCircle className="h-5 w-5 text-primary" />,
@@ -45,19 +46,31 @@ type PreviousState = {
 
 export default function ManageUserTasksView({ userId }: { userId: string }) {
   const firestore = useFirestore();
-  const { user: adminUser } = useUser();
+  const { user: adminUser, isUserLoading: isAdminLoading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
 
   const [previousState, setPreviousState] = useState<PreviousState | null>(null);
 
-  const isGuestMode = adminUser?.email === 'guest.dev@cascade.app';
+  const settingsRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'global') : null, 
+    [firestore]
+  );
+  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
+  const isAdmin = adminUser && (adminUser.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(adminUser.email));
+
   useEffect(() => {
     return () => {
       setPreviousState(null);
     }
   }, [router]);
+  
+  useEffect(() => {
+    if (!isAdminLoading && !appSettingsLoading && !isAdmin) {
+      router.push('/dashboard');
+    }
+  }, [isAdmin, isAdminLoading, appSettingsLoading, router]);
 
   const userProfileRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'users', userId) : null,
@@ -122,7 +135,6 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
         batch.update(userProfileDocRef, profileUpdate);
         toasts.push(`${task.points} points given to ${userProfile.displayName}.`);
         
-        // Tier 1 Referral Bonus
         if (userProfile.referredBy) {
             const tier1Bonus = Math.floor(task.points * TIER_1_BONUS_RATE);
             if (tier1Bonus > 0) {
@@ -133,7 +145,6 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
                 });
                 toasts.push(`Gave ${tier1Bonus} bonus points to Tier 1 referrer.`);
 
-                // Tier 2 Referral Bonus
                 const tier1ReferrerSnap = await getDoc(tier1ReferrerRef);
                 const tier1ReferrerProfile = tier1ReferrerSnap.data() as UserProfile;
                 if (tier1ReferrerProfile && tier1ReferrerProfile.referredBy) {
@@ -221,7 +232,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   }
 
-  const isLoading = isUserLoading || isLoadingMasterTasks || isLoadingUserTasks;
+  const isLoading = isUserLoading || isLoadingMasterTasks || isLoadingUserTasks || appSettingsLoading || isAdminLoading;
 
   if (isLoading) {
     return (
@@ -230,6 +241,14 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
       </div>
     );
   }
+
+  if (!isAdmin) {
+    return (
+     <div className="flex min-h-screen w-full items-center justify-center bg-background">
+       <p>Access denied.</p>
+     </div>
+   );
+ }
 
   if (!userProfile) {
     return <p>User not found.</p>;
@@ -314,7 +333,7 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
                     size="sm" 
                     variant={task.status === 'in-progress' ? 'default' : 'secondary'}
                     onClick={() => handleAwardPoints(task)}
-                    disabled={task.status !== 'in-progress' || !isGuestMode}
+                    disabled={task.status !== 'in-progress' || !isAdmin}
                     className="w-40"
                 >
                     {task.status === 'completed' 

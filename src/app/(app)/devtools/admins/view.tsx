@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, ArrowLeft, Trash2, Plus } from 'lucide-react';
+import { Loader2, ArrowLeft, Trash2, Plus, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -15,12 +16,12 @@ import { useRouter } from 'next/navigation';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
-export default function CategoriesView() {
+export default function ManageAdminsView() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
-  const [newCategory, setNewCategory] = useState('');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
 
   const settingsRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'app-settings', 'global') : null,
@@ -30,61 +31,53 @@ export default function CategoriesView() {
   
   const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
 
-  const categoriesRef = useMemoFirebase(() =>
-    firestore ? doc(firestore, 'app-settings', 'taskCategories') : null,
-    [firestore]
-  );
-  const { data: categoriesData, isLoading: categoriesLoading } = useDoc<AppSettings>(categoriesRef);
+  const adminEmails = useMemo(() => {
+    const emails = appSettings?.adminEmails || [];
+    return [GUEST_EMAIL, ...emails.filter(email => email !== GUEST_EMAIL)].sort();
+  }, [appSettings]);
   
-  const categories = useMemo(() => {
-    const cats = categoriesData?.taskCategories || [];
-    return cats.sort((a, b) => a.localeCompare(b));
-  }, [categoriesData]);
-
   useEffect(() => {
     if (!isUserLoading && !appSettingsLoading && !isAdmin) {
       router.push('/dashboard');
     }
   }, [isAdmin, isUserLoading, appSettingsLoading, router]);
 
+  const handleAddAdmin = async () => {
+    if (!settingsRef || !newAdminEmail.trim()) return;
+    const emailToAdd = newAdminEmail.trim();
 
-  const handleAddCategory = async () => {
-    if (!categoriesRef || !newCategory.trim()) return;
-    if ((categoriesData?.taskCategories || []).includes(newCategory.trim())) {
+    if (adminEmails.includes(emailToAdd)) {
       toast({
         variant: 'destructive',
-        title: 'Category already exists',
-        description: `The category "${newCategory.trim()}" is already in the list.`,
+        title: 'Admin already exists',
+        description: `The email "${emailToAdd}" is already an admin.`,
       });
       return;
     }
     
-    await setDoc(categoriesRef, {
-      taskCategories: arrayUnion(newCategory.trim()),
+    await setDoc(settingsRef, {
+      adminEmails: arrayUnion(emailToAdd),
     }, { merge: true });
 
-    setNewCategory('');
-    toast({ title: 'Category Added', description: `"${newCategory.trim()}" has been added.` });
+    setNewAdminEmail('');
+    toast({ title: 'Admin Added', description: `"${emailToAdd}" has been granted admin privileges.` });
   };
 
-  const handleDeleteCategory = async (category: string) => {
-    if (!categoriesRef) return;
-    if (category === 'All') {
-        toast({ variant: 'destructive', title: 'Cannot Delete', description: 'The "All" category is essential and cannot be removed.'});
+  const handleRemoveAdmin = async (email: string) => {
+    if (!settingsRef) return;
+    if (email === GUEST_EMAIL) {
+        toast({ variant: 'destructive', title: 'Cannot Remove', description: 'The default admin cannot be removed.'});
         return;
     }
     
-    await setDoc(categoriesRef, {
-      taskCategories: arrayRemove(category),
+    await setDoc(settingsRef, {
+      adminEmails: arrayRemove(email),
     }, { merge: true });
 
-    toast({ title: 'Category Removed', description: `"${category}" has been removed.` });
+    toast({ title: 'Admin Removed', description: `"${email}" has had its admin privileges revoked.` });
   };
 
-
-  const isLoading = categoriesLoading || isUserLoading || appSettingsLoading;
-
-  if (isLoading) {
+  if (isUserLoading || appSettingsLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -93,7 +86,7 @@ export default function CategoriesView() {
   }
 
   if (!isAdmin) {
-     return (
+    return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Access denied.</p>
       </div>
@@ -109,42 +102,49 @@ export default function CategoriesView() {
             Back to DevTools
           </Link>
         </Button>
-        <CardTitle>Manage Task Categories</CardTitle>
-        <CardDescription>
-          Add or remove categories that users can choose from and that you can assign to tasks.
-        </CardDescription>
+        <div className="flex items-center gap-3">
+            <ShieldCheck className="h-6 w-6 text-primary" />
+            <div>
+                <CardTitle>Manage Admins</CardTitle>
+                <CardDescription>
+                Add or remove users who have full administrative access.
+                </CardDescription>
+            </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-2 mb-6">
           <Input
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            placeholder="New category name..."
-            onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+            type="email"
+            value={newAdminEmail}
+            onChange={(e) => setNewAdminEmail(e.target.value)}
+            placeholder="new.admin@example.com"
+            onKeyDown={(e) => e.key === 'Enter' && handleAddAdmin()}
           />
-          <Button onClick={handleAddCategory}>
-            <Plus className="mr-2 h-4 w-4" /> Add
+          <Button onClick={handleAddAdmin}>
+            <Plus className="mr-2 h-4 w-4" /> Add Admin
           </Button>
         </div>
 
         <div className="border rounded-lg">
           <div className="divide-y">
-            {categories.map((category) => (
-              <div key={category} className="flex items-center justify-between p-3 gap-2">
-                <p className="font-medium">{category}</p>
+            {adminEmails.map((email) => (
+              <div key={email} className="flex items-center justify-between p-3 gap-2">
+                <p className="font-medium">{email}</p>
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   className="text-destructive hover:text-destructive" 
-                  onClick={() => handleDeleteCategory(category)}
-                  disabled={category === 'All'}
+                  onClick={() => handleRemoveAdmin(email)}
+                  disabled={email === GUEST_EMAIL}
+                  aria-label={`Remove ${email}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             ))}
-             {categories.length === 0 && (
-                <p className="p-4 text-center text-muted-foreground">No categories found. Add one to get started.</p>
+             {adminEmails.length === 0 && (
+                <p className="p-4 text-center text-muted-foreground">No admins found.</p>
             )}
           </div>
         </div>

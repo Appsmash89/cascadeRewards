@@ -30,16 +30,17 @@ export default function BottomNav() {
   const pathname = usePathname();
   const { user } = useUser();
   const firestore = useFirestore();
-  const isGuestMode = user?.email === GUEST_EMAIL;
-
+  
   const settingsRef = useMemoFirebase(() => 
     firestore ? doc(firestore, 'app-settings', 'global') : null, 
     [firestore]
   );
   const { data: appSettings } = useDoc<AppSettings>(settingsRef);
 
-  const allNavItems = isGuestMode ? [...navItems, { href: '/devtools', label: 'DevTools', icon: Bot }] : navItems;
-  const navGridCols = isGuestMode ? 'grid-cols-5' : 'grid-cols-4';
+  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
+
+  const allNavItems = isAdmin ? [...navItems, { href: '/devtools', label: 'DevTools', icon: Bot }] : navItems;
+  const navGridCols = isAdmin ? 'grid-cols-5' : 'grid-cols-4';
 
   return (
     <div className={cn(

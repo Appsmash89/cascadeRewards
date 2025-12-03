@@ -24,6 +24,14 @@
         "pastelBackgroundColor": {
           "type": "string",
           "description": "The HSL value for the pastel background color (e.g., '240 60% 95%')."
+        },
+        "adminEmails": {
+            "type": "array",
+            "description": "A list of email addresses for users who have admin privileges.",
+            "items": {
+                "type": "string",
+                "format": "email"
+            }
         }
       }
     },

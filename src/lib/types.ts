@@ -27,6 +27,7 @@ export type AppSettings = {
   taskCategories?: string[];
   pastelBackgroundEnabled?: boolean;
   pastelBackgroundColor?: string; // HSL value string e.g. "240 60% 95%"
+  adminEmails?: string[];
 }
 
 export type User = {
@@ -49,6 +50,7 @@ export type Task = {
   category: TaskCategory;
   link?: string;
   content: string;
+  creatorUid?: string;
 };
 
 // Represents a user's specific task state from /users/{uid}/tasks/{taskId}

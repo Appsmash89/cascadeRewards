@@ -12,6 +12,7 @@ import type { Task, AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import TaskForm from '@/components/devtools/task-form';
 import { z } from 'zod';
+import { useEffect } from 'react';
 
 const taskSchema = z.object({
   title: z.string().min(3),
@@ -21,14 +22,25 @@ const taskSchema = z.object({
   category: z.string().min(1, "Please select a category."),
   link: z.string().url().optional().or(z.literal('')),
   content: z.string().min(10),
+  creatorUid: z.string().optional(),
 });
+
+const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 export default function EditTaskView({ taskId }: { taskId: string | null }) {
   const firestore = useFirestore();
-  const { userProfile } = useUser();
+  const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const isNew = taskId === null;
+
+  const settingsRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'global') : null, 
+    [firestore]
+  );
+  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
+
+  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
 
   const taskRef = useMemoFirebase(() => 
     firestore && taskId ? doc(firestore, 'tasks', taskId) : null,
@@ -43,13 +55,20 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
   const { data: categoriesData, isLoading: areCategoriesLoading } = useDoc<AppSettings>(categoriesRef);
   const categories = categoriesData?.taskCategories || [];
 
+  useEffect(() => {
+    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
+      router.push('/dashboard');
+    }
+  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
+
   const handleTaskSubmit = async (data: z.infer<typeof taskSchema>) => {
-    if (!firestore || !userProfile) return;
+    if (!firestore || !user) return;
     try {
+      const taskData = { ...data, creatorUid: user.uid };
       if (isNew) {
         // Add new task
         const collectionRef = collection(firestore, 'tasks');
-        const newDocRef = await addDoc(collectionRef, data);
+        await addDoc(collectionRef, taskData);
         
         toast({ title: 'Task Added', description: `"${data.title}" has been added globally.` });
       } else {
@@ -59,13 +78,13 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
         toast({ title: 'Task Updated', description: `"${data.title}" has been updated.` });
       }
       router.push('/devtools');
-      router.refresh(); // Force a refresh to show the updated list
+      router.refresh(); 
     } catch (e: any) {
       toast({ variant: "destructive", title: 'Error submitting task', description: e.message });
     }
   };
 
-  const isLoading = isTaskLoading || areCategoriesLoading;
+  const isLoading = isTaskLoading || areCategoriesLoading || isUserLoading || appSettingsLoading;
 
   if (isLoading) {
     return (
@@ -74,6 +93,14 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
       </div>
     );
   }
+
+  if (!isAdmin) {
+    return (
+     <div className="flex min-h-screen w-full items-center justify-center bg-background">
+       <p>Access denied.</p>
+     </div>
+   );
+ }
 
   if (!isNew && !task) {
     return <p>Task not found.</p>;

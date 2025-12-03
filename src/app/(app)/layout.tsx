@@ -7,6 +7,9 @@ import { Loader2 } from "lucide-react";
 import { motion, PanInfo, AnimatePresence } from 'framer-motion';
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { AppSettings } from '@/lib/types';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -27,6 +30,15 @@ export default function AppLayout({
   const { user, userProfile, isUserLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
+  const firestore = useFirestore();
+
+  const settingsRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'global') : null, 
+    [firestore]
+  );
+  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
+
+  const isAdmin = user && (user.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(user.email));
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -34,17 +46,14 @@ export default function AppLayout({
     }
     
     // Redirect to onboarding if user is new (has no interests set)
-    if (userProfile && (!userProfile.interests || userProfile.interests.length === 0) && pathname !== '/onboarding' && user?.email !== GUEST_EMAIL) {
+    if (userProfile && (!userProfile.interests || userProfile.interests.length === 0) && pathname !== '/onboarding' && !isAdmin) {
         router.push('/onboarding');
     }
 
-  }, [user, userProfile, isUserLoading, router, pathname]);
+  }, [user, userProfile, isUserLoading, router, pathname, isAdmin]);
 
-  const isGuestMode = user?.email === GUEST_EMAIL;
-
-  const currentNavs = useMemo(() => isGuestMode ? guestTopLevelNavItems : topLevelNavItems, [isGuestMode]);
+  const currentNavs = useMemo(() => isAdmin ? guestTopLevelNavItems : topLevelNavItems, [isAdmin]);
   
-  // Only allow swipe navigation on top-level pages
   const isSwipeEnabled = currentNavs.includes(pathname);
   
   const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -67,8 +76,7 @@ export default function AppLayout({
     }
   };
 
-
-  if (isUserLoading || !user || !userProfile) {
+  if (isUserLoading || !user || !userProfile || appSettingsLoading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -85,7 +93,7 @@ export default function AppLayout({
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background overflow-x-hidden">
-      <DashboardHeader user={userProfile} isGuest={isGuestMode}/>
+      <DashboardHeader user={userProfile} isAdmin={isAdmin}/>
         <motion.main
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}

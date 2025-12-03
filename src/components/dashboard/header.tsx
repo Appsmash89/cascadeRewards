@@ -22,10 +22,10 @@ import { cn } from "@/lib/utils";
 
 type DashboardHeaderProps = {
   user: UserProfile | null;
-  isGuest: boolean;
+  isAdmin: boolean;
 }
 
-export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps) {
+export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps) {
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   }
@@ -61,9 +61,9 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
     }
   };
 
-  const displayName = isGuest ? "Admin" : user?.displayName ?? "User";
+  const displayName = isAdmin ? "Admin" : user?.displayName ?? "User";
   const displayAvatar = user?.photoURL;
-  const displayEmail = isGuest ? "guest.dev@cascade.app" : user?.email;
+  const displayEmail = isAdmin ? user?.email : user?.email;
 
   return (
     <motion.div
@@ -102,7 +102,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem disabled={isGuest} className="cursor-pointer">
+              <DropdownMenuItem disabled={isAdmin} className="cursor-pointer">
                 <UserIcon className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>

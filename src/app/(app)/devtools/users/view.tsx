@@ -1,13 +1,13 @@
 'use client';
 
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, useDoc } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
 import { Loader2, ArrowLeft, User as UserIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import type { UserProfile } from '@/lib/types';
+import type { UserProfile, AppSettings } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -19,25 +19,31 @@ export default function UserManagementView() {
   const { user: adminUser, isUserLoading } = useUser();
   const router = useRouter();
 
-  const isGuestMode = adminUser?.email === GUEST_EMAIL;
+  const settingsRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'global') : null, 
+    [firestore]
+  );
+  const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
+  
+  const isAdmin = adminUser && (adminUser.email === GUEST_EMAIL || (appSettings?.adminEmails || []).includes(adminUser.email));
 
   const usersQuery = useMemoFirebase(() => 
-    firestore && isGuestMode ? collection(firestore, 'users') : null,
-    [firestore, isGuestMode]
+    firestore && isAdmin ? collection(firestore, 'users') : null,
+    [firestore, isAdmin]
   );
   const { data: users, isLoading: usersLoading } = useCollection<UserProfile>(usersQuery);
 
   useEffect(() => {
-    if (!isUserLoading && !isGuestMode) {
+    if (!isUserLoading && !appSettingsLoading && !isAdmin) {
       router.push('/dashboard');
     }
-  }, [isGuestMode, isUserLoading, router]);
+  }, [isAdmin, isUserLoading, appSettingsLoading, router]);
 
   const getInitials = (name: string | null) => {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   }
 
-  if (isUserLoading || usersLoading) {
+  if (isUserLoading || usersLoading || appSettingsLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -45,7 +51,7 @@ export default function UserManagementView() {
     );
   }
   
-  if (!isGuestMode) {
+  if (!isAdmin) {
      return (
       <div className="flex min-h-screen w-full items-center justify-center bg-background">
         <p>Access denied.</p>
