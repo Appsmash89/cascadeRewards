@@ -25,6 +25,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
@@ -96,19 +98,27 @@ export default function DevToolsView() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
+  const { theme } = useTheme();
   
   const isGuestMode = user?.email === GUEST_EMAIL;
+  const isDarkMode = theme === 'dark';
 
   const appSettingsRef = useMemoFirebase(() =>
     firestore ? doc(firestore, 'app-settings', 'global') : null, [firestore]
   );
   const { data: appSettings } = useDoc<AppSettings>(appSettingsRef);
 
-  const [localColor, setLocalColor] = useState('#ffffff');
+  const [localBgColor, setLocalBgColor] = useState('#ffffff');
+  const [localCardColor, setLocalCardColor] = useState('#ffffff');
   
   useEffect(() => {
-    if (appSettings?.pastelBackgroundColor) {
-      setLocalColor(hslToHex(appSettings.pastelBackgroundColor) || '#ffffff');
+    if (appSettings) {
+      if (appSettings.pastelBackgroundColor) {
+        setLocalBgColor(hslToHex(appSettings.pastelBackgroundColor) || '#ffffff');
+      }
+      if (appSettings.cardColor) {
+        setLocalCardColor(hslToHex(appSettings.cardColor) || '#ffffff');
+      }
     }
   }, [appSettings]);
 
@@ -200,13 +210,24 @@ export default function DevToolsView() {
     }, { merge: true });
   }
 
-  const handleColorChange = useCallback(async (hexColor: string) => {
+  const handleBgColorChange = useCallback(async (hexColor: string) => {
     if (!appSettingsRef) return;
-    setLocalColor(hexColor);
+    setLocalBgColor(hexColor);
     const hslColor = hexToHsl(hexColor);
     if (hslColor) {
       await setDoc(appSettingsRef, {
         pastelBackgroundColor: hslColor
+      }, { merge: true });
+    }
+  }, [appSettingsRef]);
+
+  const handleCardColorChange = useCallback(async (hexColor: string) => {
+    if (!appSettingsRef) return;
+    setLocalCardColor(hexColor);
+    const hslColor = hexToHsl(hexColor);
+    if (hslColor) {
+      await setDoc(appSettingsRef, {
+        cardColor: hslColor
       }, { merge: true });
     }
   }, [appSettingsRef]);
@@ -292,7 +313,7 @@ export default function DevToolsView() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <PaintBucket className="h-5 w-5 text-muted-foreground"/>
-                      <Label htmlFor="pastel-mode" className="font-medium text-sm">Pastel Mode</Label>
+                      <Label htmlFor="pastel-mode" className="font-medium text-sm">BG Color Mode</Label>
                     </div>
                     <Switch 
                       id="pastel-mode" 
@@ -302,16 +323,29 @@ export default function DevToolsView() {
                 </div>
                 {appSettings?.pastelBackgroundEnabled && (
                   <div className="flex items-center gap-4">
-                     <Label htmlFor="pastel-color-picker" className="font-medium text-sm">Color</Label>
+                     <Label htmlFor="bg-color-picker" className="font-medium text-sm">BG Color</Label>
                     <Input
-                      id="pastel-color-picker"
+                      id="bg-color-picker"
                       type="color"
-                      value={localColor}
-                      onChange={(e) => handleColorChange(e.target.value)}
+                      value={localBgColor}
+                      onChange={(e) => handleBgColorChange(e.target.value)}
                       className="w-24 h-10 p-1"
                     />
                   </div>
                 )}
+                 <div className={cn("flex items-center gap-4", isDarkMode && "opacity-50")}>
+                   <Label htmlFor="card-color-picker" className={cn("font-medium text-sm", isDarkMode && "text-muted-foreground")}>
+                      Card Color
+                    </Label>
+                  <Input
+                    id="card-color-picker"
+                    type="color"
+                    value={localCardColor}
+                    onChange={(e) => handleCardColorChange(e.target.value)}
+                    className="w-24 h-10 p-1"
+                    disabled={isDarkMode}
+                  />
+                </div>
               </div>
             </CardContent>
         </Card>
@@ -339,13 +373,13 @@ export default function DevToolsView() {
                     <div className="divide-y">
                         {sortedTasks && sortedTasks.map(task => (
                             <div key={task.id} className="flex items-center justify-between p-3 gap-2">
-                                <div className="flex-1">
-                                    <p className="font-medium">{task.title}</p>
-                                    <p className="text-sm text-muted-foreground">{task.points} points</p>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium break-words">{task.title}</p>
+                                    <p className="text-sm text-muted-foreground break-words">{task.points} points</p>
                                     {task.link && (
-                                        <Link href={task.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
-                                            <Link2 className="h-3 w-3" />
-                                            {task.link}
+                                        <Link href={task.link} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 mt-1 break-all">
+                                            <Link2 className="h-3 w-3 flex-shrink-0" />
+                                            <span className="truncate">{task.link}</span>
                                         </Link>
                                     )}
                                 </div>

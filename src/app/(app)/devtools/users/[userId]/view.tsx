@@ -301,9 +301,9 @@ export default function ManageUserTasksView({ userId }: { userId: string }) {
                  task.status === 'in-progress' ? <Loader2 className="h-5 w-5 animate-spin text-amber-500"/> :
                  taskIcons[task.type]}
             </div>
-            <div className="flex-grow">
-              <p className="font-medium">{task.title}</p>
-               <p className="text-sm text-muted-foreground">{task.description}</p>
+            <div className="flex-grow min-w-0">
+              <p className="font-medium break-words">{task.title}</p>
+               <p className="text-sm text-muted-foreground break-words">{task.description}</p>
             </div>
             <div className="flex items-center gap-4">
                 <Badge variant="secondary" className="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
