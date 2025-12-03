@@ -65,6 +65,10 @@ service cloud.firestore {
           request.resource.data.createdAt == resource.data.createdAt &&
           request.resource.data.referralCode == resource.data.referralCode &&
           
+          // --- Conditional Immutable Fields ---
+          // 'referredBy' can only be set if it was previously null. It cannot be changed once set.
+          (resource.data.referredBy == null || request.resource.data.referredBy == resource.data.referredBy) &&
+
           // --- Points & Level Security ---
           // User cannot increase their own points, totalEarned, or level.
           request.resource.data.points <= resource.data.points &&
@@ -93,7 +97,16 @@ service cloud.firestore {
     // Rules for the global tasks collection
     match /tasks/{taskId} {
         allow get, list: if isSignedIn();
-        allow write: if isDevGuest();
+        allow create: if isSignedIn();
+        allow update, delete: if isDevGuest() || (request.resource.data.creatorUid == request.auth.uid);
+    }
+    
+    // Rules for the feedback collection
+    match /feedback/{feedbackId} {
+      // Any signed-in user (but not guest) can create feedback.
+      allow create: if isSignedIn() && !isDevGuest();
+      // Only the admin can read, update, or delete feedback.
+      allow read, write: if isDevGuest();
     }
   }
 }
