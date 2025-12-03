@@ -1,3 +1,4 @@
+
 'use client';
 import {
   DropdownMenu,
@@ -66,7 +67,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
 
   return (
     <motion.div
-      initial={{ y: "-100%" }}
+      initial={{ y: 0 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.35, ease: "easeInOut" }}
       className={cn(
@@ -77,7 +78,7 @@ export default function DashboardHeader({ user, isGuest }: DashboardHeaderProps)
       <div className="flex h-full items-center gap-4 w-full">
         <div className="flex items-center gap-2 font-semibold">
           <Gift className="h-6 w-6 text-primary" />
-          <span className="font-gliker text-xl tracking-tight">Cascade</span>
+          <span className="font-gliker text-lg tracking-tight">Cascade</span>
         </div>
 
         <div className="flex items-center gap-2 ml-auto">

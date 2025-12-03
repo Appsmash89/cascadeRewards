@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -104,9 +105,9 @@ export default function LoginPage() {
         <h1 className="text-3xl font-bold tracking-tight">Cascade</h1>
         <p className="text-muted-foreground max-w-xs">The next-generation platform for rewards and referrals.</p>
       </div>
-      <Card className="w-full max-w-sm border-0 shadow-xl shadow-primary/5">
+      <Card className="w-full max-w-sm border-0 shadow-lg shadow-primary/5">
         <CardHeader>
-          <CardTitle className="text-center text-xl font-semibold">
+          <CardTitle className="text-center text-lg font-semibold">
             Sign In
           </CardTitle>
         </CardHeader>

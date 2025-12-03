@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -123,7 +124,7 @@ export default function RedeemView() {
             >
                 <div>
                     <p className="text-sm text-muted-foreground">Your Balance</p>
-                    <p className="text-xl font-bold tracking-tight">{currentPoints.toLocaleString()} Points</p>
+                    <p className="text-lg font-bold tracking-tight">{currentPoints.toLocaleString()} Points</p>
                 </div>
                 <Star className="h-8 w-8 text-amber-500" />
             </motion.div>

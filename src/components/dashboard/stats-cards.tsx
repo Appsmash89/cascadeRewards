@@ -1,3 +1,4 @@
+
 'use client'
 
 import {
@@ -56,7 +57,7 @@ export default function StatsCards({ user, referrals, isGuest }: StatsCardsProps
             <Link href={stat.href} className="h-full block">
                 <Card className="p-4 flex flex-col items-center justify-center text-center shadow-sm h-full transition-all duration-200 hover:bg-secondary hover:shadow-md">
                     <stat.icon className="h-6 w-6 text-muted-foreground mb-2" />
-                    <div className="text-xl font-bold tracking-tighter">
+                    <div className="text-lg font-bold tracking-tighter">
                     <AnimatedCounter to={stat.value} />
                     </div>
                     <p className="text-xs text-muted-foreground">{stat.title}</p>
