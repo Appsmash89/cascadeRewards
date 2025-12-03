@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks/use-user";
 import { useFirestore } from "@/firebase";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { Loader2, Bell, Moon, Sparkles, ArrowRight, Link as LinkIcon, UserPlus, Info, MessageSquare } from "lucide-react";
+import { Loader2, Bell, Moon, Sparkles, Plus, Link as LinkIcon, UserPlus, Info, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -129,63 +129,21 @@ function SettingsView() {
           />
         </div>
 
-        <div className="flex items-center justify-between p-4 rounded-lg bg-secondary border">
-          <div className="flex items-center gap-4">
-            <Sparkles className="h-5 w-5 text-muted-foreground"/>
-            <Label htmlFor="task-preferences" className="font-medium">Task Preferences</Label>
-          </div>
-          <Button asChild variant="ghost" size="icon" disabled={isGuestMode}>
-            <Link href="/onboarding" id="task-preferences">
-                <ArrowRight className="h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-
-        <div className="flex items-center justify-between p-4 rounded-lg bg-secondary border">
-          <div className="flex items-center gap-4">
-            <MessageSquare className="h-5 w-5 text-muted-foreground"/>
-            <Label htmlFor="feedback" className="font-medium">Feedback & Suggestions</Label>
-          </div>
-          <Button asChild variant="ghost" size="icon" disabled={isGuestMode}>
-            <Link href="/feedback" id="feedback">
-                <ArrowRight className="h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-
-        {!userProfile.referredBy && !isGuestMode && (
-          <div className="space-y-3 p-4 rounded-lg bg-secondary border">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <UserPlus className="h-5 w-5 text-muted-foreground"/>
-                <Label htmlFor="referrer-code" className="font-medium">Enter Referrer Code</Label>
-              </div>
-              <Button asChild variant="ghost" size="icon">
-                <Link href="/stats/referrer-info">
-                  <Info className="h-4 w-4 text-muted-foreground" />
-                </Link>
-              </Button>
+        <Link href="/onboarding" id="task-preferences" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer" aria-disabled={isGuestMode}>
+            <div className="flex items-center gap-4">
+                <Sparkles className="h-5 w-5 text-muted-foreground"/>
+                <Label className="font-medium cursor-pointer">Task Preferences</Label>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-10 items-center rounded-md border border-input bg-background px-3">
-                <span className="text-sm text-muted-foreground">CASC-</span>
-                <Input 
-                  id="referrer-code" 
-                  placeholder="XXXXXX"
-                  value={referrerCode}
-                  onChange={e => setReferrerCode(e.target.value)}
-                  disabled={isSubmittingCode}
-                  className="border-0 h-auto p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
-              <Button onClick={handleReferrerCodeSubmit} disabled={isSubmittingCode || !referrerCode.trim()}>
-                {isSubmittingCode && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Submit
-              </Button>
-            </div>
-          </div>
-        )}
+            <Plus className="h-5 w-5 text-muted-foreground" />
+        </Link>
 
+        <Link href="/feedback" id="feedback" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer" aria-disabled={isGuestMode}>
+            <div className="flex items-center gap-4">
+                <MessageSquare className="h-5 w-5 text-muted-foreground"/>
+                <Label className="font-medium cursor-pointer">Feedback & Suggestions</Label>
+            </div>
+            <Plus className="h-5 w-5 text-muted-foreground" />
+        </Link>
       </CardContent>
     </Card>
   );
