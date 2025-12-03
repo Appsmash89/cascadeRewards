@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks/use-user";
 import { useFirestore } from "@/firebase";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { Loader2, Bell, Moon, Sparkles, ArrowRight, Link as LinkIcon, UserPlus, Info } from "lucide-react";
+import { Loader2, Bell, Moon, Sparkles, ArrowRight, Link as LinkIcon, UserPlus, Info, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
@@ -136,6 +136,18 @@ function SettingsView() {
           </div>
           <Button asChild variant="ghost" size="icon" disabled={isGuestMode}>
             <Link href="/onboarding" id="task-preferences">
+                <ArrowRight className="h-5 w-5" />
+            </Link>
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between p-4 rounded-lg bg-secondary border">
+          <div className="flex items-center gap-4">
+            <MessageSquare className="h-5 w-5 text-muted-foreground"/>
+            <Label htmlFor="feedback" className="font-medium">Feedback & Suggestions</Label>
+          </div>
+          <Button asChild variant="ghost" size="icon" disabled={isGuestMode}>
+            <Link href="/feedback" id="feedback">
                 <ArrowRight className="h-5 w-5" />
             </Link>
           </Button>

@@ -158,6 +158,31 @@
         "screenshotURL": { "type": "string" }
       },
       "required": ["status"]
+    },
+    "Feedback": {
+      "title": "User Feedback",
+      "description": "Represents a feedback submission from a user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user submitting the feedback."
+        },
+        "userDisplayName": {
+          "type": "string",
+          "description": "The display name of the user at the time of submission."
+        },
+        "content": {
+          "type": "string",
+          "description": "The rich text content of the feedback."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of when the feedback was submitted."
+        }
+      },
+      "required": ["userId", "userDisplayName", "content", "createdAt"]
     }
   },
   "auth": {
@@ -195,6 +220,13 @@
         "definition": {
           "schema": { "$ref": "#/entities/AppSettings" },
           "description": "Stores global application settings. Use a single document with a fixed ID like 'global' or 'taskCategories'."
+        }
+      },
+      {
+        "path": "/feedback/{feedbackId}",
+        "definition": {
+          "schema": { "$ref": "#/entities/Feedback" },
+          "description": "Stores user-submitted feedback and suggestions."
         }
       }
     ]

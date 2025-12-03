@@ -100,5 +100,13 @@ service cloud.firestore {
         allow create: if isSignedIn();
         allow update, delete: if isDevGuest() || (request.resource.data.creatorUid == request.auth.uid);
     }
+
+    // Rules for the feedback collection
+    match /feedback/{feedbackId} {
+      // Any signed-in user (but not guest) can create feedback.
+      allow create: if isSignedIn() && !isDevGuest();
+      // Only the admin can read feedback.
+      allow read, list, update, delete: if isDevGuest();
+    }
   }
 }

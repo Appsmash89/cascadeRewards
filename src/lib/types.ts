@@ -76,3 +76,10 @@ export type Reward = {
   points: number;
   imageUrl: string;
 };
+
+export type Feedback = {
+  userId: string;
+  userDisplayName: string;
+  content: string;
+  createdAt: any; // Firestore Timestamp
+};
