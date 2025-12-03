@@ -45,7 +45,7 @@ function SettingsView() {
   const notificationsEnabled = userProfile?.settings.notificationsEnabled ?? true;
   const currentTheme = userProfile?.settings.theme ?? 'default';
 
-  const handleThemeChange = (selectedTheme: 'default' | 'reactbits' | 'midnight') => {
+  const handleThemeChange = (selectedTheme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest') => {
     setTheme(selectedTheme);
     if (userProfile && firestore) {
       const userDocRef = doc(firestore, 'users', userProfile.uid);
@@ -124,6 +124,8 @@ function SettingsView() {
                 <SelectItem value="default">Default</SelectItem>
                 <SelectItem value="reactbits">ReactBits</SelectItem>
                 <SelectItem value="midnight">Midnight</SelectItem>
+                <SelectItem value="sunrise">Sunrise</SelectItem>
+                <SelectItem value="forest">Forest</SelectItem>
               </SelectContent>
             </Select>
         </div>

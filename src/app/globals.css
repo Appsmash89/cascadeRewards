@@ -156,6 +156,96 @@
     --input: 220 13% 26%;
     --ring: 255 85% 65%;
   }
+
+  .theme-sunrise {
+    --background: 30 100% 97%;
+    --foreground: 25 55% 25%;
+    --card: 35 70% 98%;
+    --card-foreground: 25 55% 25%;
+    --popover: 30 100% 97%;
+    --popover-foreground: 25 55% 25%;
+    --primary: 24 96% 53%;
+    --primary-foreground: 10 90% 98%;
+    --secondary: 35 80% 94%;
+    --secondary-foreground: 25 55% 25%;
+    --muted: 35 80% 94%;
+    --muted-foreground: 25 50% 50%;
+    --accent: 10 80% 55%;
+    --accent-foreground: 10 90% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 35 70% 90%;
+    --input: 35 70% 90%;
+    --ring: 24 96% 53%;
+    --radius: 0.75rem;
+  }
+
+  .dark.theme-sunrise {
+    --background: 30 100% 97%;
+    --foreground: 25 55% 25%;
+    --card: 35 70% 98%;
+    --card-foreground: 25 55% 25%;
+    --popover: 30 100% 97%;
+    --popover-foreground: 25 55% 25%;
+    --primary: 24 96% 53%;
+    --primary-foreground: 10 90% 98%;
+    --secondary: 35 80% 94%;
+    --secondary-foreground: 25 55% 25%;
+    --muted: 35 80% 94%;
+    --muted-foreground: 25 50% 50%;
+    --accent: 10 80% 55%;
+    --accent-foreground: 10 90% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 35 70% 90%;
+    --input: 35 70% 90%;
+    --ring: 24 96% 53%;
+  }
+
+  .theme-forest {
+    --background: 120 20% 15%;
+    --foreground: 90 40% 90%;
+    --card: 120 15% 20%;
+    --card-foreground: 90 40% 90%;
+    --popover: 120 20% 15%;
+    --popover-foreground: 90 40% 90%;
+    --primary: 90 55% 55%;
+    --primary-foreground: 90 20% 10%;
+    --secondary: 120 15% 25%;
+    --secondary-foreground: 90 40% 90%;
+    --muted: 120 15% 25%;
+    --muted-foreground: 90 30% 70%;
+    --accent: 30 50% 60%;
+    --accent-foreground: 30 20% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 120 15% 30%;
+    --input: 120 15% 30%;
+    --ring: 90 55% 55%;
+    --radius: 0.75rem;
+  }
+
+  .dark.theme-forest {
+    --background: 120 20% 15%;
+    --foreground: 90 40% 90%;
+    --card: 120 15% 20%;
+    --card-foreground: 90 40% 90%;
+    --popover: 120 20% 15%;
+    --popover-foreground: 90 40% 90%;
+    --primary: 90 55% 55%;
+    --primary-foreground: 90 20% 10%;
+    --secondary: 120 15% 25%;
+    --secondary-foreground: 90 40% 90%;
+    --muted: 120 15% 25%;
+    --muted-foreground: 90 30% 70%;
+    --accent: 30 50% 60%;
+    --accent-foreground: 30 20% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 120 15% 30%;
+    --input: 120 15% 30%;
+    --ring: 90 55% 55%;
+  }
 }
 
 @layer base {

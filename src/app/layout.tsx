@@ -51,7 +51,7 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
     
     // Apply global theme from user profile, not global settings
     const theme = userProfile?.settings.theme ?? 'default';
-    body.classList.remove('theme-default', 'theme-reactbits', 'theme-midnight');
+    body.classList.remove('theme-default', 'theme-reactbits', 'theme-midnight', 'theme-sunrise', 'theme-forest');
     body.classList.add(`theme-${theme}`);
 
   }, [appSettings, userProfile]);

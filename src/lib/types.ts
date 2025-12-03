@@ -18,7 +18,7 @@ export type UserProfile = {
   settings: {
     notificationsEnabled: boolean;
     darkMode: boolean;
-    theme: 'default' | 'reactbits' | 'midnight';
+    theme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest';
   };
   interests: TaskCategory[];
 };
