@@ -1,3 +1,4 @@
+
 @import url('https://api.fontshare.com/v2/css?f[]=gliker@400&display=swap');
 
 @tailwind base;
@@ -5,7 +6,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root, .theme-default {
     --background: 0 0% 100%;
     --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
@@ -39,7 +40,7 @@
     --pastel-background-hsl: 240 60% 95%;
   }
 
-  .dark {
+  .dark.theme-default {
     --background: 0 5% 16%;
     --foreground: 210 20% 98%;
     --card: 240 10% 3.9%;
@@ -64,6 +65,51 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+  }
+
+  .theme-reactbits {
+    --background: 225 15% 15%;
+    --foreground: 210 20% 98%;
+    --card: 225 15% 20%;
+    --card-foreground: 210 20% 98%;
+    --popover: 225 15% 15%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 225 15% 25%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 225 15% 25%;
+    --muted-foreground: 240 4% 65%;
+    --accent: 262 84% 59%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 225 15% 30%;
+    --input: 225 15% 30%;
+    --ring: 217 91% 60%;
+    --radius: 0.75rem;
+  }
+
+  .dark.theme-reactbits {
+    --background: 225 15% 15%;
+    --foreground: 210 20% 98%;
+    --card: 225 15% 20%;
+    --card-foreground: 210 20% 98%;
+    --popover: 225 15% 15%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 225 15% 25%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 225 15% 25%;
+    --muted-foreground: 240 4% 65%;
+    --accent: 262 84% 59%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 225 15% 30%;
+    --input: 225 15% 30%;
+    --ring: 217 91% 60%;
   }
 }
 

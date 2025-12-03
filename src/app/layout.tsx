@@ -31,9 +31,11 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     
+    // Apply font size multiplier
     const multiplier = appSettings?.fontSizeMultiplier ?? 1;
     root.style.setProperty('--font-size-multiplier', String(multiplier));
 
+    // Apply pastel background theme
     const pastelEnabled = appSettings?.pastelBackgroundEnabled ?? false;
     const pastelColor = appSettings?.pastelBackgroundColor ?? '240 60% 95%';
 
@@ -42,6 +44,16 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
       root.classList.add('pastel-theme-active');
     } else {
       root.classList.remove('pastel-theme-active');
+    }
+
+    // Apply global theme
+    const theme = appSettings?.theme ?? 'default';
+    if (theme === 'reactbits') {
+      document.body.classList.remove('theme-default');
+      document.body.classList.add('theme-reactbits');
+    } else {
+      document.body.classList.remove('theme-reactbits');
+      document.body.classList.add('theme-default');
     }
 
   }, [appSettings]);
@@ -72,7 +84,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
-      <body className="flex justify-center bg-secondary">
+      <body className="flex justify-center bg-secondary theme-default">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

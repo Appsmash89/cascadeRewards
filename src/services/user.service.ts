@@ -53,6 +53,7 @@ const seedInitialAppSettings = async (firestore: Firestore): Promise<void> => {
                 pastelBackgroundEnabled: false,
                 pastelBackgroundColor: '220 60% 95%',
                 adminEmails: [],
+                theme: 'default',
             });
             console.log("Global settings seeded successfully.");
         } catch (error) {
