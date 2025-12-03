@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket, MessageSquare, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { collection, doc, deleteDoc, writeBatch, increment, setDoc, getDocs } from "firebase/firestore";
 import type { Task, WithId, UserProfile, AppSettings } from "@/lib/types";
 import Link from 'next/link';
@@ -26,8 +26,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useTheme } from "next-themes";
-import { cn } from "@/lib/utils";
+
 
 // Helper to convert hex to HSL string
 function hexToHsl(hex: string): string | null {
@@ -306,7 +305,7 @@ export default function DevToolsView() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <PaintBucket className="h-5 w-5 text-muted-foreground"/>
-                      <Label htmlFor="pastel-mode" className="font-medium text-sm">BG Color Mode</Label>
+                      <Label htmlFor="pastel-mode" className="font-medium text-sm">Global BG Color Mode</Label>
                     </div>
                     <Switch 
                       id="pastel-mode" 

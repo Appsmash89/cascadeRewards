@@ -13,6 +13,7 @@ import { ThemeProvider } from "next-themes";
 import { AnimatePresence } from 'framer-motion';
 import { doc } from 'firebase/firestore';
 import type { AppSettings } from '@/lib/types';
+import { useUser } from '@/hooks/use-user';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -27,13 +28,17 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
     [firestore]
   );
   const { data: appSettings } = useDoc<AppSettings>(settingsRef);
+  const { userProfile } = useUser(); // Get userProfile from context
 
   useEffect(() => {
     const root = document.documentElement;
+    const body = document.body;
     
+    // Apply font size multiplier
     const multiplier = appSettings?.fontSizeMultiplier ?? 1;
     root.style.setProperty('--font-size-multiplier', String(multiplier));
 
+    // Apply pastel background theme
     const pastelEnabled = appSettings?.pastelBackgroundEnabled ?? false;
     const pastelColor = appSettings?.pastelBackgroundColor ?? '240 60% 95%';
 
@@ -43,8 +48,13 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove('pastel-theme-active');
     }
+    
+    // Apply global theme from user profile, not global settings
+    const theme = userProfile?.settings.theme ?? 'default';
+    body.classList.remove('theme-default', 'theme-reactbits', 'theme-midnight', 'theme-sunrise', 'theme-forest', 'theme-ocean', 'theme-grape');
+    body.classList.add(`theme-${theme}`);
 
-  }, [appSettings]);
+  }, [appSettings, userProfile]);
 
   return (
     <div 
@@ -72,7 +82,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
       </head>
-      <body className="flex justify-center bg-secondary">
+      <body className="flex justify-center bg-secondary theme-default">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

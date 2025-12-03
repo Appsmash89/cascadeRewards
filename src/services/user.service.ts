@@ -89,6 +89,7 @@ export const manageUserDocument = async (
       settings: {
         notificationsEnabled: true,
         darkMode: false,
+        theme: 'default',
       },
       interests: [],
     };

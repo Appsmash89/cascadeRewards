@@ -11,44 +11,48 @@ import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks/use-user";
 import { useFirestore } from "@/firebase";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { Loader2, Bell, Moon, Sparkles, Plus, Link as LinkIcon, UserPlus, Info, MessageSquare } from "lucide-react";
+import { Loader2, Bell, Moon, Sparkles, Plus, Link as LinkIcon, UserPlus, Info, MessageSquare, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 function SettingsView() {
-  const { user, userProfile } = useUser();
+  const { user, userProfile, isAdmin } = useUser();
   const firestore = useFirestore();
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const { toast } = useToast();
 
   const [referrerCode, setReferrerCode] = useState('');
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
-
-  const isGuestMode = user?.email === GUEST_EMAIL;
 
   if (!userProfile) {
     return null;
   }
 
   const notificationsEnabled = userProfile?.settings.notificationsEnabled ?? true;
-  const isDarkMode = theme === 'dark';
+  const currentTheme = userProfile?.settings.theme ?? 'default';
 
-  const handleThemeChange = (isDark: boolean) => {
-    const newTheme = isDark ? 'dark' : 'light';
-    setTheme(newTheme);
-
-    if (userProfile && !isGuestMode && firestore) {
+  const handleThemeChange = (selectedTheme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape') => {
+    setTheme(selectedTheme);
+    if (userProfile && firestore) {
       const userDocRef = doc(firestore, 'users', userProfile.uid);
-      updateDocumentNonBlocking(userDocRef, { 'settings.darkMode': isDark });
+      updateDocumentNonBlocking(userDocRef, { 'settings.theme': selectedTheme });
     }
   };
   
   const handleNotificationsChange = (enabled: boolean) => {
-     if (userProfile && !isGuestMode && firestore) {
+     if (userProfile && firestore) {
       const userDocRef = doc(firestore, 'users', userProfile.uid);
       updateDocumentNonBlocking(userDocRef, { 'settings.notificationsEnabled': enabled });
     }
@@ -105,6 +109,26 @@ function SettingsView() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="p-4 rounded-lg bg-secondary border space-y-4">
+            <div className="flex items-center gap-3">
+              <Palette className="h-5 w-5 text-muted-foreground"/>
+              <Label htmlFor="theme-switcher" className="font-medium">App Theme</Label>
+            </div>
+            <Select value={currentTheme} onValueChange={handleThemeChange}>
+              <SelectTrigger id="theme-switcher">
+                <SelectValue placeholder="Select a theme" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="reactbits">ReactBits</SelectItem>
+                <SelectItem value="midnight">Midnight</SelectItem>
+                <SelectItem value="sunrise">Sunrise</SelectItem>
+                <SelectItem value="forest">Forest</SelectItem>
+                <SelectItem value="ocean">Ocean</SelectItem>
+                <SelectItem value="grape">Grape</SelectItem>
+              </SelectContent>
+            </Select>
+        </div>
         <div className="flex items-center justify-between p-4 rounded-lg bg-secondary border">
           <div className="flex items-center gap-4">
             <Bell className="h-5 w-5 text-muted-foreground"/>
@@ -114,22 +138,10 @@ function SettingsView() {
             id="notifications" 
             checked={notificationsEnabled} 
             onCheckedChange={handleNotificationsChange}
-            disabled={isGuestMode}
           />
         </div>
-        <div className="flex items-center justify-between p-4 rounded-lg bg-secondary border">
-          <div className="flex items-center gap-4">
-            <Moon className="h-5 w-5 text-muted-foreground"/>
-            <Label htmlFor="dark-mode" className="font-medium">Dark Mode</Label>
-          </div>
-          <Switch 
-            id="dark-mode" 
-            checked={isDarkMode} 
-            onCheckedChange={handleThemeChange} 
-          />
-        </div>
-
-        <Link href="/onboarding" id="task-preferences" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer" aria-disabled={isGuestMode}>
+        
+        <Link href="/onboarding" id="task-preferences" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer">
             <div className="flex items-center gap-4">
                 <Sparkles className="h-5 w-5 text-muted-foreground"/>
                 <Label className="font-medium cursor-pointer">Task Preferences</Label>
@@ -137,7 +149,7 @@ function SettingsView() {
             <Plus className="h-5 w-5 text-muted-foreground" />
         </Link>
 
-        <Link href="/feedback" id="feedback" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer" aria-disabled={isGuestMode}>
+        <Link href="/feedback" id="feedback" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer">
             <div className="flex items-center gap-4">
                 <MessageSquare className="h-5 w-5 text-muted-foreground"/>
                 <Label className="font-medium cursor-pointer">Feedback & Suggestions</Label>
