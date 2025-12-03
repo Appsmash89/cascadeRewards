@@ -32,11 +32,6 @@
                 "type": "string",
                 "format": "email"
             }
-        },
-        "theme": {
-          "type": "string",
-          "description": "The currently active global theme for the application.",
-          "enum": ["default", "reactbits", "midnight"]
         }
       }
     },
@@ -116,9 +111,14 @@
                 "darkMode": {
                     "type": "boolean",
                     "description": "Whether the user has enabled dark mode."
+                },
+                "theme": {
+                  "type": "string",
+                  "description": "The user's preferred theme for the application.",
+                  "enum": ["default", "reactbits", "midnight"]
                 }
             },
-            "required": ["notificationsEnabled", "darkMode"]
+            "required": ["notificationsEnabled", "darkMode", "theme"]
         },
         "interests": {
             "type": "array",

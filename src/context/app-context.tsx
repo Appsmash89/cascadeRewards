@@ -74,11 +74,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
-  // Effect to sync Firestore dark mode setting with the theme.
+  // Effect to sync user's chosen theme with the app's theme.
   useEffect(() => {
-    if (userProfile) {
-      const preferredTheme = userProfile.settings.darkMode ? 'dark' : 'light';
-      setTheme(preferredTheme);
+    if (userProfile?.settings?.theme) {
+      setTheme(userProfile.settings.theme);
+    } else {
+      setTheme('default');
     }
   }, [userProfile, setTheme]);
 

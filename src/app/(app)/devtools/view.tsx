@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket, MessageSquare, ShieldCheck, Palette } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket, MessageSquare, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { collection, doc, deleteDoc, writeBatch, increment, setDoc, getDocs } from "firebase/firestore";
 import type { Task, WithId, UserProfile, AppSettings } from "@/lib/types";
 import Link from 'next/link';
@@ -26,15 +26,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { useTheme } from "next-themes";
-import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 
 // Helper to convert hex to HSL string
@@ -220,11 +211,6 @@ export default function DevToolsView() {
     }
   }, [appSettingsRef]);
 
-  const handleThemeChange = async (theme: 'default' | 'reactbits' | 'midnight') => {
-    if (!appSettingsRef) return;
-    await setDoc(appSettingsRef, { theme }, { merge: true });
-  }
-
   const isLoading = isUserLoading || usersLoading || appSettingsLoading || isLoadingMasterTasks;
 
   if (isLoading) {
@@ -246,7 +232,6 @@ export default function DevToolsView() {
   const sortedTasks = masterTasks?.sort((a, b) => a.title.localeCompare(b.title));
   
   const displayMultiplier = appSettings?.fontSizeMultiplier ? (Math.round(appSettings.fontSizeMultiplier * 10) / 10).toFixed(1) : '1.0';
-  const currentTheme = appSettings?.theme ?? 'default';
 
   return (
     <>
@@ -317,26 +302,10 @@ export default function DevToolsView() {
                 </div>
               </div>
               <div className="p-3 border rounded-lg md:col-span-2 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Palette className="h-5 w-5 text-muted-foreground"/>
-                    <Label htmlFor="theme-switcher" className="font-medium text-sm">App Theme</Label>
-                  </div>
-                  <Select value={currentTheme} onValueChange={handleThemeChange}>
-                    <SelectTrigger id="theme-switcher">
-                      <SelectValue placeholder="Select a theme" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="reactbits">ReactBits</SelectItem>
-                      <SelectItem value="midnight">Midnight</SelectItem>
-                    </SelectContent>
-                  </Select>
-              </div>
-              <div className="p-3 border rounded-lg md:col-span-2 space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <PaintBucket className="h-5 w-5 text-muted-foreground"/>
-                      <Label htmlFor="pastel-mode" className="font-medium text-sm">BG Color Mode</Label>
+                      <Label htmlFor="pastel-mode" className="font-medium text-sm">Global BG Color Mode</Label>
                     </div>
                     <Switch 
                       id="pastel-mode" 

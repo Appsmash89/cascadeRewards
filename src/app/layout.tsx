@@ -13,6 +13,7 @@ import { ThemeProvider } from "next-themes";
 import { AnimatePresence } from 'framer-motion';
 import { doc } from 'firebase/firestore';
 import type { AppSettings } from '@/lib/types';
+import { useUser } from '@/hooks/use-user';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -27,6 +28,7 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
     [firestore]
   );
   const { data: appSettings } = useDoc<AppSettings>(settingsRef);
+  const { userProfile } = useUser(); // Get userProfile from context
 
   useEffect(() => {
     const root = document.documentElement;
@@ -46,13 +48,13 @@ function GlobalSettingsManager({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove('pastel-theme-active');
     }
-
-    // Apply global theme
-    const theme = appSettings?.theme ?? 'default';
+    
+    // Apply global theme from user profile, not global settings
+    const theme = userProfile?.settings.theme ?? 'default';
     body.classList.remove('theme-default', 'theme-reactbits', 'theme-midnight');
     body.classList.add(`theme-${theme}`);
 
-  }, [appSettings]);
+  }, [appSettings, userProfile]);
 
   return (
     <div 
