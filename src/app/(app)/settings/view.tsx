@@ -28,15 +28,13 @@ import { cn } from "@/lib/utils";
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 
 function SettingsView() {
-  const { user, userProfile } = useUser();
+  const { user, userProfile, isAdmin } = useUser();
   const firestore = useFirestore();
   const { setTheme } = useTheme();
   const { toast } = useToast();
 
   const [referrerCode, setReferrerCode] = useState('');
   const [isSubmittingCode, setIsSubmittingCode] = useState(false);
-
-  const isGuestMode = user?.email === GUEST_EMAIL;
 
   if (!userProfile) {
     return null;
@@ -45,7 +43,7 @@ function SettingsView() {
   const notificationsEnabled = userProfile?.settings.notificationsEnabled ?? true;
   const currentTheme = userProfile?.settings.theme ?? 'default';
 
-  const handleThemeChange = (selectedTheme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest') => {
+  const handleThemeChange = (selectedTheme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape') => {
     setTheme(selectedTheme);
     if (userProfile && firestore) {
       const userDocRef = doc(firestore, 'users', userProfile.uid);
@@ -54,7 +52,7 @@ function SettingsView() {
   };
   
   const handleNotificationsChange = (enabled: boolean) => {
-     if (userProfile && !isGuestMode && firestore) {
+     if (userProfile && firestore) {
       const userDocRef = doc(firestore, 'users', userProfile.uid);
       updateDocumentNonBlocking(userDocRef, { 'settings.notificationsEnabled': enabled });
     }
@@ -126,6 +124,8 @@ function SettingsView() {
                 <SelectItem value="midnight">Midnight</SelectItem>
                 <SelectItem value="sunrise">Sunrise</SelectItem>
                 <SelectItem value="forest">Forest</SelectItem>
+                <SelectItem value="ocean">Ocean</SelectItem>
+                <SelectItem value="grape">Grape</SelectItem>
               </SelectContent>
             </Select>
         </div>
@@ -138,11 +138,10 @@ function SettingsView() {
             id="notifications" 
             checked={notificationsEnabled} 
             onCheckedChange={handleNotificationsChange}
-            disabled={isGuestMode}
           />
         </div>
         
-        <Link href="/onboarding" id="task-preferences" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer" aria-disabled={isGuestMode}>
+        <Link href="/onboarding" id="task-preferences" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer">
             <div className="flex items-center gap-4">
                 <Sparkles className="h-5 w-5 text-muted-foreground"/>
                 <Label className="font-medium cursor-pointer">Task Preferences</Label>
@@ -150,7 +149,7 @@ function SettingsView() {
             <Plus className="h-5 w-5 text-muted-foreground" />
         </Link>
 
-        <Link href="/feedback" id="feedback" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer" aria-disabled={isGuestMode}>
+        <Link href="/feedback" id="feedback" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer">
             <div className="flex items-center gap-4">
                 <MessageSquare className="h-5 w-5 text-muted-foreground"/>
                 <Label className="font-medium cursor-pointer">Feedback & Suggestions</Label>
