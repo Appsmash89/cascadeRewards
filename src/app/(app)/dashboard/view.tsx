@@ -16,6 +16,7 @@ import { collection } from "firebase/firestore";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
+import LiveInfoCard from "@/components/dashboard/live-info-card";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 const POINTS_PER_LEVEL = 100;
@@ -98,6 +99,8 @@ export default function DashboardView() {
             </p>
         </div>
       </Card>
+
+      <LiveInfoCard />
 
       <StatsCards user={userProfile} referrals={[]} isGuest={isGuestMode} />
       
