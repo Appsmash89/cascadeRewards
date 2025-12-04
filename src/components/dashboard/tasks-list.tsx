@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PlayCircle, FileText, CheckCircle, Star, ArrowRight, Loader2 } from 'lucide-react';
@@ -11,6 +12,7 @@ import { Card, CardContent } from '../ui/card';
 type TasksListProps = {
   tasks: CombinedTask[];
   isGuestMode: boolean;
+  isCompletedView?: boolean;
 };
 
 const taskIcons: { [key: string]: React.ReactNode } = {
@@ -105,14 +107,13 @@ const TaskItem = ({ task, index }: { task: CombinedTask, index: number }) => {
 };
 
 
-export default function TasksList({ tasks, isGuestMode }: TasksListProps) {
-  const availableTasks = tasks.filter(task => task.status === 'available' || task.status === 'in-progress');
+export default function TasksList({ tasks, isGuestMode, isCompletedView }: TasksListProps) {
   
   return (
     <div className="space-y-2">
-      {availableTasks.length > 0 ? (
+      {tasks.length > 0 ? (
         <AnimatePresence>
-          {availableTasks.map((task, i) => (
+          {tasks.map((task, i) => (
             <TaskItem 
               key={task.id} 
               task={task} 
@@ -127,8 +128,8 @@ export default function TasksList({ tasks, isGuestMode }: TasksListProps) {
           className="text-center py-8 px-4 border-2 border-dashed rounded-lg"
         >
           <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-          <p className="font-semibold">All tasks completed!</p>
-          <p className="text-sm text-muted-foreground">Check back tomorrow for more.</p>
+          <p className="font-semibold">{isCompletedView ? "No tasks completed yet" : "All tasks completed!"}</p>
+          <p className="text-sm text-muted-foreground">{isCompletedView ? "Get started on your first task." : "Check back tomorrow for more."}</p>
         </motion.div>
       )}
     </div>

@@ -20,12 +20,12 @@ import { Progress } from "@/components/ui/progress";
 import LiveInfoCard from "@/components/dashboard/live-info-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, CheckCircle } from "lucide-react";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 const POINTS_PER_LEVEL = 100;
 
-const filterCategories = ['All', 'High Reward', 'Easy', 'New'];
+const filterCategories = ['All', 'High Reward', 'Easy', 'New', 'Completed'];
 
 const XPProgressRing = ({ progress, size = 80 }: { progress: number, size?: number }) => {
   const strokeWidth = 6;
@@ -112,7 +112,11 @@ export default function DashboardView() {
         // In a real app, you'd add a `createdAt` field to the Task schema.
         tasks = tasks.slice(0, 5); // Just show first 5 as "New" for demonstration
         break;
+      case 'Completed':
+        tasks = tasks.filter(t => t.status === 'completed');
+        break;
       default: // 'All'
+        tasks = tasks.filter(t => t.status === 'available' || t.status === 'in-progress');
         break;
     }
     
@@ -121,6 +125,14 @@ export default function DashboardView() {
       const userInterests = new Set(userProfile?.interests || []);
       const aIsPreferred = userInterests.has(a.category) || a.category === 'All';
       const bIsPreferred = userInterests.has(b.category) || b.category === 'All';
+
+      if (a.status === 'completed' && b.status !== 'completed') {
+          if (a.completedAt && b.completedAt) return b.completedAt.toMillis() - a.completedAt.toMillis();
+          return -1;
+      }
+      if (b.status === 'completed' && a.status !== 'completed') {
+          return 1;
+      }
 
       if (aIsPreferred && !bIsPreferred) return -1;
       if (!aIsPreferred && bIsPreferred) return 1;
@@ -176,6 +188,7 @@ export default function DashboardView() {
               <div className="flex space-x-2 overflow-x-auto pb-2 -mx-2 px-2">
                 {filterCategories.map(filter => {
                   const isHighReward = filter === 'High Reward';
+                  const isCompleted = filter === 'Completed';
                   return (
                     <button
                       key={filter}
@@ -188,6 +201,7 @@ export default function DashboardView() {
                       )}
                     >
                       {isHighReward && <TrendingUp className="w-4 h-4" />}
+                      {isCompleted && <CheckCircle className="w-4 h-4" />}
                       {isHighReward ? 'Reward' : filter}
                     </button>
                   );
@@ -197,6 +211,7 @@ export default function DashboardView() {
             <TasksList 
               tasks={filteredTasks}
               isGuestMode={isGuestMode}
+              isCompletedView={activeFilter === 'Completed'}
             />
           </CardContent>
         </Card>
