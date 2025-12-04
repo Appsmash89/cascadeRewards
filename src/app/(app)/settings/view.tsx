@@ -3,7 +3,7 @@
 
 import { Suspense, useState } from "react";
 import { useTheme } from "next-themes";
-import { collection, doc, getDocs, query, where, writeBatch } from "firebase/firestore";
+import { collection, doc, getDocs, query, where } from "firebase/firestore";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -11,95 +11,57 @@ import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks/use-user";
 import { useFirestore } from "@/firebase";
 import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { Loader2, Bell, Moon, Sparkles, Plus, Link as LinkIcon, UserPlus, Info, MessageSquare, Palette } from "lucide-react";
+import { Loader2, Bell, Sparkles, ChevronRight, HelpCircle, FileText, Shield, Info, Edit, User, Mail, LogOut, FileQuestion, MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
+const SettingsSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
+    <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground px-2">{title}</h3>
+        <div className="bg-secondary/50 border rounded-lg divide-y">
+            {children}
+        </div>
+    </div>
+);
+
+const SettingsRow = ({ icon, label, href, action }: { icon: React.ReactNode, label: string, href?: string, action?: React.ReactNode }) => {
+    const content = (
+        <div className="flex items-center justify-between p-3 gap-4">
+            <div className="flex items-center gap-3">
+                {icon}
+                <span className="font-medium text-sm">{label}</span>
+            </div>
+            {action || (href && <ChevronRight className="h-5 w-5 text-muted-foreground" />)}
+        </div>
+    );
+    
+    if (href) {
+        return (
+            <Link href={href} className="block hover:bg-secondary transition-colors first:rounded-t-lg last:rounded-b-lg">
+                {content}
+            </Link>
+        )
+    }
+    return <div className="p-3 first:rounded-t-lg last:rounded-b-lg">{content}</div>
+};
+
 
 function SettingsView() {
-  const { user, userProfile, isAdmin } = useUser();
-  const firestore = useFirestore();
-  const { setTheme } = useTheme();
-  const { toast } = useToast();
-
-  const [referrerCode, setReferrerCode] = useState('');
-  const [isSubmittingCode, setIsSubmittingCode] = useState(false);
+  const { userProfile } = useUser();
+  const { setTheme, theme } = useTheme();
 
   if (!userProfile) {
     return null;
   }
+  
+  const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('') : '';
 
-  const notificationsEnabled = userProfile?.settings.notificationsEnabled ?? true;
-  const currentTheme = userProfile?.settings.theme ?? 'default';
-
-  const handleThemeChange = (selectedTheme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape') => {
+  const handleThemeChange = (selectedTheme: 'light' | 'dark' | 'system') => {
     setTheme(selectedTheme);
-    if (userProfile && firestore) {
-      const userDocRef = doc(firestore, 'users', userProfile.uid);
-      updateDocumentNonBlocking(userDocRef, { 'settings.theme': selectedTheme });
-    }
   };
   
-  const handleNotificationsChange = (enabled: boolean) => {
-     if (userProfile && firestore) {
-      const userDocRef = doc(firestore, 'users', userProfile.uid);
-      updateDocumentNonBlocking(userDocRef, { 'settings.notificationsEnabled': enabled });
-    }
-  };
-
-  const handleReferrerCodeSubmit = async () => {
-    // Construct the full code from the prefix and user input
-    const fullCode = `CASC-${referrerCode.trim().toUpperCase()}`;
-    if (!firestore || !userProfile || !referrerCode.trim()) {
-      toast({ variant: 'destructive', title: 'Invalid Code', description: 'Please enter a valid referral code.' });
-      return;
-    }
-    
-    setIsSubmittingCode(true);
-
-    try {
-      const usersRef = collection(firestore, 'users');
-      // Query using the full, constructed code
-      const q = query(usersRef, where('referralCode', '==', fullCode));
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        toast({ variant: 'destructive', title: 'Referrer Not Found', description: 'The referral code does not exist.' });
-        setIsSubmittingCode(false);
-        return;
-      }
-      
-      const referrerDoc = querySnapshot.docs[0];
-      if (referrerDoc.id === userProfile.uid) {
-        toast({ variant: 'destructive', title: 'Invalid Action', description: 'You cannot refer yourself.' });
-        setIsSubmittingCode(false);
-        return;
-      }
-
-      const userDocRef = doc(firestore, 'users', userProfile.uid);
-      await updateDocumentNonBlocking(userDocRef, { 'referredBy': referrerDoc.id });
-
-      toast({ title: 'Success!', description: `You have been referred by ${referrerDoc.data().displayName}.` });
-      setReferrerCode('');
-
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e.message });
-    } finally {
-      setIsSubmittingCode(false);
-    }
-  };
-
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -108,89 +70,86 @@ function SettingsView() {
           Manage your account and app preferences.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {!userProfile.referredBy && (
-            <div className="p-4 rounded-lg bg-secondary border space-y-4">
-                <div className="flex items-center gap-3">
-                    <UserPlus className="h-5 w-5 text-muted-foreground"/>
-                    <div>
-                        <Label htmlFor="referrer-code" className="font-medium">Enter Referrer ID</Label>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <span>Required to redeem rewards.</span>
-                            <Link href="/stats/referrer-info" className="text-primary hover:underline">
-                                <Info className="h-3 w-3" />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="relative flex-grow">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-mono">CASC-</span>
-                        <Input 
-                            id="referrer-code"
-                            value={referrerCode}
-                            onChange={(e) => setReferrerCode(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleReferrerCodeSubmit()}
-                            className="pl-14 font-mono tracking-wider"
-                            placeholder="CODE"
-                            maxLength={6}
-                            disabled={isSubmittingCode}
-                            autoCapitalize="characters"
-                        />
-                    </div>
-                    <Button onClick={handleReferrerCodeSubmit} disabled={isSubmittingCode || referrerCode.length < 1}>
-                        {isSubmittingCode ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus />}
-                    </Button>
-                </div>
-            </div>
-        )}
-        <div className="p-4 rounded-lg bg-secondary border space-y-4">
-            <div className="flex items-center gap-3">
-              <Palette className="h-5 w-5 text-muted-foreground"/>
-              <Label htmlFor="theme-switcher" className="font-medium">App Theme</Label>
-            </div>
-            <Select value={currentTheme} onValueChange={handleThemeChange}>
-              <SelectTrigger id="theme-switcher">
-                <SelectValue placeholder="Select a theme" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default">Default</SelectItem>
-                <SelectItem value="reactbits">ReactBits</SelectItem>
-                <SelectItem value="midnight">Midnight</SelectItem>
-                <SelectItem value="sunrise">Sunrise</SelectItem>
-                <SelectItem value="forest">Forest</SelectItem>
-                <SelectItem value="ocean">Ocean</SelectItem>
-                <SelectItem value="grape">Grape</SelectItem>
-              </SelectContent>
-            </Select>
-        </div>
-        <div className="flex items-center justify-between p-4 rounded-lg bg-secondary border">
-          <div className="flex items-center gap-4">
-            <Bell className="h-5 w-5 text-muted-foreground"/>
-            <Label htmlFor="notifications" className="font-medium">Push Notifications</Label>
-          </div>
-          <Switch 
-            id="notifications" 
-            checked={notificationsEnabled} 
-            onCheckedChange={handleNotificationsChange}
-          />
-        </div>
-        
-        <Link href="/onboarding" id="task-preferences" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer">
-            <div className="flex items-center gap-4">
-                <Sparkles className="h-5 w-5 text-muted-foreground"/>
-                <Label className="font-medium cursor-pointer">Task Preferences</Label>
-            </div>
-            <Plus className="h-5 w-5 text-muted-foreground" />
-        </Link>
+      <CardContent className="space-y-8">
 
-        <Link href="/feedback" id="feedback" className="flex items-center justify-between p-4 rounded-lg bg-secondary border hover:bg-accent/50 transition-colors cursor-pointer">
-            <div className="flex items-center gap-4">
-                <MessageSquare className="h-5 w-5 text-muted-foreground"/>
-                <Label className="font-medium cursor-pointer">Feedback & Suggestions</Label>
+        <SettingsSection title="Profile">
+          <div className="flex items-center gap-4 p-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={userProfile.photoURL ?? undefined} alt={userProfile.displayName ?? ''}/>
+              <AvatarFallback>{getInitials(userProfile.displayName ?? '')}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <p className="font-semibold">{userProfile.displayName}</p>
+              <p className="text-sm text-muted-foreground">{userProfile.email}</p>
             </div>
-            <Plus className="h-5 w-5 text-muted-foreground" />
-        </Link>
+            <Button variant="ghost" size="icon" asChild>
+                <Link href="/profile">
+                    <Edit className="h-4 w-4" />
+                </Link>
+            </Button>
+          </div>
+        </SettingsSection>
+        
+        <SettingsSection title="Preferences">
+             <div className="flex items-center justify-between p-3 gap-4">
+                <div className="flex items-center gap-3">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <span className="font-medium text-sm">Theme</span>
+                </div>
+                <div className="flex items-center gap-1 bg-background p-1 rounded-lg border">
+                    <Button size="sm" variant={theme === 'light' ? 'default' : 'ghost'} onClick={() => handleThemeChange('light')}>Light</Button>
+                    <Button size="sm" variant={theme === 'dark' ? 'default' : 'ghost'} onClick={() => handleThemeChange('dark')}>Dark</Button>
+                    <Button size="sm" variant={theme === 'system' ? 'default' : 'ghost'} onClick={() => handleThemeChange('system')}>System</Button>
+                </div>
+            </div>
+            <SettingsRow 
+                icon={<Bell className="h-5 w-5 text-primary" />} 
+                label="Notifications" 
+                action={<Switch defaultChecked={userProfile.settings.notificationsEnabled} />}
+            />
+        </SettingsSection>
+
+        <SettingsSection title="Support">
+            <SettingsRow 
+                icon={<FileQuestion className="h-5 w-5 text-primary" />} 
+                label="FAQ"
+                href="#"
+            />
+            <SettingsRow 
+                icon={<MessageCircle className="h-5 w-5 text-primary" />} 
+                label="Report an Issue"
+                href="/feedback"
+            />
+             <SettingsRow 
+                icon={<Phone className="h-5 w-5 text-primary" />} 
+                label="Contact Support"
+                href="#"
+            />
+        </SettingsSection>
+
+        <SettingsSection title="Legal">
+            <SettingsRow 
+                icon={<Shield className="h-5 w-5 text-primary" />} 
+                label="Privacy Policy"
+                href="#"
+            />
+             <SettingsRow 
+                icon={<FileText className="h-5 w-5 text-primary" />} 
+                label="Terms of Service"
+                href="#"
+            />
+        </SettingsSection>
+
+        <SettingsSection title="App Info">
+            <div className="flex items-center justify-between p-3">
+                <div className="flex items-center gap-3">
+                    <Info className="h-5 w-5 text-primary" />
+                    <span className="font-medium text-sm">Version</span>
+                </div>
+                <span className="text-sm text-muted-foreground">1.0.0</span>
+            </div>
+        </SettingsSection>
+        
       </CardContent>
     </Card>
   );
@@ -198,3 +157,5 @@ function SettingsView() {
 
 
 export default SettingsView;
+
+    

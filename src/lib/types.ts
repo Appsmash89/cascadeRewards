@@ -18,7 +18,7 @@ export type UserProfile = {
   settings: {
     notificationsEnabled: boolean;
     darkMode: boolean;
-    theme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape';
+    theme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape' | 'system' | 'light' | 'dark';
   };
   interests: TaskCategory[];
 };
@@ -78,6 +78,8 @@ export type Reward = {
   description: string;
   points: number;
   imageUrl: string;
+  popular?: boolean;
+  lowStock?: boolean;
 };
 
 export type Feedback = {
@@ -86,3 +88,5 @@ export type Feedback = {
   content: string;
   createdAt: any; // Firestore Timestamp
 };
+
+    
