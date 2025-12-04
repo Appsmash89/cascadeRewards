@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import React, { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import type { Task } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   Popover,
   PopoverContent,
@@ -99,7 +99,7 @@ const ComboboxInput = ({ field, options, placeholder }: { field: any, options: (
               <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+          <PopoverContent className="w-[300px] p-0">
             <Command>
               <CommandInput placeholder="Search options..." />
               <CommandEmpty>No options found.</CommandEmpty>
