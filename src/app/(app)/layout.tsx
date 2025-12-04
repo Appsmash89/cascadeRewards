@@ -48,12 +48,7 @@ export default function AppLayout({
   }, [user, userProfile, isUserLoading, router, pathname, isAdmin]);
 
   const currentNavs = useMemo(() => {
-    const baseNavs = isAdmin ? guestTopLevelNavItems : topLevelNavItems;
-    // Add /profile to the list of swipe-able pages if it's not already there for a clean swipe-back experience
-    if (!baseNavs.includes('/profile')) {
-        return [...baseNavs, '/profile'];
-    }
-    return baseNavs;
+    return isAdmin ? guestTopLevelNavItems : topLevelNavItems;
   }, [isAdmin]);
   
   const isSwipeEnabled = currentNavs.includes(pathname);
