@@ -20,7 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import LiveInfoCard from "@/components/dashboard/live-info-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { ArrowUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 const POINTS_PER_LEVEL = 100;
@@ -187,7 +187,7 @@ export default function DashboardView() {
                           : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                       )}
                     >
-                      {isHighReward && <ArrowUp className="w-4 h-4" />}
+                      {isHighReward && <TrendingUp className="w-4 h-4" />}
                       {isHighReward ? 'Reward' : filter}
                     </button>
                   );
