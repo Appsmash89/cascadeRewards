@@ -41,9 +41,9 @@
   }
 
   .dark, .dark.theme-default {
-    --background: 220 15% 15%; /* #2A2D33 */
+    --background: 220 15% 12%; /* #2A2D33 */
     --foreground: 220 14% 80%; /* #B5B8C8 */
-    --card: 220 15% 22%; /* Slightly lighter than background */
+    --card: 220 15% 20%; /* Slightly lighter than background */
     --card-foreground: 220 14% 80%;
     --popover: 220 15% 18%;
     --popover-foreground: 220 14% 80%;
