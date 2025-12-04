@@ -10,11 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks/use-user";
 import { useFirestore } from "@/firebase";
-import { Loader2, Bell, Sparkles, ChevronRight, HelpCircle, FileText, Shield, Info, Edit, User, Mail, LogOut, FileQuestion, MessageCircle, Phone } from "lucide-react";
+import { Loader2, Bell, Sparkles, ChevronRight, HelpCircle, FileText, Shield, Info, Edit, User, Mail, LogOut, FileQuestion, MessageCircle, Phone, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import type { UserProfile } from "@/lib/types";
 
 const SettingsSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="space-y-4">
@@ -44,6 +47,87 @@ const SettingsRow = ({ icon, label, href, action }: { icon: React.ReactNode, lab
         )
     }
     return <div className="p-3 first:rounded-t-lg last:rounded-b-lg">{content}</div>
+};
+
+const ReferrerCard = () => {
+    const { user, userProfile } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [referrerCode, setReferrerCode] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleReferrerSubmit = async () => {
+        if (!user || !firestore) return;
+        if (referrerCode.trim() === '') {
+            toast({ variant: 'destructive', title: 'Code is empty' });
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const usersRef = collection(firestore, 'users');
+            const q = query(usersRef, where('referralCode', '==', `CASC-${referrerCode.toUpperCase()}`));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                toast({ variant: 'destructive', title: 'Invalid Code', description: 'No user found with that referral code.' });
+                setIsSubmitting(false);
+                return;
+            }
+
+            const referrerDoc = querySnapshot.docs[0];
+            const referrerProfile = referrerDoc.data() as UserProfile;
+
+            if (referrerProfile.uid === user.uid) {
+                toast({ variant: 'destructive', title: 'Cannot Refer Yourself', description: 'You cannot use your own referral code.' });
+                setIsSubmitting(false);
+                return;
+            }
+
+            const userDocRef = doc(firestore, 'users', user.uid);
+            await setDoc(userDocRef, { referredBy: referrerProfile.uid }, { merge: true });
+
+            toast({ title: 'Success!', description: `You have been referred by ${referrerProfile.displayName}.` });
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: error.message });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+    
+    if (userProfile?.referredBy) {
+        return null;
+    }
+
+    return (
+        <SettingsSection title="Referral">
+            <div className="p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                    <UserPlus className="h-5 w-5 text-primary"/>
+                    <div className="flex-1">
+                        <h4 className="font-medium text-sm">Add a Referrer</h4>
+                        <p className="text-xs text-muted-foreground">Enter the code of the person who referred you to unlock rewards.</p>
+                    </div>
+                </div>
+                 <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground font-mono text-sm">CASC-</span>
+                    <Input 
+                        value={referrerCode}
+                        onChange={(e) => setReferrerCode(e.target.value.toUpperCase())}
+                        placeholder="A9B3X2"
+                        className="flex-1 font-mono tracking-wider"
+                        disabled={isSubmitting}
+                    />
+                 </div>
+                 <div className="flex justify-end">
+                    <Button onClick={handleReferrerSubmit} disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Submit Code
+                    </Button>
+                 </div>
+            </div>
+        </SettingsSection>
+    );
 };
 
 
@@ -94,6 +178,8 @@ function SettingsView() {
           </div>
         </SettingsSection>
         
+        <ReferrerCard />
+
         <SettingsSection title="Preferences">
              <div className="flex items-center justify-between p-3 gap-4">
                 <div className="flex items-center gap-3">
