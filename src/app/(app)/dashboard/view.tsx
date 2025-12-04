@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -26,6 +25,25 @@ const GUEST_EMAIL = 'guest.dev@cascade.app';
 const POINTS_PER_LEVEL = 100;
 
 const filterCategories = ['All', 'High Reward', 'Easy', 'New', 'Completed'];
+
+const SoftCheckIcon = ({ className }: { className?: string }) => (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path
+        d="M20 6L9 17L4 12"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 
 const XPProgressRing = ({ progress, size = 80 }: { progress: number, size?: number }) => {
   const strokeWidth = 6;
@@ -189,6 +207,25 @@ export default function DashboardView() {
                 {filterCategories.map(filter => {
                   const isHighReward = filter === 'High Reward';
                   const isCompleted = filter === 'Completed';
+
+                  if (isCompleted) {
+                    return (
+                        <button
+                          key={filter}
+                          onClick={() => setActiveFilter(filter)}
+                          className={cn(
+                            "flex items-center justify-center p-2 rounded-full w-10 h-10 transition-colors",
+                            activeFilter === filter
+                              ? "bg-green-500/20 text-green-600 dark:text-green-400"
+                              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                          )}
+                          aria-label="Show completed tasks"
+                        >
+                          <SoftCheckIcon className="w-5 h-5" />
+                        </button>
+                    )
+                  }
+
                   return (
                     <button
                       key={filter}
@@ -201,7 +238,6 @@ export default function DashboardView() {
                       )}
                     >
                       {isHighReward && <TrendingUp className="w-4 h-4" />}
-                      {isCompleted && <CheckCircle className="w-4 h-4" />}
                       {isHighReward ? 'Reward' : filter}
                     </button>
                   );
