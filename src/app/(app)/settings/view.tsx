@@ -49,10 +49,11 @@ const SettingsRow = ({ icon, label, href, action }: { icon: React.ReactNode, lab
 
 
 function SettingsView() {
-  const { userProfile } = useUser();
+  const { user, userProfile } = useUser();
+  const firestore = useFirestore();
   const { setTheme, theme } = useTheme();
 
-  if (!userProfile) {
+  if (!userProfile || !user) {
     return null;
   }
   
@@ -60,6 +61,8 @@ function SettingsView() {
 
   const handleThemeChange = (selectedTheme: 'light' | 'dark' | 'system') => {
     setTheme(selectedTheme);
+    const userDocRef = doc(firestore, 'users', user.uid);
+    updateDocumentNonBlocking(userDocRef, { 'settings.theme': selectedTheme });
   };
   
   return (
