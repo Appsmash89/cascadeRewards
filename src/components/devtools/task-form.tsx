@@ -99,13 +99,7 @@ const ComboboxInput = ({ field, options, placeholder }: { field: any, options: (
               <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent 
-            className="w-[300px] p-0" 
-            style={{
-                left: '50%',
-                transform: 'translateX(-50%)',
-            }}
-          >
+          <PopoverContent className="w-[300px] p-0" align="center">
             <Command>
               <CommandInput placeholder="Search options..." />
               <CommandEmpty>No options found.</CommandEmpty>
