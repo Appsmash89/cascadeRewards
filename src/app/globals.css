@@ -41,7 +41,7 @@
   }
 
   .dark, .dark.theme-default {
-    --background: 220 15% 15%; /* #2A2D33 */
+    --background: 220 15% 17%; /* #2A2D33 */
     --foreground: 220 14% 80%; /* #B5B8C8 */
     --card: 220 15% 20%; /* Slightly darker than previous */
     --card-foreground: 220 14% 80%;
