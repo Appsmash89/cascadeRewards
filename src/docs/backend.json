@@ -32,6 +32,31 @@
                 "type": "string",
                 "format": "email"
             }
+        },
+        "taskTitleOptions": {
+          "type": "array",
+          "description": "Predefined options for task titles.",
+          "items": { "type": "string" }
+        },
+        "taskDescriptionOptions": {
+          "type": "array",
+          "description": "Predefined options for task descriptions.",
+          "items": { "type": "string" }
+        },
+        "taskPointsOptions": {
+          "type": "array",
+          "description": "Predefined options for task points.",
+          "items": { "type": "number" }
+        },
+        "taskLinkOptions": {
+          "type": "array",
+          "description": "Predefined options for task links.",
+          "items": { "type": "string" }
+        },
+        "taskContentOptions": {
+          "type": "array",
+          "description": "Predefined templates for task content.",
+          "items": { "type": "string" }
         }
       }
     },

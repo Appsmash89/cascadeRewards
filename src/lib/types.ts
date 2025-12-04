@@ -29,6 +29,11 @@ export type AppSettings = {
   pastelBackgroundEnabled?: boolean;
   pastelBackgroundColor?: string; // HSL value string e.g. "240 60% 95%"
   adminEmails?: string[];
+  taskTitleOptions?: string[];
+  taskDescriptionOptions?: string[];
+  taskPointsOptions?: number[];
+  taskLinkOptions?: string[];
+  taskContentOptions?: string[];
 }
 
 export type User = {
@@ -88,5 +93,3 @@ export type Feedback = {
   content: string;
   createdAt: any; // Firestore Timestamp
 };
-
-    

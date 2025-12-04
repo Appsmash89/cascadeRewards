@@ -38,12 +38,26 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
   );
   const { data: task, isLoading: isTaskLoading } = useDoc<Task>(taskRef);
 
+  const appSettingsRef = useMemoFirebase(() => 
+    firestore ? doc(firestore, 'app-settings', 'global') : null,
+    [firestore]
+  );
+  const { data: appSettings, isLoading: areAppSettingsLoading } = useDoc<AppSettings>(appSettingsRef);
+
   const categoriesRef = useMemoFirebase(() => 
     firestore ? doc(firestore, 'app-settings', 'taskCategories') : null,
     [firestore]
   );
   const { data: categoriesData, isLoading: areCategoriesLoading } = useDoc<AppSettings>(categoriesRef);
+  
   const categories = categoriesData?.taskCategories || [];
+  const taskOptions = {
+    title: appSettings?.taskTitleOptions || [],
+    description: appSettings?.taskDescriptionOptions || [],
+    points: appSettings?.taskPointsOptions || [],
+    link: appSettings?.taskLinkOptions || [],
+    content: appSettings?.taskContentOptions || [],
+  }
 
   useEffect(() => {
     if (!isUserLoading && !isAdmin) {
@@ -57,13 +71,11 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
       const taskDataWithCreator = { ...data, creatorUid: user.uid };
 
       if (isNew) {
-        // Add new task
         const collectionRef = collection(firestore, 'tasks');
         await addDoc(collectionRef, taskDataWithCreator);
         
         toast({ title: 'Task Added', description: `"${data.title}" has been added globally.` });
       } else {
-        // Update existing task, preserving original creator
         const originalCreator = task?.creatorUid ?? user.uid;
         const taskDataForUpdate = { ...data, creatorUid: originalCreator };
         const masterTaskRef = doc(firestore, 'tasks', taskId!);
@@ -77,7 +89,7 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
     }
   };
 
-  const isLoading = isTaskLoading || areCategoriesLoading || isUserLoading;
+  const isLoading = isTaskLoading || areCategoriesLoading || areAppSettingsLoading || isUserLoading;
 
   if (isLoading) {
     return (
@@ -118,6 +130,7 @@ export default function EditTaskView({ taskId }: { taskId: string | null }) {
                 <TaskForm 
                     task={task} 
                     categories={categories}
+                    taskOptions={taskOptions}
                     onSubmit={handleTaskSubmit}
                 />
             )}

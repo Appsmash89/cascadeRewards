@@ -26,6 +26,21 @@ import { Textarea } from '@/components/ui/textarea';
 import type { Task } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from '@/lib/utils';
+
 
 const taskSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
@@ -42,10 +57,78 @@ const taskSchema = z.object({
 type TaskFormProps = {
   task?: Task | null;
   categories: string[];
+  taskOptions: {
+    title: string[];
+    description: string[];
+    points: number[];
+    link: string[];
+    content: string[];
+  };
   onSubmit: (data: z.infer<typeof taskSchema>) => Promise<void>;
 };
 
-export default function TaskForm({ task, categories, onSubmit }: TaskFormProps) {
+const ComboboxInput = ({ field, options, placeholder }: { field: any, options: (string | number)[], placeholder: string }) => {
+  const [open, setOpen] = React.useState(false);
+
+  const handleSelect = (currentValue: string) => {
+    field.onChange(currentValue);
+    setOpen(false);
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    field.onChange(e.target.value);
+  }
+
+  return (
+    <div className="flex gap-2">
+      <Input
+        placeholder={placeholder}
+        {...field}
+        onChange={handleInputChange}
+        value={field.value || ''}
+      />
+      {options.length > 0 && (
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-[50px] justify-between"
+            >
+              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+            <Command>
+              <CommandInput placeholder="Search options..." />
+              <CommandEmpty>No options found.</CommandEmpty>
+              <CommandGroup>
+                {options.map((option, index) => (
+                  <CommandItem
+                    key={index}
+                    value={String(option)}
+                    onSelect={handleSelect}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        String(field.value) === String(option) ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {String(option)}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      )}
+    </div>
+  );
+};
+
+export default function TaskForm({ task, categories, taskOptions, onSubmit }: TaskFormProps) {
   const form = useForm<z.infer<typeof taskSchema>>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
@@ -60,8 +143,6 @@ export default function TaskForm({ task, categories, onSubmit }: TaskFormProps) 
   });
 
   useEffect(() => {
-    // When the `task` prop updates (e.g., after data fetching),
-    // reset the form with the new default values.
     form.reset({
       title: task?.title || '',
       description: task?.description || '',
@@ -86,7 +167,7 @@ export default function TaskForm({ task, categories, onSubmit }: TaskFormProps) 
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Watch introductory video" {...field} />
+                <ComboboxInput field={field} options={taskOptions.title} placeholder="e.g., Watch introductory video" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -99,21 +180,21 @@ export default function TaskForm({ task, categories, onSubmit }: TaskFormProps) 
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input placeholder="A short description of the task" {...field} />
+                <ComboboxInput field={field} options={taskOptions.description} placeholder="A short description of the task" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <FormField
+           <FormField
             control={form.control}
             name="points"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Points</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <ComboboxInput field={field} options={taskOptions.points} placeholder="50" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -170,7 +251,7 @@ export default function TaskForm({ task, categories, onSubmit }: TaskFormProps) 
             <FormItem>
               <FormLabel>Task Link</FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com/task-details" {...field} />
+                 <ComboboxInput field={field} options={taskOptions.link} placeholder="https://example.com/task-details" />
               </FormControl>
               <FormDescription>
                 Optional: The destination URL for the 'Start' button.
@@ -185,6 +266,18 @@ export default function TaskForm({ task, categories, onSubmit }: TaskFormProps) 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Task Instructions</FormLabel>
+               {taskOptions.content.length > 0 && (
+                 <Select onValueChange={(value) => field.onChange(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a content template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {taskOptions.content.map((template, index) => (
+                      <SelectItem key={index} value={template}>{template.substring(0, 50)}...</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <FormControl>
                 <Textarea 
                     placeholder="Provide detailed steps on how to complete the task..." 
