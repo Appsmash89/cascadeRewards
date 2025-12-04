@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -19,7 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import LiveInfoCard from "@/components/dashboard/live-info-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { TrendingUp, CheckCircle } from "lucide-react";
+import { TrendingUp, CheckCircle, LayoutGrid, Feather, Sparkles } from "lucide-react";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 const POINTS_PER_LEVEL = 100;
@@ -117,7 +118,14 @@ export default function DashboardView() {
 
   // 4. Apply filters
   const filteredTasks = useMemo(() => {
-    let tasks = combinedTasks;
+    if (activeFilter === 'Completed') {
+      return combinedTasks
+        .filter(t => t.status === 'completed')
+        .sort((a, b) => (b.completedAt?.toMillis() || 0) - (a.completedAt?.toMillis() || 0));
+    }
+    
+    let tasks = combinedTasks.filter(t => t.status !== 'completed');
+
     switch(activeFilter) {
       case 'High Reward':
         tasks = tasks.filter(t => t.points >= 100);
@@ -126,31 +134,18 @@ export default function DashboardView() {
         tasks = tasks.filter(t => t.points < 50);
         break;
       case 'New':
-        // Assuming 'New' means created in the last 7 days. This is a simulated property.
-        // In a real app, you'd add a `createdAt` field to the Task schema.
-        tasks = tasks.slice(0, 5); // Just show first 5 as "New" for demonstration
+        tasks = tasks.slice(0, 5); 
         break;
-      case 'Completed':
-        tasks = tasks.filter(t => t.status === 'completed');
-        break;
-      default: // 'All'
-        tasks = tasks.filter(t => t.status === 'available' || t.status === 'in-progress');
+      case 'All':
+      default:
+        // No extra filtering needed beyond removing completed
         break;
     }
     
-    // Sort tasks: preferred first (matches interests or is 'All'), then by title
     return tasks.sort((a, b) => {
       const userInterests = new Set(userProfile?.interests || []);
       const aIsPreferred = userInterests.has(a.category) || a.category === 'All';
       const bIsPreferred = userInterests.has(b.category) || b.category === 'All';
-
-      if (a.status === 'completed' && b.status !== 'completed') {
-          if (a.completedAt && b.completedAt) return b.completedAt.toMillis() - a.completedAt.toMillis();
-          return -1;
-      }
-      if (b.status === 'completed' && a.status !== 'completed') {
-          return 1;
-      }
 
       if (aIsPreferred && !bIsPreferred) return -1;
       if (!aIsPreferred && bIsPreferred) return 1;
