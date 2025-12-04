@@ -3,14 +3,13 @@
 
 import { Suspense, useState } from "react";
 import { useTheme } from "next-themes";
-import { collection, doc, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDocs, query, where, setDoc } from "firebase/firestore";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useUser } from "@/hooks/use-user";
 import { useFirestore } from "@/firebase";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { Loader2, Bell, Sparkles, ChevronRight, HelpCircle, FileText, Shield, Info, Edit, User, Mail, LogOut, FileQuestion, MessageCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -59,10 +58,12 @@ function SettingsView() {
   
   const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('') : '';
 
-  const handleThemeChange = (selectedTheme: 'light' | 'dark' | 'system') => {
+  const handleThemeChange = async (selectedTheme: 'light' | 'dark' | 'system') => {
     setTheme(selectedTheme);
-    const userDocRef = doc(firestore, 'users', user.uid);
-    updateDocumentNonBlocking(userDocRef, { 'settings.theme': selectedTheme });
+    if (firestore && user) {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        await setDoc(userDocRef, { settings: { theme: selectedTheme } }, { merge: true });
+    }
   };
   
   return (

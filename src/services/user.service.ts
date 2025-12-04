@@ -12,7 +12,6 @@ import {
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { initializeUserTasks } from './tasks.service';
 
 const generateReferralCode = (): string => {
@@ -94,7 +93,7 @@ export const manageUserDocument = async (
       interests: [],
     };
 
-    setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
+    await setDoc(userRef, newUserProfile, { merge: false });
     await initializeUserTasks(firestore, user.uid);
   } else {
     const updateData: Partial<UserProfile> & { [key: string]: any } = {
@@ -108,6 +107,6 @@ export const manageUserDocument = async (
         updateData.photoURL = user.photoURL;
     }
 
-    setDocumentNonBlocking(userRef, updateData, { merge: true });
+    await setDoc(userRef, updateData, { merge: true });
   }
 };

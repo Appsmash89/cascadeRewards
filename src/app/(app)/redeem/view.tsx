@@ -7,8 +7,7 @@ import { Star } from "lucide-react";
 import { rewards as rewardsData } from "@/lib/data";
 import RewardCard from "@/components/rewards/reward-card";
 import { useToast } from "@/hooks/use-toast";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { doc, increment } from "firebase/firestore";
+import { doc, increment, setDoc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 import { motion } from 'framer-motion';
 import Link from "next/link";
@@ -57,7 +56,7 @@ export default function RedeemView() {
   const currentPoints = userProfile?.points ?? 0;
   const currentLevel = userProfile?.level ?? 1;
 
-  const handleRedeem = (pointsCost: number, title: string, id: string) => {
+  const handleRedeem = async (pointsCost: number, title: string, id: string) => {
     if (isGuestMode) {
       toast({
         variant: "destructive",
@@ -75,25 +74,33 @@ export default function RedeemView() {
 
        if (userProfile.points >= pointsCost) {
         const userDocRef = doc(firestore, 'users', userProfile.uid);
-        updateDocumentNonBlocking(userDocRef, {
-            points: increment(-pointsCost)
-        });
-        
-        if (id === CREATE_TASK_REWARD_ID) {
-           toast({
-            title: "Task Credit Purchased!",
-            description: "You can now create a new task.",
-            action: (
-              <Link href="/tasks/new">
-                <Button variant="outline" size="sm">Create Task</Button>
-              </Link>
-            )
-          });
-        } else {
-          toast({
-            title: "Redemption Successful!",
-            description: `You have redeemed the ${title}.`,
-          });
+        try {
+            await setDoc(userDocRef, {
+                points: increment(-pointsCost)
+            }, { merge: true });
+            
+            if (id === CREATE_TASK_REWARD_ID) {
+               toast({
+                title: "Task Credit Purchased!",
+                description: "You can now create a new task.",
+                action: (
+                  <Link href="/tasks/new">
+                    <Button variant="outline" size="sm">Create Task</Button>
+                  </Link>
+                )
+              });
+            } else {
+              toast({
+                title: "Redemption Successful!",
+                description: `You have redeemed the ${title}.`,
+              });
+            }
+        } catch (e: any) {
+            toast({
+              variant: "destructive",
+              title: "Redemption Failed",
+              description: e.message || "Could not deduct points.",
+            });
         }
       } else {
          toast({

@@ -10,8 +10,6 @@ import { useUser } from '@/hooks/use-user';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc, getDoc } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 
 // Hardcoded credentials for the persistent guest user
@@ -29,7 +27,7 @@ const CascadeLogo = () => (
 
 export default function LoginPage() {
   const router = useRouter();
-  const { auth, firestore } = useAuth();
+  const { auth } = useAuth();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const [loadingProvider, setLoadingProvider] = useState<null | 'google' | 'guest'>(null);
