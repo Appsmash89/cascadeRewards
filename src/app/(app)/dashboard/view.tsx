@@ -170,7 +170,7 @@ export default function DashboardView() {
           <CardHeader>
             <CardTitle>Daily Tasks</CardTitle>
             <CardDescription>
-              Complete tasks to earn points and climb the leaderboard.
+              Earn points instantly by completing simple tasks.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -202,5 +202,3 @@ export default function DashboardView() {
     </>
   );
 }
-
-    

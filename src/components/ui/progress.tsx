@@ -20,7 +20,7 @@ const Progress = React.forwardRef<
     {...props}
   >
     <motion.div
-      className="h-full w-full flex-1 bg-primary"
+      className="h-full w-full flex-1 bg-gradient-to-r from-[#4A6CFF] to-[#6D8AFF]"
       initial={{ x: "-100%" }}
       animate={{ x: `-${100 - (value || 0)}%` }}
       transition={{ ease: "easeInOut", duration: 0.5 }}

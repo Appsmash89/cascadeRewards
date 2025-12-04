@@ -37,8 +37,9 @@ const TaskItem = ({ task, index }: { task: CombinedTask, index: number }) => {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
       exit={{ opacity: 0, x: -30, transition: { duration: 0.2 } }}
       className="bg-secondary/50 rounded-lg"
     >
@@ -59,7 +60,12 @@ const TaskItem = ({ task, index }: { task: CombinedTask, index: number }) => {
           <p className="text-sm text-muted-foreground break-words truncate">{task.description}</p>
         </div>
         <div className="flex items-center gap-2">
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+          <motion.div 
+            whileHover={{ scale: 1.1 }} 
+            whileTap={{ scale: 0.9 }}
+            animate={task.status === 'completed' ? { scale: [1, 1.2, 1] } : {}}
+            transition={task.status === 'completed' ? { duration: 0.3 } : {}}
+          >
             <Badge className="flex items-center gap-1 font-bold text-base bg-amber-400/20 text-amber-600 border-amber-400/30 hover:bg-amber-400/30">
               <Star className="h-3 w-3" />
               <span>{task.points}</span>
@@ -128,5 +134,3 @@ export default function TasksList({ tasks, isGuestMode }: TasksListProps) {
     </div>
   );
 }
-
-    

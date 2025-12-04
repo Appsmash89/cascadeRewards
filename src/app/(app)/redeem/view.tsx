@@ -62,7 +62,7 @@ export default function RedeemView() {
       toast({
         variant: "destructive",
         title: "Guest Mode",
-        description: "Please sign in with Google to redeem rewards.",
+        description: "Sign in to unlock this reward.",
       });
       return;
     }
@@ -178,5 +178,3 @@ export default function RedeemView() {
     </>
   );
 }
-
-    

@@ -102,10 +102,10 @@ export default function AppLayout({
             dragElastic={0.1}
             onDragEnd={handleDragEnd}
             key={pathname}
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
             className="flex flex-1 flex-col gap-4 p-4 pt-20 pb-20"
         >
             {children}
