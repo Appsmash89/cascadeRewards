@@ -43,7 +43,6 @@ export default function BottomNav() {
   const { data: appSettings } = useDoc<AppSettings>(settingsRef);
 
   const allNavItems = isAdmin ? guestNavItems : [...navItems, { href: '/chatbot', label: 'Chatbot', icon: MessageCircle }];
-  const navGridCols = `grid-cols-${allNavItems.length}`;
 
   if (isUserLoading) {
     return null; // Don't render nav while we confirm admin status
@@ -54,7 +53,7 @@ export default function BottomNav() {
       "fixed bottom-0 left-0 right-0 h-14 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto",
       appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background),0.8)]"
     )}>
-      <div className={cn("grid h-full", navGridCols)}>
+      <div className={cn("grid h-full", isAdmin ? "grid-cols-6" : "grid-cols-5")}>
         {allNavItems.map((item) => {
           const isActive = pathname === item.href;
           return (
