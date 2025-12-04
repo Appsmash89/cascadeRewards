@@ -1,8 +1,6 @@
-
 'use client';
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -100,7 +98,7 @@ const ComboboxInput = ({ field, options, placeholder }: { field: any, options: (
               <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-0">
+          <PopoverContent className="w-[300px] p-0" align="end">
             <Command>
               <CommandInput placeholder="Search options..." />
               <CommandEmpty>No options found.</CommandEmpty>
