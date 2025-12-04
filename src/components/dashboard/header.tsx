@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Gift, LogOut, User as UserIcon } from "lucide-react"
+import { LogOut, User as UserIcon } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useAuth, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { signOut } from "firebase/auth";
@@ -25,6 +25,15 @@ type DashboardHeaderProps = {
   user: UserProfile | null;
   isAdmin: boolean;
 }
+
+const CascadeLogo = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 8H16" stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round"/>
+    <path d="M4 12H20" stroke="hsl(var(--primary))" strokeOpacity="0.7" strokeWidth="3" strokeLinecap="round"/>
+    <path d="M4 16H12" stroke="hsl(var(--primary))" strokeOpacity="0.4" strokeWidth="3" strokeLinecap="round"/>
+  </svg>
+);
+
 
 export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps) {
   const getInitials = (name: string) => {
@@ -78,7 +87,7 @@ export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps)
     >
       <div className="flex h-full items-center gap-4 w-full">
         <div className="flex items-center gap-2 font-semibold">
-          <Gift className="h-6 w-6 text-primary" />
+          <CascadeLogo />
           <span className="font-gliker text-lg tracking-tight font-bold">Cascade</span>
         </div>
 
@@ -123,3 +132,5 @@ export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps)
     </motion.div>
   )
 }
+
+    
