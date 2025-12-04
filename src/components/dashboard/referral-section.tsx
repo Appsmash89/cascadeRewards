@@ -111,7 +111,7 @@ export default function ReferralSection({ user, referrals, isGuest }: ReferralSe
             Your Referrals ({referrals.length})
           </h4>
           { isGuest ? (
-            <p className="text-sm text-muted-foreground p-2 text-center">Sign in to see your referrals.</p>
+            <p className="text-sm text-muted-foreground p-2 text-center">Admins do not have referrals.</p>
           ) : (
             <div className="space-y-3 max-h-48 overflow-y-auto pr-2 -mr-2">
               <AnimatePresence>
