@@ -106,7 +106,7 @@ const ReferrerCard = () => {
                     <UserPlus className="h-5 w-5 text-primary"/>
                     <div className="flex-1">
                         <h4 className="font-medium text-sm">Add a Referrer</h4>
-                        <p className="text-xs text-muted-foreground">Enter the code of the person who referred you to unlock rewards.</p>
+                        <p className="text-xs text-muted-foreground">Enter unique referrer code</p>
                     </div>
                 </div>
                  <div className="flex items-center gap-2">
