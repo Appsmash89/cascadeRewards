@@ -25,7 +25,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import type { Task } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   Popover,
   PopoverContent,
