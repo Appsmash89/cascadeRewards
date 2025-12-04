@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -19,6 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import LiveInfoCard from "@/components/dashboard/live-info-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { ArrowUp } from "lucide-react";
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 const POINTS_PER_LEVEL = 100;
@@ -172,20 +174,24 @@ export default function DashboardView() {
           <CardContent>
             <div className="mb-4">
               <div className="flex space-x-2 overflow-x-auto pb-2 -mx-2 px-2">
-                {filterCategories.map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setActiveFilter(filter)}
-                    className={cn(
-                      "px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
-                      activeFilter === filter
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                    )}
-                  >
-                    {filter}
-                  </button>
-                ))}
+                {filterCategories.map(filter => {
+                  const isHighReward = filter === 'High Reward';
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => setActiveFilter(filter)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
+                        activeFilter === filter
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      )}
+                    >
+                      {isHighReward && <ArrowUp className="w-4 h-4" />}
+                      {isHighReward ? 'Reward' : filter}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <TasksList 
