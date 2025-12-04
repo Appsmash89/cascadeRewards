@@ -19,6 +19,7 @@ import type { UserProfile, AppSettings } from "@/lib/types";
 import { motion } from "framer-motion";
 import { doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 type DashboardHeaderProps = {
   user: UserProfile | null;
@@ -102,10 +103,14 @@ export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps)
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem disabled={isAdmin} className="cursor-pointer">
-                <UserIcon className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
+              {!isAdmin && (
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link href="/profile">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10">
                 <LogOut className="mr-2 h-4 w-4" />

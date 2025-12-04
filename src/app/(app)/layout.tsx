@@ -47,7 +47,14 @@ export default function AppLayout({
 
   }, [user, userProfile, isUserLoading, router, pathname, isAdmin]);
 
-  const currentNavs = useMemo(() => isAdmin ? guestTopLevelNavItems : topLevelNavItems, [isAdmin]);
+  const currentNavs = useMemo(() => {
+    const baseNavs = isAdmin ? guestTopLevelNavItems : topLevelNavItems;
+    // Add /profile to the list of swipe-able pages if it's not already there for a clean swipe-back experience
+    if (!baseNavs.includes('/profile')) {
+        return [...baseNavs, '/profile'];
+    }
+    return baseNavs;
+  }, [isAdmin]);
   
   const isSwipeEnabled = currentNavs.includes(pathname);
   
@@ -90,7 +97,7 @@ export default function AppLayout({
     <div className="flex min-h-screen w-full flex-col bg-background overflow-x-hidden">
       <DashboardHeader user={userProfile} isAdmin={isAdmin}/>
         <motion.main
-            drag="x"
+            drag={isSwipeEnabled ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.1}
             onDragEnd={handleDragEnd}
