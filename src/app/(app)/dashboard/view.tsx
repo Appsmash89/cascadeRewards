@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 const POINTS_PER_LEVEL = 100;
 
-const filterCategories = ['All', 'High Reward', 'Easy', 'New', 'Repeatable'];
+const filterCategories = ['All', 'High Reward', 'Easy', 'New'];
 
 const XPProgressRing = ({ progress, size = 80 }: { progress: number, size?: number }) => {
   const strokeWidth = 6;
@@ -109,10 +109,6 @@ export default function DashboardView() {
         // Assuming 'New' means created in the last 7 days. This is a simulated property.
         // In a real app, you'd add a `createdAt` field to the Task schema.
         tasks = tasks.slice(0, 5); // Just show first 5 as "New" for demonstration
-        break;
-      case 'Repeatable':
-        // Assuming no tasks are repeatable for now.
-        tasks = tasks.filter(t => t.category === 'Repeatable'); // This will be empty
         break;
       default: // 'All'
         break;
