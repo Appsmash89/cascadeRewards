@@ -219,3 +219,4 @@ export default function ProfileView() {
     </Card>
   );
 }
+
