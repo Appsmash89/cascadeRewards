@@ -129,6 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ...originalUserProfile,
             ...simulationTemplate,
             displayName: simulationTemplate.displayName ?? originalUserProfile.displayName,
+            email: simulationTemplate.email ?? originalUserProfile.email,
             photoURL: simulationTemplate.photoURL ?? originalUserProfile.photoURL,
             points: Number(simulationTemplate.points) ?? originalUserProfile.points,
             level: Number(simulationTemplate.level) ?? originalUserProfile.level,

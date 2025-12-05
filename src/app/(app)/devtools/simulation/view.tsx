@@ -19,6 +19,7 @@ const SIMULATION_STORAGE_KEY = 'simulationProfile';
 
 type SimulationData = {
   displayName: string;
+  email: string;
   photoURL: string | null;
   points: number;
   level: number;
@@ -34,6 +35,7 @@ export default function SimulationView() {
 
   const [formData, setFormData] = useState<SimulationData>({
     displayName: 'Simulated User',
+    email: 'simulated.user@example.com',
     photoURL: null,
     points: 1000,
     level: 5,
@@ -157,9 +159,15 @@ export default function SimulationView() {
                     onChange={handlePictureUpload}
                 />
             </div>
-            <div className="space-y-2 w-full max-w-sm">
-                <Label htmlFor="displayName">Display Name</Label>
-                <Input id="displayName" type="text" value={formData.displayName} onChange={handleChange} />
+            <div className="space-y-4 w-full max-w-sm">
+                <div className="space-y-2">
+                    <Label htmlFor="displayName">Display Name</Label>
+                    <Input id="displayName" type="text" value={formData.displayName} onChange={handleChange} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" value={formData.email} onChange={handleChange} />
+                </div>
             </div>
         </div>
 
