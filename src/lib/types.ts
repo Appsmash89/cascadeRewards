@@ -95,3 +95,9 @@ export type Feedback = {
   content: string;
   createdAt: any; // Firestore Timestamp
 };
+
+
+// Constants
+export const POINTS_PER_LEVEL = 100;
+export const TIER_1_BONUS_RATE = 0.10; // 10%
+export const TIER_2_BONUS_RATE = 0.02; // 2%

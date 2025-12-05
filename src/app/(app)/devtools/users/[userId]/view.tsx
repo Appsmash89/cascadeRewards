@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
@@ -27,10 +26,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useRouter } from 'next/navigation';
+import { POINTS_PER_LEVEL, TIER_1_BONUS_RATE, TIER_2_BONUS_RATE } from '@/lib/types';
 
-const POINTS_PER_LEVEL = 100;
-const TIER_1_BONUS_RATE = 0.10; // 10%
-const TIER_2_BONUS_RATE = 0.02; // 2%
 
 const taskIcons = {
   video: <PlayCircle className="h-5 w-5 text-primary" />,

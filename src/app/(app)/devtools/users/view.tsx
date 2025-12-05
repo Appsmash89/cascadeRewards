@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, ArrowLeft, User as UserIcon, Beaker } from 'lucide-react';
+import { Loader2, ArrowLeft, User as UserIcon, Beaker, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -57,7 +56,6 @@ export default function UserManagementView() {
     setSimulatedUsers(newSimulatedUsers);
     localStorage.setItem(SIMULATED_USERS_KEY, JSON.stringify(Array.from(newSimulatedUsers)));
     
-    // A page reload is needed for the context to pick up the change for the currently logged in user
     window.location.reload(); 
   };
 
@@ -102,26 +100,35 @@ export default function UserManagementView() {
         </div>
         <CardTitle>User Management</CardTitle>
         <CardDescription>
-          Select a user to manage their tasks or toggle simulation mode for them.
+          Select a user to manage their tasks or view their earnings breakdown.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="divide-y rounded-lg border">
-          {users && users.map(user => (
-            <div key={user.uid} className="flex items-center justify-between p-3 gap-4 hover:bg-secondary transition-colors">
-              <Link href={`/devtools/users/${user.uid}`} className="flex items-center gap-3 flex-grow">
+          {users && users.sort((a, b) => a.displayName!.localeCompare(b.displayName!)).map(user => (
+            <div key={user.uid} className="flex items-center justify-between p-3 gap-2 hover:bg-secondary transition-colors">
+              <div className="flex items-center gap-3 flex-grow">
                  <Avatar>
                     <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? "User"} />
                     <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
                 </Avatar>
-                <div className="flex-grow">
-                  <p className="font-medium">{user.displayName}</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                <div className="flex-grow min-w-0">
+                  <p className="font-medium truncate">{user.displayName}</p>
+                  <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                 </div>
-              </Link>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>{user.points} pts</span>
-                <div className="flex items-center space-x-2">
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={`/devtools/users/${user.uid}`}>
+                        <UserIcon className="mr-2 h-4 w-4" /> Manage
+                    </Link>
+                </Button>
+                 <Button variant="outline" size="sm" asChild>
+                    <Link href={`/devtools/earnings/${user.uid}`}>
+                        <TrendingUp className="mr-2 h-4 w-4" /> Earnings
+                    </Link>
+                </Button>
+                <div className="flex items-center space-x-2 pl-2 border-l">
                   <Checkbox
                     id={`simulate-${user.uid}`}
                     checked={simulatedUsers.has(user.uid)}
