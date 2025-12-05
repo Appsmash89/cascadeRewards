@@ -50,6 +50,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [localDisplayName, setLocalDisplayName] = useState<string | null>(null);
   const [localPhotoURL, setLocalPhotoURL] = useState<string | null>(null);
 
+  // States for simulation mode
+  const [isSimulationMode, setIsSimulationMode] = useState(false);
+  const [simulatedProfile, setSimulatedProfile] = useState<Partial<UserProfile> | null>(null);
+
 
   // Effect to manage the user document in Firestore whenever the auth state changes.
   useEffect(() => {
@@ -80,7 +84,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
-  // Effect to load local profile settings from localStorage on mount
+  // Effect to load local profile & simulation settings from localStorage on mount
   useEffect(() => {
     try {
         const localUse = localStorage.getItem('useLocalProfile') === 'true';
@@ -90,6 +94,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUseLocalProfile(localUse);
         if (localName) setLocalDisplayName(localName);
         if (localAvatar) setLocalPhotoURL(localAvatar);
+
+        const simMode = localStorage.getItem('simulationMode') === 'true';
+        setIsSimulationMode(simMode);
+        if (simMode) {
+            const storedSimProfile = localStorage.getItem('simulationProfile');
+            if (storedSimProfile) {
+                setSimulatedProfile(JSON.parse(storedSimProfile));
+            }
+        }
 
     } catch (error) {
         console.error("Could not read from localStorage", error);
@@ -114,6 +127,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const userProfile = useMemo(() => {
     if (!originalUserProfile) return null;
     
+    // Simulation mode takes highest priority for admins
+    if (isAdmin && isSimulationMode && simulatedProfile) {
+        return {
+            ...originalUserProfile,
+            ...simulatedProfile,
+            // ensure numbers are parsed correctly from storage
+            points: Number(simulatedProfile.points) || originalUserProfile.points,
+            level: Number(simulatedProfile.level) || originalUserProfile.level,
+            totalEarned: Number(simulatedProfile.totalEarned) || originalUserProfile.totalEarned,
+        };
+    }
+    
+    // Local profile override for regular users
     const shouldOverride = useLocalProfile && !isAdmin;
 
     return {
@@ -121,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       displayName: shouldOverride && localDisplayName ? localDisplayName : originalUserProfile.displayName,
       photoURL: shouldOverride && localPhotoURL ? localPhotoURL : originalUserProfile.photoURL,
     };
-  }, [originalUserProfile, useLocalProfile, localDisplayName, localPhotoURL, isAdmin]);
+  }, [originalUserProfile, useLocalProfile, localDisplayName, localPhotoURL, isAdmin, isSimulationMode, simulatedProfile]);
 
 
   // Memoize the context value to prevent unnecessary re-renders of consumers.
