@@ -103,17 +103,13 @@ export default function DevToolsView() {
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(appSettingsRef);
 
   const [localBgColor, setLocalBgColor] = useState('#ffffff');
-  const [isSimulationMode, setIsSimulationMode] = useState(false);
-
+  
   useEffect(() => {
     if (appSettings) {
       if (appSettings.pastelBackgroundColor) {
         setLocalBgColor(hslToHex(appSettings.pastelBackgroundColor) || '#ffffff');
       }
     }
-    // Also load simulation mode state from localStorage
-    const simMode = localStorage.getItem('simulationMode') === 'true';
-    setIsSimulationMode(simMode);
   }, [appSettings]);
 
   const masterTasksQuery = useMemoFirebase(() =>
@@ -215,11 +211,6 @@ export default function DevToolsView() {
     }
   }, [appSettingsRef]);
 
-  const handleSimulationModeChange = (enabled: boolean) => {
-    localStorage.setItem('simulationMode', String(enabled));
-    setIsSimulationMode(enabled);
-    window.location.reload();
-  };
 
   const isLoading = isUserLoading || usersLoading || appSettingsLoading || isLoadingMasterTasks;
 
@@ -340,27 +331,6 @@ export default function DevToolsView() {
                       className="w-24 h-10 p-1"
                     />
                   </div>
-                )}
-              </div>
-              <div className="p-3 border rounded-lg md:col-span-2 space-y-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Beaker className="h-5 w-5 text-muted-foreground"/>
-                      <Label htmlFor="simulation-mode" className="font-medium text-sm">Simulation Mode</Label>
-                    </div>
-                    <Switch 
-                      id="simulation-mode" 
-                      checked={isSimulationMode} 
-                      onCheckedChange={handleSimulationModeChange}
-                    />
-                </div>
-                {isSimulationMode && (
-                  <Button asChild variant="secondary" className="w-full">
-                    <Link href="/devtools/simulation">
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Simulation Data
-                    </Link>
-                  </Button>
                 )}
               </div>
             </CardContent>

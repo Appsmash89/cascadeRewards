@@ -1,4 +1,5 @@
 
+
 // This represents the user document in Firestore
 export type UserProfile = {
   uid: string;
@@ -21,6 +22,7 @@ export type UserProfile = {
     theme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape' | 'system' | 'light' | 'dark';
   };
   interests: TaskCategory[];
+  referrals?: number; // Optional field for simulation
 };
 
 export type AppSettings = {

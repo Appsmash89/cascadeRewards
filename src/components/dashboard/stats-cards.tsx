@@ -19,7 +19,8 @@ export default function StatsCards({ user, referrals, isGuest }: StatsCardsProps
   const referralEarnings = referrals.length * 50; 
 
   const points = user?.points ?? 0;
-  const referralCount = isGuest ? 0 : referrals.length; 
+  // Use simulated referral count if available, otherwise use live data
+  const referralCount = user?.referrals ?? (isGuest ? 0 : referrals.length); 
   const earnings = isGuest ? 0 : referralEarnings; 
 
   const stats = [

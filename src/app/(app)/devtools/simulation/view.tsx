@@ -16,11 +16,10 @@ import type { UserProfile } from '@/lib/types';
 const SIMULATION_STORAGE_KEY = 'simulationProfile';
 
 type SimulationData = {
-  displayName: string;
-  photoURL: string;
   points: number;
   level: number;
   totalEarned: number;
+  referrals: number;
 };
 
 export default function SimulationView() {
@@ -29,11 +28,10 @@ export default function SimulationView() {
   const { toast } = useToast();
 
   const [formData, setFormData] = useState<SimulationData>({
-    displayName: 'Simulated User',
-    photoURL: 'https://picsum.photos/seed/sim/200/200',
     points: 1000,
     level: 5,
     totalEarned: 450,
+    referrals: 10,
   });
 
   useEffect(() => {
@@ -46,7 +44,9 @@ export default function SimulationView() {
     try {
       const savedData = localStorage.getItem(SIMULATION_STORAGE_KEY);
       if (savedData) {
-        setFormData(JSON.parse(savedData));
+        // Merge saved data with defaults to avoid errors if shape is old
+        const parsedData = JSON.parse(savedData);
+        setFormData(prev => ({...prev, ...parsedData}));
       }
     } catch (e) {
         console.error("Failed to load simulation data from storage", e);
@@ -65,11 +65,9 @@ export default function SimulationView() {
     try {
         localStorage.setItem(SIMULATION_STORAGE_KEY, JSON.stringify(formData));
         toast({
-            title: 'Simulation Data Saved',
-            description: 'Your simulated values have been stored locally. The app will reload to apply them.',
+            title: 'Simulation Template Saved',
+            description: 'Your simulated values have been stored locally.',
         });
-        // Reload to make the context pick up the new values
-        setTimeout(() => window.location.reload(), 1000);
     } catch(e) {
         console.error("Failed to save simulation data", e);
         toast({
@@ -100,31 +98,23 @@ export default function SimulationView() {
     <Card>
       <CardHeader>
         <Button asChild variant="ghost" size="sm" className="mb-4 -ml-4 justify-start w-fit">
-          <Link href="/devtools">
+          <Link href="/devtools/users">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to DevTools
+            Back to User Management
           </Link>
         </Button>
         <div className="flex items-center gap-3">
           <Beaker className="h-6 w-6 text-primary" />
           <div>
-            <CardTitle>Edit Simulation Data</CardTitle>
+            <CardTitle>Edit Simulation Template</CardTitle>
             <CardDescription>
-              Define the mock data to be used when Simulation Mode is active.
+              Define the mock data to be used when a user is in simulation mode.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="displayName">Display Name</Label>
-          <Input id="displayName" value={formData.displayName} onChange={handleChange} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="photoURL">Photo URL</Label>
-          <Input id="photoURL" value={formData.photoURL} onChange={handleChange} />
-        </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="points">Points</Label>
                 <Input id="points" type="number" value={formData.points} onChange={handleChange} />
@@ -137,9 +127,13 @@ export default function SimulationView() {
                 <Label htmlFor="totalEarned">Total Earned</Label>
                 <Input id="totalEarned" type="number" value={formData.totalEarned} onChange={handleChange} />
             </div>
+            <div className="space-y-2">
+                <Label htmlFor="referrals">Referrals</Label>
+                <Input id="referrals" type="number" value={formData.referrals} onChange={handleChange} />
+            </div>
         </div>
         <div className="flex justify-end">
-            <Button onClick={handleSave} size="lg">Save Simulation Data</Button>
+            <Button onClick={handleSave} size="lg">Save Template</Button>
         </div>
       </CardContent>
     </Card>

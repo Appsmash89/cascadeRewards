@@ -31,6 +31,7 @@ export default function ReferralSection({ user, referrals, isGuest }: ReferralSe
   
   const referralCode = user?.referralCode ?? '...';
   const referralLevel = user?.level ?? 0;
+  const referralCount = user?.referrals ?? referrals.length;
 
   const handleCopy = () => {
     if (referralCode.startsWith('CASC-')) {
@@ -108,7 +109,7 @@ export default function ReferralSection({ user, referrals, isGuest }: ReferralSe
         <motion.div variants={itemVariants} className="space-y-3">
           <h4 className="flex items-center gap-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
             <Users className="h-4 w-4" />
-            Your Referrals ({referrals.length})
+            Your Referrals ({referralCount})
           </h4>
           { isGuest ? (
             <p className="text-sm text-muted-foreground p-2 text-center">Admins do not have referrals.</p>
@@ -133,6 +134,11 @@ export default function ReferralSection({ user, referrals, isGuest }: ReferralSe
                     </div>
                   </motion.div>
                 ))}
+                 {referralCount > referrals.length && (
+                  <div className="p-2 text-center text-muted-foreground text-sm">
+                    ...and {referralCount - referrals.length} more.
+                  </div>
+                 )}
               </AnimatePresence>
             </div>
           )}
