@@ -2,18 +2,20 @@
 'use client';
 
 import { useUser } from '@/hooks/use-user';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
-import { Loader2, UserCheck, ArrowLeft, Edit, Camera } from 'lucide-react';
+import { Loader2, UserCheck, ArrowLeft, Edit, Camera, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const ReferrerInfo = ({ referrerId }: { referrerId: string }) => {
   const firestore = useFirestore();
@@ -46,20 +48,40 @@ const ReferrerInfo = ({ referrerId }: { referrerId: string }) => {
 
 export default function ProfileView() {
   const { userProfile, isAdmin } = useUser();
-  const [localDisplayName, setLocalDisplayName] = useState(userProfile?.displayName ?? '');
-  const [localPhotoURL, setLocalPhotoURL] = useState(userProfile?.photoURL ?? null);
+  
+  // State for local edits
+  const [localDisplayName, setLocalDisplayName] = useState('');
+  const [localPhotoURL, setLocalPhotoURL] = useState<string | null>(null);
+  const [useLocalProfile, setUseLocalProfile] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Initialize state from localStorage and userProfile
   useEffect(() => {
     if (userProfile) {
-      setLocalDisplayName(userProfile.displayName ?? '');
-      setLocalPhotoURL(userProfile.photoURL ?? null);
+        try {
+            const storedName = localStorage.getItem('localDisplayName');
+            const storedAvatar = localStorage.getItem('localPhotoURL');
+            const storedToggle = localStorage.getItem('useLocalProfile') === 'true';
+
+            setLocalDisplayName(storedName || userProfile.displayName || '');
+            setLocalPhotoURL(storedAvatar || userProfile.photoURL || null);
+            setUseLocalProfile(storedToggle);
+
+        } catch (e) {
+            console.error("Failed to access localStorage", e);
+            // Fallback to userProfile if localStorage fails
+            setLocalDisplayName(userProfile.displayName || '');
+            setLocalPhotoURL(userProfile.photoURL || null);
+        }
     }
   }, [userProfile]);
 
-  const getInitials = (name: string | null) => {
-    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
+  // Handlers to update state and localStorage
+  const handleNameChange = (newName: string) => {
+    setLocalDisplayName(newName);
+    localStorage.setItem('localDisplayName', newName);
   };
 
   const handlePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,10 +89,23 @@ export default function ProfileView() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setLocalPhotoURL(reader.result as string);
+        const result = reader.result as string;
+        setLocalPhotoURL(result);
+        localStorage.setItem('localPhotoURL', result);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleToggleChange = (checked: boolean) => {
+    setUseLocalProfile(checked);
+    localStorage.setItem('useLocalProfile', String(checked));
+    // Force a reload to ensure the context updates everywhere
+    window.location.reload();
+  };
+
+  const getInitials = (name: string | null) => {
+    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   };
 
   const handleNameKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -96,6 +131,9 @@ export default function ProfileView() {
       )
   }
 
+  const displayedName = useLocalProfile ? localDisplayName : userProfile.displayName;
+  const displayedPhoto = useLocalProfile ? localPhotoURL : userProfile.photoURL;
+
   return (
     <Card>
       <CardHeader>
@@ -111,8 +149,8 @@ export default function ProfileView() {
                 whileHover={{ scale: 1.05 }}
             >
                 <Avatar className="h-24 w-24 border-4 border-primary/20">
-                    <AvatarImage src={localPhotoURL ?? undefined} alt={localDisplayName ?? 'User'} />
-                    <AvatarFallback className="text-3xl">{getInitials(localDisplayName)}</AvatarFallback>
+                    <AvatarImage src={displayedPhoto ?? undefined} alt={displayedName ?? 'User'} />
+                    <AvatarFallback className="text-3xl">{getInitials(displayedName)}</AvatarFallback>
                 </Avatar>
                 <button 
                     onClick={() => fileInputRef.current?.click()}
@@ -135,14 +173,14 @@ export default function ProfileView() {
                     <Input
                         type="text"
                         value={localDisplayName}
-                        onChange={(e) => setLocalDisplayName(e.target.value)}
+                        onChange={(e) => handleNameChange(e.target.value)}
                         onBlur={() => setIsEditingName(false)}
                         onKeyDown={handleNameKeyDown}
                         className="text-2xl font-semibold h-10 text-center"
                         autoFocus
                     />
                 ) : (
-                    <CardTitle className="text-2xl">{localDisplayName}</CardTitle>
+                    <CardTitle className="text-2xl">{displayedName}</CardTitle>
                 )}
                 <Button variant="ghost" size="icon" onClick={() => setIsEditingName(!isEditingName)}>
                     <Edit className="h-4 w-4 text-muted-foreground" />
@@ -154,6 +192,17 @@ export default function ProfileView() {
       </CardHeader>
       <CardContent className="pt-6">
         <Separator />
+         <div className="mt-6 p-4 border rounded-lg flex items-center justify-between bg-secondary/50">
+            <Label htmlFor="local-profile-switch" className="flex flex-col gap-1">
+                <span className="font-semibold flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary"/>Use Local Profile</span>
+                <span className="text-xs text-muted-foreground">Use the name and avatar edited here across the app.</span>
+            </Label>
+            <Switch
+                id="local-profile-switch"
+                checked={useLocalProfile}
+                onCheckedChange={handleToggleChange}
+            />
+        </div>
         <div className="mt-6">
           {userProfile.referredBy ? (
             <ReferrerInfo referrerId={userProfile.referredBy} />
