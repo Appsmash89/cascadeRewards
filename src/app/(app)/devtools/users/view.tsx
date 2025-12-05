@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 
 const SIMULATED_USERS_KEY = 'simulatedUsers';
 
@@ -107,8 +108,8 @@ export default function UserManagementView() {
       <CardContent>
         <div className="divide-y rounded-lg border">
           {users && users.sort((a, b) => (a.displayName ?? '').localeCompare(b.displayName ?? '')).map(user => (
-            <div key={user.uid} className="flex items-center justify-between p-3 gap-2 hover:bg-secondary transition-colors">
-              <div className="flex items-center gap-3 flex-grow">
+            <div key={user.uid} className="p-3 hover:bg-secondary transition-colors">
+              <div className="flex items-center gap-3">
                  <Avatar>
                     <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? "User"} />
                     <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
@@ -118,18 +119,21 @@ export default function UserManagementView() {
                   <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground flex-shrink-0">
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={`/devtools/users/${user.uid}`}>
-                        <UserIcon className="mr-2 h-4 w-4" /> Manage
-                    </Link>
-                </Button>
-                 <Button variant="outline" size="sm" asChild>
-                    <Link href={`/devtools/earnings/${user.uid}`}>
-                        <TrendingUp className="mr-2 h-4 w-4" /> Earnings
-                    </Link>
-                </Button>
-                <div className="flex items-center space-x-2 pl-2 border-l">
+              <Separator className="my-3" />
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href={`/devtools/users/${user.uid}`}>
+                            <UserIcon className="mr-2 h-4 w-4" /> Manage
+                        </Link>
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href={`/devtools/earnings/${user.uid}`}>
+                            <TrendingUp className="mr-2 h-4 w-4" /> Earnings
+                        </Link>
+                    </Button>
+                </div>
+                <div className="flex items-center space-x-2">
                   <Checkbox
                     id={`simulate-${user.uid}`}
                     checked={simulatedUsers.has(user.uid)}
@@ -145,3 +149,4 @@ export default function UserManagementView() {
     </Card>
   );
 }
+
