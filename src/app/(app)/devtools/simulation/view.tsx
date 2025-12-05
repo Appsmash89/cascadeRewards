@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/hooks/use-toast';
@@ -10,12 +10,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-import { Loader2, ArrowLeft, Beaker } from 'lucide-react';
+import { Loader2, ArrowLeft, Beaker, Camera } from 'lucide-react';
 import type { UserProfile } from '@/lib/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 const SIMULATION_STORAGE_KEY = 'simulationProfile';
 
 type SimulationData = {
+  displayName: string;
+  photoURL: string | null;
   points: number;
   level: number;
   totalEarned: number;
@@ -26,8 +30,11 @@ export default function SimulationView() {
   const { isAdmin, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<SimulationData>({
+    displayName: 'Simulated User',
+    photoURL: null,
     points: 1000,
     level: 5,
     totalEarned: 450,
@@ -60,6 +67,18 @@ export default function SimulationView() {
       [id]: type === 'number' ? Number(value) : value,
     }));
   };
+  
+  const handlePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setFormData(prev => ({ ...prev, photoURL: result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = () => {
     try {
@@ -76,6 +95,10 @@ export default function SimulationView() {
             description: 'Could not save data to local storage. Check browser permissions.'
         });
     }
+  };
+  
+  const getInitials = (name: string | null) => {
+    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   };
 
   if (isUserLoading) {
@@ -114,6 +137,32 @@ export default function SimulationView() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="flex flex-col items-center gap-4">
+            <div className="relative group">
+                <Avatar className="h-24 w-24 border">
+                    <AvatarImage src={formData.photoURL ?? undefined} alt={formData.displayName} />
+                    <AvatarFallback className="text-3xl">{getInitials(formData.displayName)}</AvatarFallback>
+                </Avatar>
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                    <Camera className="h-8 w-8 text-white" />
+                </button>
+                 <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handlePictureUpload}
+                />
+            </div>
+            <div className="space-y-2 w-full max-w-sm">
+                <Label htmlFor="displayName">Display Name</Label>
+                <Input id="displayName" type="text" value={formData.displayName} onChange={handleChange} />
+            </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="points">Points</Label>

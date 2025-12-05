@@ -49,11 +49,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { setTheme } = useTheme();
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
 
-  // States for local profile override
-  const [useLocalProfile, setUseLocalProfile] = useState(false);
-  const [localDisplayName, setLocalDisplayName] = useState<string | null>(null);
-  const [localPhotoURL, setLocalPhotoURL] = useState<string | null>(null);
-
   // States for simulation mode
   const [simulatedUserIds, setSimulatedUserIds] = useState<Set<string>>(new Set());
   const [simulationTemplate, setSimulationTemplate] = useState<Partial<UserProfile> & { referrals?: number } | null>(null);
@@ -91,14 +86,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Effect to load local profile & simulation settings from localStorage on mount
   useEffect(() => {
     try {
-        const localUse = localStorage.getItem('useLocalProfile') === 'true';
-        const localName = localStorage.getItem('localDisplayName');
-        const localAvatar = localStorage.getItem('localPhotoURL');
-
-        setUseLocalProfile(localUse);
-        if (localName) setLocalDisplayName(localName);
-        if (localAvatar) setLocalPhotoURL(localAvatar);
-
         const storedSimulatedUsers = localStorage.getItem(SIMULATED_USERS_KEY);
         if (storedSimulatedUsers) {
           setSimulatedUserIds(new Set(JSON.parse(storedSimulatedUsers)));
@@ -141,21 +128,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return {
             ...originalUserProfile,
             ...simulationTemplate,
+            displayName: simulationTemplate.displayName ?? originalUserProfile.displayName,
+            photoURL: simulationTemplate.photoURL ?? originalUserProfile.photoURL,
             points: Number(simulationTemplate.points) ?? originalUserProfile.points,
             level: Number(simulationTemplate.level) ?? originalUserProfile.level,
             totalEarned: Number(simulationTemplate.totalEarned) ?? originalUserProfile.totalEarned,
+            referrals: Number(simulationTemplate.referrals) ?? 0,
         };
     }
     
-    // Local profile override for regular users
-    const shouldOverride = useLocalProfile && !isAdmin;
-
-    return {
-      ...originalUserProfile,
-      displayName: shouldOverride && localDisplayName ? localDisplayName : originalUserProfile.displayName,
-      photoURL: shouldOverride && localPhotoURL ? localPhotoURL : originalUserProfile.photoURL,
-    };
-  }, [originalUserProfile, useLocalProfile, localDisplayName, localPhotoURL, isAdmin, isSimulated, simulationTemplate]);
+    return originalUserProfile;
+  }, [originalUserProfile, isSimulated, simulationTemplate]);
 
 
   // Memoize the context value to prevent unnecessary re-renders of consumers.
