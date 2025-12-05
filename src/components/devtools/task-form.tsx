@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -35,8 +36,8 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
+  CommandInput,
 } from "@/components/ui/command"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from '@/lib/utils';
@@ -99,7 +100,7 @@ const ComboboxInput = ({ field, options, placeholder }: { field: any, options: (
               <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-0" align="center">
+          <PopoverContent className="w-[300px] p-0" align={'center'}>
             <Command>
               <CommandInput placeholder="Search options..." />
               <CommandEmpty>No options found.</CommandEmpty>

@@ -22,7 +22,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { TrendingUp, CheckCircle, LayoutGrid, Feather, Sparkles } from "lucide-react";
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
 const POINTS_PER_LEVEL = 100;
 
 const filterCategories = ['All', 'High Reward', 'Easy', 'New', 'Completed'];
@@ -84,9 +83,8 @@ const XPProgressRing = ({ progress, size = 80 }: { progress: number, size?: numb
 
 
 export default function DashboardView() {
-  const { user, userProfile } = useUser();
+  const { user, userProfile, isAdmin } = useUser();
   const firestore = useFirestore();
-  const isGuestMode = user?.email === GUEST_EMAIL;
   const [activeFilter, setActiveFilter] = useState('All');
 
   // 1. Fetch all master tasks
@@ -186,7 +184,7 @@ export default function DashboardView() {
         </div>
       </div>
       
-      <StatsCards user={userProfile} referrals={[]} isGuest={isGuestMode} />
+      <StatsCards user={userProfile} referrals={[]} isGuest={isAdmin} />
       
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         <Card className="shadow-sm">
@@ -241,7 +239,7 @@ export default function DashboardView() {
             </div>
             <TasksList 
               tasks={filteredTasks}
-              isGuestMode={isGuestMode}
+              isGuestMode={isAdmin}
               isCompletedView={activeFilter === 'Completed'}
             />
           </CardContent>

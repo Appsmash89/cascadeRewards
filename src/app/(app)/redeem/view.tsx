@@ -27,16 +27,14 @@ import { useRouter } from "next/navigation";
 import AnimatedCounter from "@/components/animated-counter";
 
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
 const CREATE_TASK_REWARD_ID = 'create-task-reward';
 
 export default function RedeemView() {
-  const { user, userProfile } = useUser();
+  const { user, userProfile, isAdmin } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
   const [showReferrerDialog, setShowReferrerDialog] = useState(false);
-  const isGuestMode = user?.email === GUEST_EMAIL;
 
   const rewards = [
     ...rewardsData,
@@ -57,11 +55,11 @@ export default function RedeemView() {
   const currentLevel = userProfile?.level ?? 1;
 
   const handleRedeem = async (pointsCost: number, title: string, id: string) => {
-    if (isGuestMode) {
+    if (isAdmin) {
       toast({
         variant: "destructive",
-        title: "Guest Mode",
-        description: "Sign in to unlock this reward.",
+        title: "Admin Mode",
+        description: "Admins cannot redeem rewards.",
       });
       return;
     }
@@ -156,7 +154,7 @@ export default function RedeemView() {
                         reward={reward}
                         userPoints={currentPoints}
                         onRedeem={() => handleRedeem(reward.points, reward.title, reward.id)}
-                        isGuest={isGuestMode}
+                        isGuest={isAdmin}
                         index={i}
                     />
                 ))}

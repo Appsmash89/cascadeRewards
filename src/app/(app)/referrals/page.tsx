@@ -7,18 +7,15 @@ import { useUser } from "@/hooks/use-user";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
-const GUEST_EMAIL = 'guest.dev@cascade.app';
-
 function ReferralsView() {
-  const { user, userProfile } = useUser();
-  const isGuestMode = user?.email === GUEST_EMAIL;
+  const { userProfile, isAdmin } = useUser();
   
   if (!userProfile) {
     return null;
   }
 
   return (
-    <ReferralSection user={userProfile} referrals={referrals} isGuest={isGuestMode} />
+    <ReferralSection user={userProfile} referrals={referrals} isGuest={isAdmin} />
   );
 }
 

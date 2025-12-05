@@ -45,6 +45,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { setTheme } = useTheme();
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
 
+  // States for local profile override
+  const [useLocalProfile, setUseLocalProfile] = useState(false);
+  const [localDisplayName, setLocalDisplayName] = useState<string | null>(null);
+  const [localPhotoURL, setLocalPhotoURL] = useState<string | null>(null);
+
+
   // Effect to manage the user document in Firestore whenever the auth state changes.
   useEffect(() => {
     if (authUser && firestore && !isInitialSyncDone) {
@@ -63,7 +69,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Subscribe to the user's profile document in real-time.
   const {
-    data: userProfile,
+    data: originalUserProfile,
     isLoading: isProfileLoading,
     error: profileError,
   } = useDoc<UserProfile>(userProfileRef);
@@ -74,19 +80,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
+  // Effect to load local profile settings from localStorage on mount
+  useEffect(() => {
+    try {
+        const localUse = localStorage.getItem('useLocalProfile') === 'true';
+        const localName = localStorage.getItem('localDisplayName');
+        const localAvatar = localStorage.getItem('localPhotoURL');
+
+        setUseLocalProfile(localUse);
+        if (localName) setLocalDisplayName(localName);
+        if (localAvatar) setLocalPhotoURL(localAvatar);
+
+    } catch (error) {
+        console.error("Could not read from localStorage", error);
+    }
+  }, []);
+
   // Effect to sync user's chosen theme with the app's theme.
   useEffect(() => {
-    if (userProfile?.settings?.theme) {
-      setTheme(userProfile.settings.theme);
+    if (originalUserProfile?.settings?.theme) {
+      setTheme(originalUserProfile.settings.theme);
     } else {
       setTheme('default');
     }
-  }, [userProfile, setTheme]);
+  }, [originalUserProfile, setTheme]);
 
   const isAdmin = useMemo(() => {
     if (!authUser || !appSettings) return false;
     return authUser.email === GUEST_EMAIL || (appSettings.adminEmails || []).includes(authUser.email!);
   }, [authUser, appSettings]);
+
+  // Create a memoized, potentially overridden user profile
+  const userProfile = useMemo(() => {
+    if (!originalUserProfile) return null;
+    
+    const shouldOverride = useLocalProfile && !isAdmin;
+
+    return {
+      ...originalUserProfile,
+      displayName: shouldOverride && localDisplayName ? localDisplayName : originalUserProfile.displayName,
+      photoURL: shouldOverride && localPhotoURL ? localPhotoURL : originalUserProfile.photoURL,
+    };
+  }, [originalUserProfile, useLocalProfile, localDisplayName, localPhotoURL, isAdmin]);
+
 
   // Memoize the context value to prevent unnecessary re-renders of consumers.
   const contextValue = useMemo<AppContextType>(

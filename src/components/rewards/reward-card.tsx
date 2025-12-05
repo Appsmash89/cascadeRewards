@@ -72,7 +72,7 @@ export default function RewardCard({ reward, userPoints, onRedeem, isGuest, inde
                       !canAfford && "bg-secondary hover:bg-secondary opacity-70"
                   )}
               >
-                  {isGuest ? 'Sign in to redeem' : canAfford ? 'Redeem Now' : 'Not Enough Points'}
+                  {isGuest ? 'Admins cannot redeem' : canAfford ? 'Redeem Now' : 'Not Enough Points'}
               </Button>
           </div>
         </CardContent>
@@ -83,8 +83,8 @@ export default function RewardCard({ reward, userPoints, onRedeem, isGuest, inde
                 !isGuest && canAfford && 'hidden' // Hide if user can afford and is not a guest
             )}>
                 <Lock className="h-8 w-8 text-foreground mb-2" />
-                <p className="font-semibold">{isGuest ? 'Sign in to unlock this reward' : 'Earn more to unlock'}</p>
-                {isGuest && <p className="text-xs text-muted-foreground">Guests cannot redeem rewards.</p>}
+                <p className="font-semibold">{isGuest ? 'Admin accounts cannot redeem rewards' : 'Earn more to unlock'}</p>
+                {isGuest && <p className="text-xs text-muted-foreground">This is to prevent accidental point spending.</p>}
             </div>
         )}
       </Card>
