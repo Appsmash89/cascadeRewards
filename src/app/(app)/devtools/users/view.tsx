@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -105,7 +106,7 @@ export default function UserManagementView() {
       </CardHeader>
       <CardContent>
         <div className="divide-y rounded-lg border">
-          {users && users.sort((a, b) => a.displayName!.localeCompare(b.displayName!)).map(user => (
+          {users && users.sort((a, b) => (a.displayName ?? '').localeCompare(b.displayName ?? '')).map(user => (
             <div key={user.uid} className="flex items-center justify-between p-3 gap-2 hover:bg-secondary transition-colors">
               <div className="flex items-center gap-3 flex-grow">
                  <Avatar>
