@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -13,6 +12,7 @@ import type { Task, UserTask, UserProfile, AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import React from 'react';
+import { useParams } from 'next/navigation';
 
 const taskIcons = {
   video: <PlayCircle className="h-6 w-6 text-primary" />,
@@ -51,10 +51,12 @@ const CreatedByBadge = ({ creatorUid }: { creatorUid?: string }) => {
 };
 
 
-export default function TaskDetailView({ taskId }: { taskId: string }) {
+export default function TaskDetailView() {
   const firestore = useFirestore();
   const { user, userProfile } = useUser();
   const { toast } = useToast();
+  const params = useParams();
+  const taskId = params.taskId as string;
 
   const taskRef = useMemoFirebase(() => 
     firestore ? doc(firestore, 'tasks', taskId) : null,

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
@@ -12,7 +11,7 @@ import type { Task, UserProfile, UserTask, WithId } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useMemo, useState, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { TIER_1_BONUS_RATE, TIER_2_BONUS_RATE } from '@/lib/types';
 import AnimatedCounter from '@/components/animated-counter';
 
@@ -38,10 +37,12 @@ const StatCard = ({ title, value, icon }: { title: string, value: number, icon: 
     </Card>
 );
 
-export default function EarningsBreakdownView({ userId }: { userId: string }) {
+export default function EarningsBreakdownView() {
   const firestore = useFirestore();
   const { isAdmin, isUserLoading: isAdminLoading } = useUser();
   const router = useRouter();
+  const params = useParams();
+  const userId = params.userId as string;
 
   const [breakdown, setBreakdown] = useState<Breakdown | null>(null);
   const [isLoading, setIsLoading] = useState(true);

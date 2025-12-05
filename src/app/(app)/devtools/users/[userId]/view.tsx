@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { POINTS_PER_LEVEL, TIER_1_BONUS_RATE, TIER_2_BONUS_RATE } from '@/lib/types';
 
 
@@ -41,11 +41,13 @@ type PreviousState = {
   level: number;
 } | null;
 
-export default function ManageUserTasksView({ userId }: { userId: string }) {
+export default function ManageUserTasksView() {
   const firestore = useFirestore();
   const { isAdmin, isUserLoading: isAdminLoading } = useUser();
   const { toast } = useToast();
   const router = useRouter();
+  const params = useParams();
+  const userId = params.userId as string;
 
   const [previousState, setPreviousState] = useState<PreviousState | null>(null);
 
