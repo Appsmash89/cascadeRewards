@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -24,6 +23,12 @@ const navItems = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
+const guestNavItems = [
+  ...navItems,
+  { href: '/devtools', label: 'DevTools', icon: Bot }
+];
+
+
 export default function BottomNav() {
   const pathname = usePathname();
   const { isAdmin, isUserLoading } = useUser();
@@ -35,8 +40,7 @@ export default function BottomNav() {
   );
   const { data: appSettings } = useDoc<AppSettings>(settingsRef);
 
-  const allNavItems = isAdmin ? [...navItems, { href: '/devtools', label: 'DevTools', icon: Bot }] : navItems;
-  const navGridCols = isAdmin ? 'grid-cols-5' : 'grid-cols-4';
+  const allNavItems = isAdmin ? guestNavItems : navItems;
 
   if (isUserLoading) {
     return null; // Don't render nav while we confirm admin status
@@ -47,12 +51,14 @@ export default function BottomNav() {
       "fixed bottom-0 left-0 right-0 h-14 bg-background/80 backdrop-blur-lg border-t z-20 max-w-md mx-auto",
       appSettings?.pastelBackgroundEnabled && "bg-[hsl(var(--pastel-background),0.8)]"
     )}>
-      <div className={cn("grid h-full", navGridCols)}>
+      <div className={cn("grid h-full", isAdmin ? "grid-cols-5" : "grid-cols-4")}>
         {allNavItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors relative">
-                <item.icon className={cn('h-5 w-5', isActive && 'text-primary')} />
+                <motion.div whileTap={{ scale: 1.08 }}>
+                    <item.icon className={cn('h-5 w-5', isActive && 'text-primary')} />
+                </motion.div>
               <AnimatePresence>
                 {isActive && (
                   <motion.div 

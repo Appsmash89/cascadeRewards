@@ -18,7 +18,7 @@ export type UserProfile = {
   settings: {
     notificationsEnabled: boolean;
     darkMode: boolean;
-    theme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape';
+    theme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape' | 'system' | 'light' | 'dark';
   };
   interests: TaskCategory[];
 };
@@ -29,6 +29,11 @@ export type AppSettings = {
   pastelBackgroundEnabled?: boolean;
   pastelBackgroundColor?: string; // HSL value string e.g. "240 60% 95%"
   adminEmails?: string[];
+  taskTitleOptions?: string[];
+  taskDescriptionOptions?: string[];
+  taskPointsOptions?: number[];
+  taskLinkOptions?: string[];
+  taskContentOptions?: string[];
 }
 
 export type User = {
@@ -78,6 +83,8 @@ export type Reward = {
   description: string;
   points: number;
   imageUrl: string;
+  popular?: boolean;
+  lowStock?: boolean;
 };
 
 export type Feedback = {

@@ -1,17 +1,17 @@
+
 'use client';
 
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, serverTimestamp, increment, setDoc } from 'firebase/firestore';
 import { useParams } from 'next/navigation';
 import { useUser } from '@/hooks/use-user';
-import { Loader2, Star, ArrowLeft, PlayCircle, FileText } from 'lucide-react';
+import { Loader2, Star, ArrowLeft, PlayCircle, FileText, UserCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import type { Task, UserTask } from '@/lib/types';
+import type { Task, UserTask, UserProfile, AppSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { motion } from 'framer-motion';
 import React from 'react';
 
@@ -19,6 +19,38 @@ const taskIcons = {
   video: <PlayCircle className="h-6 w-6 text-primary" />,
   read: <FileText className="h-6 w-6 text-indigo-500" />,
 };
+
+const CreatedByBadge = ({ creatorUid }: { creatorUid?: string }) => {
+    const firestore = useFirestore();
+
+    const creatorProfileRef = useMemoFirebase(() =>
+        firestore && creatorUid ? doc(firestore, 'users', creatorUid) : null,
+        [firestore, creatorUid]
+    );
+    const { data: creatorProfile, isLoading: isCreatorLoading } = useDoc<UserProfile>(creatorProfileRef);
+    
+    const settingsRef = useMemoFirebase(() => 
+        firestore ? doc(firestore, 'app-settings', 'global') : null, 
+        [firestore]
+    );
+    const { data: appSettings } = useDoc<AppSettings>(settingsRef);
+
+    if (isCreatorLoading || !creatorProfile || !appSettings) {
+        return null;
+    }
+
+    const adminEmails = appSettings.adminEmails || [];
+    const isCreatorAdmin = adminEmails.includes(creatorProfile.email || '') || creatorProfile.email === 'guest.dev@cascade.app';
+    const creatorName = isCreatorAdmin ? 'System' : creatorProfile.displayName;
+
+    return (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
+            <UserCircle className="h-4 w-4" />
+            <span>Created by: <span className="font-medium">{creatorName}</span></span>
+        </div>
+    );
+};
+
 
 export default function TaskDetailView({ taskId }: { taskId: string }) {
   const firestore = useFirestore();
@@ -40,15 +72,12 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
   const handleStartTask = (e: React.MouseEvent) => {
     if (!userProfile || !firestore || !task) return;
 
-    // Prevent navigation if there's no link
     if (!task.link) {
       e.preventDefault();
     }
     
-    // Only update status if it's currently 'available'
     if (userTask?.status === 'available' || !userTask) {
       const userTaskDocRef = doc(firestore, 'users', userProfile.uid, 'tasks', taskId);
-      // Use setDoc with merge to create or update
       setDoc(userTaskDocRef, { status: 'in-progress' }, { merge: true })
         .catch(error => {
           console.error("Error starting task:", error);
@@ -96,14 +125,19 @@ export default function TaskDetailView({ taskId }: { taskId: string }) {
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4 flex-1 min-w-0">
-              <div className="bg-secondary p-3 rounded-full mt-1">
-                {taskIcons[task.type]}
-              </div>
-              <div className='flex-1 min-w-0'>
-                <CardTitle className="break-words">{task.title}</CardTitle>
-                <CardDescription className="break-words">{task.description}</CardDescription>
-              </div>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-start gap-4">
+                    <div className="bg-secondary p-3 rounded-full mt-1">
+                        {taskIcons[task.type]}
+                    </div>
+                    <div className='flex-1 min-w-0'>
+                        <CardTitle className="break-words">{task.title}</CardTitle>
+                        <CardDescription className="break-words">{task.description}</CardDescription>
+                    </div>
+                </div>
+                <div className="pl-16">
+                   <CreatedByBadge creatorUid={task.creatorUid} />
+                </div>
             </div>
             <Badge variant="secondary" className="flex items-center gap-1.5 text-base font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20">
               <Star className="h-4 w-4" />

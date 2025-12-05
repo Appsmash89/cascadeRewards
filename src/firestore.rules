@@ -13,8 +13,18 @@ service cloud.firestore {
     }
 
     function isAdmin() {
+      // Use `exists` to safely access the document.
+      let adminDocExists = exists(/databases/$(database)/documents/app-settings/global);
+      if (!adminDocExists) {
+        // If the doc doesn't exist, only the hardcoded guest admin is an admin.
+        return request.auth.token.email == 'guest.dev@cascade.app';
+      }
+      
       let adminList = get(/databases/$(database)/documents/app-settings/global).data.adminEmails;
-      return request.auth.token.email == 'guest.dev@cascade.app' || request.auth.token.email in adminList;
+      // Ensure adminList is not null before checking `in`.
+      let emailInList = adminList != null && request.auth.token.email in adminList;
+      
+      return request.auth.token.email == 'guest.dev@cascade.app' || emailInList;
     }
 
     // Function to validate the structure and types of the UserProfile document on creation.
@@ -85,12 +95,16 @@ service cloud.firestore {
 
     match /tasks/{taskId} {
         allow get, list: if isSignedIn();
-        allow create: if isSignedIn();
-        allow update, delete: if isAdmin() || (request.resource.data.creatorUid == request.auth.uid);
+        // Any signed-in user can create a task (for the "create-task" reward).
+        allow create: if isSignedIn() && request.resource.data.creatorUid == request.auth.uid;
+        // Only an admin or the original creator can update or delete a task.
+        allow update, delete: if isAdmin() || (resource.data.creatorUid == request.auth.uid);
     }
     
     match /feedback/{feedbackId} {
-      allow create: if isSignedIn() && !isAdmin();
+      // Any signed-in user can create feedback.
+      allow create: if isSignedIn();
+      // Only the admin can read, list, update, or delete feedback.
       allow read, list, update, delete: if isAdmin();
     }
   }

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Gift, LogOut, User as UserIcon } from "lucide-react"
+import { LogOut, User as UserIcon } from "lucide-react"
 import { useRouter } from "next/navigation";
 import { useAuth, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { signOut } from "firebase/auth";
@@ -19,11 +19,21 @@ import type { UserProfile, AppSettings } from "@/lib/types";
 import { motion } from "framer-motion";
 import { doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 type DashboardHeaderProps = {
   user: UserProfile | null;
   isAdmin: boolean;
 }
+
+const CascadeLogo = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 8H16" stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round"/>
+    <path d="M4 12H20" stroke="hsl(var(--primary))" strokeOpacity="0.7" strokeWidth="3" strokeLinecap="round"/>
+    <path d="M4 16H12" stroke="hsl(var(--primary))" strokeOpacity="0.4" strokeWidth="3" strokeLinecap="round"/>
+  </svg>
+);
+
 
 export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps) {
   const getInitials = (name: string) => {
@@ -77,7 +87,7 @@ export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps)
     >
       <div className="flex h-full items-center gap-4 w-full">
         <div className="flex items-center gap-2 font-semibold">
-          <Gift className="h-6 w-6 text-primary" />
+          <CascadeLogo />
           <span className="font-gliker text-lg tracking-tight font-bold">Cascade</span>
         </div>
 
@@ -102,10 +112,14 @@ export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps)
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem disabled={isAdmin} className="cursor-pointer">
-                <UserIcon className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
+              {!isAdmin && (
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link href="/profile">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10">
                 <LogOut className="mr-2 h-4 w-4" />
@@ -118,3 +132,5 @@ export default function DashboardHeader({ user, isAdmin }: DashboardHeaderProps)
     </motion.div>
   )
 }
+
+    

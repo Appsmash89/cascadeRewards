@@ -32,27 +32,31 @@ export const rewards: Reward[] = [
     title: '$5 Amazon Gift Card',
     description: 'Redeem for a $5 gift card.',
     points: 500,
-    imageUrl: 'https://picsum.photos/seed/amazon/300/200'
+    imageUrl: 'https://images.unsplash.com/photo-1544465348-1335f56a3e14?w=500',
+    popular: true,
   },
   {
     id: 'reward-2',
     title: '$10 Starbucks Gift Card',
     description: 'Redeem for a $10 gift card.',
     points: 1000,
-    imageUrl: 'https://picsum.photos/seed/starbucks/300/200'
+    imageUrl: 'https://images.unsplash.com/photo-1621360029314-b25b646875a5?w=500'
   },
    {
     id: 'reward-3',
     title: '$20 Target Gift Card',
     description: 'Redeem for a $20 gift card.',
     points: 2000,
-    imageUrl: 'https://picsum.photos/seed/target/300/200'
+    imageUrl: 'https://images.unsplash.com/photo-1577977085593-3c27f87f6511?w=500'
   },
   {
     id: 'reward-4',
     title: '$50 Best Buy Gift Card',
     description: 'Redeem for a $50 gift card.',
     points: 5000,
-    imageUrl: 'https://picsum.photos/seed/bestbuy/300/200'
+    imageUrl: 'https://images.unsplash.com/photo-1588665809893-871038595b87?w=500',
+    lowStock: true
   },
 ]
+
+    

@@ -4,24 +4,30 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Gift, Chrome, Loader2 } from 'lucide-react';
+import { Chrome, Loader2 } from 'lucide-react';
 import { useAuth, initiateEmailSignIn } from '@/firebase';
 import { useUser } from '@/hooks/use-user';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc, getDoc } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 
 // Hardcoded credentials for the persistent guest user
 const GUEST_EMAIL = 'guest.dev@cascade.app';
 const GUEST_PASSWORD = 'super-secret-password-12345!';
 
+const CascadeLogo = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M4 8H16" stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round"/>
+    <path d="M4 12H20" stroke="hsl(var(--primary))" strokeOpacity="0.7" strokeWidth="3" strokeLinecap="round"/>
+    <path d="M4 16H12" stroke="hsl(var(--primary))" strokeOpacity="0.4" strokeWidth="3" strokeLinecap="round"/>
+  </svg>
+);
+
 
 export default function LoginPage() {
   const router = useRouter();
-  const { auth, firestore } = useAuth();
+  const { auth } = useAuth();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const [loadingProvider, setLoadingProvider] = useState<null | 'google' | 'guest'>(null);
@@ -99,10 +105,10 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4">
       <div className="flex flex-col items-center gap-4 mb-8 text-center">
-        <div className="bg-primary/10 border border-primary/20 p-3 rounded-full text-primary">
-          <Gift className="h-10 w-10" />
+        <div className="text-primary">
+          <CascadeLogo />
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Cascade</h1>
+        <h1 className="font-gliker text-4xl font-bold tracking-tight">Cascade</h1>
         <p className="text-muted-foreground max-w-xs">The next-generation platform for rewards and referrals.</p>
       </div>
       <Card className="w-full max-w-sm border-0 shadow-lg shadow-primary/5">
@@ -143,3 +149,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    

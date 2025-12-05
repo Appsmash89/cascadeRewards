@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Reward } from '@/lib/types';
-import { Star } from 'lucide-react';
+import { Star, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 type RewardCardProps = {
-  reward: Reward;
+  reward: Reward & { popular?: boolean; lowStock?: boolean };
   userPoints: number;
   onRedeem: (points: number, title: string) => void;
   isGuest: boolean;
@@ -31,45 +31,62 @@ export default function RewardCard({ reward, userPoints, onRedeem, isGuest, inde
       variants={cardVariants}
       initial="hidden"
       animate="visible"
-      whileHover={{ y: -5 }}
+      whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}
       className="h-full"
     >
-      <Card className="overflow-hidden transition-shadow hover:shadow-lg flex flex-col h-full">
-        <div className="relative h-32 w-full">
+      <Card className={cn(
+        "overflow-hidden transition-all flex flex-col h-full rounded-xl border-2 border-black/5 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/80 dark:to-gray-900/80 shadow-md",
+        (isGuest || !canAfford) && 'relative'
+      )}>
+        <div className="relative aspect-[16/9] w-full">
           <Image
             src={reward.imageUrl}
             alt={reward.title}
             fill
+            sizes="(max-width: 640px) 100vw, 50vw"
             style={{ objectFit: 'cover' }}
             data-ai-hint="gift card"
           />
+          {reward.popular && (
+             <Badge className="absolute top-2 right-2 bg-accent text-accent-foreground">Popular</Badge>
+          )}
+           {reward.lowStock && (
+             <Badge variant="destructive" className="absolute top-2 left-2">Low Stock</Badge>
+          )}
         </div>
         <CardContent className="p-4 flex flex-col flex-grow">
           <h4 className="text-base font-semibold tracking-tight truncate">{reward.title}</h4>
-          <p className="text-sm text-muted-foreground mb-3 flex-grow">{reward.description}</p>
+          <p className="text-sm text-muted-foreground mb-4 flex-grow">{reward.description}</p>
           
-          <div className="flex flex-col items-start gap-3 mt-auto">
-              <Badge variant="secondary" className="text-base font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20">
-                  <Star className="h-4 w-4 mr-1.5" />
-                  {reward.points.toLocaleString()}
-              </Badge>
-
-              <div className="w-full">
-                <Button 
-                    size="sm" 
-                    onClick={() => onRedeem(reward.points, reward.title)}
-                    disabled={!canAfford || isGuest}
-                    className={cn(
-                        "w-full transition-all duration-300",
-                        !canAfford && "bg-secondary hover:bg-secondary"
-                    )}
-                >
-                    {isGuest ? 'Sign in to Redeem' : (canAfford ? 'Redeem' : 'More Points')}
-                </Button>
+          <div className="flex flex-col items-center gap-3 mt-auto">
+             <div className="py-1 px-4 rounded-full bg-amber-400/80 text-black font-bold flex items-center gap-2 shadow-inner">
+                  <Star className="h-4 w-4" />
+                  <span>{reward.points.toLocaleString()}</span>
               </div>
-          </div>
 
+              <Button 
+                  onClick={() => onRedeem(reward.points, reward.title)}
+                  disabled={!canAfford || isGuest}
+                  className={cn(
+                      "w-full transition-all duration-300",
+                      !canAfford && "bg-secondary hover:bg-secondary opacity-70"
+                  )}
+              >
+                  {isGuest ? 'Sign in to redeem' : canAfford ? 'Redeem Now' : 'Not Enough Points'}
+              </Button>
+          </div>
         </CardContent>
+        
+        {(isGuest || !canAfford) && (
+            <div className={cn(
+                "absolute inset-0 bg-white/70 dark:bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center text-center p-4",
+                !isGuest && canAfford && 'hidden' // Hide if user can afford and is not a guest
+            )}>
+                <Lock className="h-8 w-8 text-foreground mb-2" />
+                <p className="font-semibold">{isGuest ? 'Sign in to unlock this reward' : 'Earn more to unlock'}</p>
+                {isGuest && <p className="text-xs text-muted-foreground">Guests cannot redeem rewards.</p>}
+            </div>
+        )}
       </Card>
     </motion.div>
   );

@@ -47,7 +47,9 @@ export default function AppLayout({
 
   }, [user, userProfile, isUserLoading, router, pathname, isAdmin]);
 
-  const currentNavs = useMemo(() => isAdmin ? guestTopLevelNavItems : topLevelNavItems, [isAdmin]);
+  const currentNavs = useMemo(() => {
+    return isAdmin ? guestTopLevelNavItems : topLevelNavItems;
+  }, [isAdmin]);
   
   const isSwipeEnabled = currentNavs.includes(pathname);
   
@@ -90,15 +92,15 @@ export default function AppLayout({
     <div className="flex min-h-screen w-full flex-col bg-background overflow-x-hidden">
       <DashboardHeader user={userProfile} isAdmin={isAdmin}/>
         <motion.main
-            drag="x"
+            drag={isSwipeEnabled ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.1}
             onDragEnd={handleDragEnd}
             key={pathname}
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
             className="flex flex-1 flex-col gap-4 p-4 pt-20 pb-20"
         >
             {children}

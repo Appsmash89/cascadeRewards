@@ -1,9 +1,7 @@
 
 'use client'
 
-import {
-  Card,
-} from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Users, Wallet, TrendingUp } from 'lucide-react'
 import type { UserProfile, Referral } from '@/lib/types'
 import { motion } from 'framer-motion'
@@ -55,10 +53,10 @@ export default function StatsCards({ user, referrals, isGuest }: StatsCardsProps
       {stats.map((stat, index) => (
         <motion.div key={index} variants={itemVariants} className="h-full">
             <Link href={stat.href} className="h-full block">
-                <Card className="p-4 flex flex-col items-center justify-center text-center shadow-sm h-full transition-all duration-200 hover:bg-secondary hover:shadow-md">
+                <Card className="p-4 flex flex-col items-center justify-center text-center shadow-sm h-full transition-all duration-300 hover:bg-card/80 hover:shadow-lg">
                     <stat.icon className="h-6 w-6 text-muted-foreground mb-2" />
-                    <div className="text-lg font-bold tracking-tighter">
-                    <AnimatedCounter to={stat.value} />
+                    <div className="text-lg font-bold tracking-tighter text-card-foreground">
+                        <AnimatedCounter to={stat.value} />
                     </div>
                     <p className="text-xs text-muted-foreground">{stat.title}</p>
                 </Card>

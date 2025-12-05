@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { useUser } from '@/hooks/use-user';
-import { doc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import type { TaskCategory, AppSettings } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -73,9 +72,9 @@ export default function OnboardingView() {
     setIsSubmitting(true);
     try {
       const userDocRef = doc(firestore, 'users', user.uid);
-      await updateDocumentNonBlocking(userDocRef, {
+      await setDoc(userDocRef, {
         interests: Array.from(selectedInterests),
-      });
+      }, { merge: true });
 
       toast({
         title: 'Preferences Saved!',

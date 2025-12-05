@@ -3,12 +3,11 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUser } from "@/hooks/use-user";
-import { Loader2, Star, Edit } from "lucide-react";
+import { Star } from "lucide-react";
 import { rewards as rewardsData } from "@/lib/data";
 import RewardCard from "@/components/rewards/reward-card";
 import { useToast } from "@/hooks/use-toast";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
-import { doc, increment } from "firebase/firestore";
+import { doc, increment, setDoc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 import { motion } from 'framer-motion';
 import Link from "next/link";
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AnimatedCounter from "@/components/animated-counter";
 
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
@@ -54,13 +54,14 @@ export default function RedeemView() {
   }
 
   const currentPoints = userProfile?.points ?? 0;
+  const currentLevel = userProfile?.level ?? 1;
 
-  const handleRedeem = (pointsCost: number, title: string, id: string) => {
+  const handleRedeem = async (pointsCost: number, title: string, id: string) => {
     if (isGuestMode) {
       toast({
         variant: "destructive",
         title: "Guest Mode",
-        description: "Please sign in with Google to redeem rewards.",
+        description: "Sign in to unlock this reward.",
       });
       return;
     }
@@ -73,26 +74,33 @@ export default function RedeemView() {
 
        if (userProfile.points >= pointsCost) {
         const userDocRef = doc(firestore, 'users', userProfile.uid);
-        updateDocumentNonBlocking(userDocRef, {
-            points: increment(-pointsCost)
-        });
-        
-        if (id === CREATE_TASK_REWARD_ID) {
-          // Special handling for the create task reward
-           toast({
-            title: "Task Credit Purchased!",
-            description: "You can now create a new task.",
-            action: (
-              <Link href="/tasks/new">
-                <Button variant="outline" size="sm">Create Task</Button>
-              </Link>
-            )
-          });
-        } else {
-          toast({
-            title: "Redemption Successful!",
-            description: `You have redeemed the ${title}.`,
-          });
+        try {
+            await setDoc(userDocRef, {
+                points: increment(-pointsCost)
+            }, { merge: true });
+            
+            if (id === CREATE_TASK_REWARD_ID) {
+               toast({
+                title: "Task Credit Purchased!",
+                description: "You can now create a new task.",
+                action: (
+                  <Link href="/tasks/new">
+                    <Button variant="outline" size="sm">Create Task</Button>
+                  </Link>
+                )
+              });
+            } else {
+              toast({
+                title: "Redemption Successful!",
+                description: `You have redeemed the ${title}.`,
+              });
+            }
+        } catch (e: any) {
+            toast({
+              variant: "destructive",
+              title: "Redemption Failed",
+              description: e.message || "Could not deduct points.",
+            });
         }
       } else {
          toast({
@@ -108,29 +116,39 @@ export default function RedeemView() {
   return (
     <>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>Redeem Points</CardTitle>
+        <Card className="shadow-sm overflow-hidden">
+          <CardHeader className="bg-primary/5">
+            <CardTitle>Redeem Rewards</CardTitle>
             <CardDescription>
               Use your points to claim exciting rewards.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }} 
-              animate={{ opacity: 1, scale: 1 }} 
-              transition={{ delay: 0.2 }}
-              className="flex justify-between items-center bg-secondary p-4 rounded-lg border mb-6"
-            >
-                <div>
-                    <p className="text-sm text-muted-foreground">Your Balance</p>
-                    <p className="text-lg font-bold tracking-tight">{currentPoints.toLocaleString()} Points</p>
-                </div>
-                <Star className="h-8 w-8 text-amber-500" />
-            </motion.div>
+          <CardContent className="p-0">
+             <div className="p-6">
+                <Card className="p-4 bg-gradient-to-tr from-primary/80 to-primary text-primary-foreground shadow-lg">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <p className="text-sm opacity-80">Your Balance</p>
+                            <p className="text-3xl font-bold tracking-tight">
+                                <AnimatedCounter to={currentPoints} />
+                            </p>
+                        </div>
+                        <div className="text-right">
+                           <p className="text-sm opacity-80">Level</p>
+                           <p className="text-3xl font-bold tracking-tight">{currentLevel}</p>
+                        </div>
+                    </div>
+                    <Button asChild variant="secondary" size="sm" className="w-full mt-4 bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground">
+                        <Link href="/stats/points">
+                            <Star className="h-4 w-4 mr-2" />
+                            Earn More Points
+                        </Link>
+                    </Button>
+                </Card>
+            </div>
 
-            <div className="space-y-4">
-                <h3 className="text-base font-semibold tracking-tight">Available Rewards</h3>
+            <div className="p-6 pt-0">
+                <h3 className="text-base font-semibold tracking-tight mb-4">Available Rewards</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {rewards.map((reward, i) => (
                     <RewardCard 
