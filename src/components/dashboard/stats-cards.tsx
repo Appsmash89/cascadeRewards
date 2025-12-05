@@ -16,12 +16,10 @@ type StatsCardsProps = {
 }
 
 export default function StatsCards({ user, referrals, isGuest }: StatsCardsProps) {
-  const referralEarnings = referrals.length * 50; 
-
   const points = user?.points ?? 0;
   // Use simulated referral count if available, otherwise use live data
   const referralCount = user?.referrals ?? (isGuest ? 0 : referrals.length); 
-  const earnings = isGuest ? 0 : referralEarnings; 
+  const earnings = user?.totalEarned ?? 0;
 
   const stats = [
     { title: "Total Points", value: points, icon: Wallet, href: "/stats/points" },
