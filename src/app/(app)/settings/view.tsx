@@ -191,13 +191,13 @@ function SettingsView() {
                       <SelectValue placeholder="Select a theme" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="dark">Dark</SelectItem>
                       <SelectItem value="default">Default</SelectItem>
-                      <SelectItem value="ocean">Ocean</SelectItem>
                       <SelectItem value="forest">Forest</SelectItem>
                       <SelectItem value="grape">Grape</SelectItem>
-                      <SelectItem value="sunrise">Sunrise</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
                       <SelectItem value="midnight">Midnight</SelectItem>
+                      <SelectItem value="ocean">Ocean</SelectItem>
+                      <SelectItem value="sunrise">Sunrise</SelectItem>
                     </SelectContent>
                   </Select>
                 }
@@ -257,7 +257,3 @@ function SettingsView() {
 
 
 export default SettingsView;
-
-    
-
-    

@@ -1,5 +1,4 @@
 
-
 // This represents the user document in Firestore
 export type UserProfile = {
   uid: string;
@@ -19,7 +18,7 @@ export type UserProfile = {
   settings: {
     notificationsEnabled: boolean;
     darkMode: boolean;
-    theme: 'default' | 'dark' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape' | 'system' | 'light';
+    theme: 'dark' | 'default' | 'forest' | 'grape' | 'midnight' | 'ocean' | 'sunrise' | 'system' | 'light';
   };
   interests: TaskCategory[];
   referrals?: number; // Optional field for simulation
@@ -101,5 +100,3 @@ export type Feedback = {
 export const POINTS_PER_LEVEL = 100;
 export const TIER_1_BONUS_RATE = 0.10; // 10%
 export const TIER_2_BONUS_RATE = 0.02; // 2%
-
-    
