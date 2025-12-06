@@ -143,7 +143,7 @@ function SettingsView() {
   
   const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('') : '';
 
-  const handleThemeChange = async (selectedTheme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape') => {
+  const handleThemeChange = async (selectedTheme: 'default' | 'dark' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape') => {
     setTheme(selectedTheme);
     if (firestore && user) {
         const userDocRef = doc(firestore, 'users', user.uid);
@@ -196,7 +196,7 @@ function SettingsView() {
                       <SelectItem value="forest">Forest</SelectItem>
                       <SelectItem value="grape">Grape</SelectItem>
                       <SelectItem value="sunrise">Sunrise</SelectItem>
-                      <SelectItem value="reactbits">React Bits</SelectItem>
+                      <SelectItem value="dark">Dark</SelectItem>
                       <SelectItem value="midnight">Midnight</SelectItem>
                     </SelectContent>
                   </Select>
@@ -257,5 +257,7 @@ function SettingsView() {
 
 
 export default SettingsView;
+
+    
 
     
