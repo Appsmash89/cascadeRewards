@@ -16,6 +16,9 @@ import { manageUserDocument } from '@/services/user.service';
 import { useTheme } from 'next-themes';
 
 const GUEST_EMAIL = 'guest.dev@cascade.app';
+const SIMULATED_USERS_KEY = 'simulatedUsers';
+const SIMULATION_PROFILE_KEY = 'simulationProfile';
+
 
 /**
  * Defines the shape of the application's global context.
@@ -23,6 +26,7 @@ const GUEST_EMAIL = 'guest.dev@cascade.app';
 interface AppContextType {
   user: User | null;
   userProfile: UserProfile | null;
+  isSimulated: boolean;
   isAdmin: boolean;
   isUserLoading: boolean; // True if either auth state or profile is loading.
   error: Error | null; // Combines auth and Firestore errors.
@@ -45,10 +49,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { setTheme } = useTheme();
   const [isInitialSyncDone, setIsInitialSyncDone] = useState(false);
 
-  // States for local profile override
-  const [useLocalProfile, setUseLocalProfile] = useState(false);
-  const [localDisplayName, setLocalDisplayName] = useState<string | null>(null);
-  const [localPhotoURL, setLocalPhotoURL] = useState<string | null>(null);
+  // States for simulation mode
+  const [simulatedUserIds, setSimulatedUserIds] = useState<Set<string>>(new Set());
+  const [simulationTemplate, setSimulationTemplate] = useState<Partial<UserProfile> & { referrals?: number } | null>(null);
 
 
   // Effect to manage the user document in Firestore whenever the auth state changes.
@@ -80,16 +83,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
-  // Effect to load local profile settings from localStorage on mount
+  // Effect to load local profile & simulation settings from localStorage on mount
   useEffect(() => {
     try {
-        const localUse = localStorage.getItem('useLocalProfile') === 'true';
-        const localName = localStorage.getItem('localDisplayName');
-        const localAvatar = localStorage.getItem('localPhotoURL');
+        const storedSimulatedUsers = localStorage.getItem(SIMULATED_USERS_KEY);
+        if (storedSimulatedUsers) {
+          setSimulatedUserIds(new Set(JSON.parse(storedSimulatedUsers)));
+        }
 
-        setUseLocalProfile(localUse);
-        if (localName) setLocalDisplayName(localName);
-        if (localAvatar) setLocalPhotoURL(localAvatar);
+        const storedSimTemplate = localStorage.getItem(SIMULATION_PROFILE_KEY);
+        if (storedSimTemplate) {
+          setSimulationTemplate(JSON.parse(storedSimTemplate));
+        }
 
     } catch (error) {
         console.error("Could not read from localStorage", error);
@@ -110,18 +115,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return authUser.email === GUEST_EMAIL || (appSettings.adminEmails || []).includes(authUser.email!);
   }, [authUser, appSettings]);
 
+  const isSimulated = useMemo(() => {
+    return authUser ? simulatedUserIds.has(authUser.uid) : false;
+  }, [authUser, simulatedUserIds]);
+
   // Create a memoized, potentially overridden user profile
   const userProfile = useMemo(() => {
     if (!originalUserProfile) return null;
     
-    const shouldOverride = useLocalProfile && !isAdmin;
-
-    return {
-      ...originalUserProfile,
-      displayName: shouldOverride && localDisplayName ? localDisplayName : originalUserProfile.displayName,
-      photoURL: shouldOverride && localPhotoURL ? localPhotoURL : originalUserProfile.photoURL,
-    };
-  }, [originalUserProfile, useLocalProfile, localDisplayName, localPhotoURL, isAdmin]);
+    // Per-user simulation mode
+    if (isSimulated && simulationTemplate) {
+        return {
+            ...originalUserProfile,
+            ...simulationTemplate,
+            displayName: simulationTemplate.displayName ?? originalUserProfile.displayName,
+            email: simulationTemplate.email ?? originalUserProfile.email,
+            photoURL: simulationTemplate.photoURL ?? originalUserProfile.photoURL,
+            points: Number(simulationTemplate.points) ?? originalUserProfile.points,
+            level: Number(simulationTemplate.level) ?? originalUserProfile.level,
+            totalEarned: Number(simulationTemplate.totalEarned) ?? originalUserProfile.totalEarned,
+            referrals: Number(simulationTemplate.referrals) ?? 0,
+        };
+    }
+    
+    return originalUserProfile;
+  }, [originalUserProfile, isSimulated, simulationTemplate]);
 
 
   // Memoize the context value to prevent unnecessary re-renders of consumers.
@@ -129,12 +147,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       user: authUser,
       userProfile,
+      isSimulated,
       isAdmin,
       // The user is considered loading if auth state is pending, or profile is fetching, or settings are fetching.
       isUserLoading: isAuthLoading || (!!authUser && isProfileLoading) || (!!authUser && appSettingsLoading),
       error: authError || profileError,
     }),
-    [authUser, userProfile, isAdmin, isAuthLoading, isProfileLoading, appSettingsLoading, authError, profileError]
+    [authUser, userProfile, isSimulated, isAdmin, isAuthLoading, isProfileLoading, appSettingsLoading, authError, profileError]
   );
 
   return (

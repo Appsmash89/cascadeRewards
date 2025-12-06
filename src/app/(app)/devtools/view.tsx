@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useUser } from "@/hooks/use-user";
 import { useCollection, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket, MessageSquare, ShieldCheck, Settings } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Edit, Link2, Users, Minus, Plus, RotateCcw, Sparkles, PaintBucket, MessageSquare, ShieldCheck, Settings, Beaker } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, useCallback } from "react";
@@ -103,7 +103,7 @@ export default function DevToolsView() {
   const { data: appSettings, isLoading: appSettingsLoading } = useDoc<AppSettings>(appSettingsRef);
 
   const [localBgColor, setLocalBgColor] = useState('#ffffff');
-
+  
   useEffect(() => {
     if (appSettings) {
       if (appSettings.pastelBackgroundColor) {
@@ -210,6 +210,7 @@ export default function DevToolsView() {
       }, { merge: true });
     }
   }, [appSettingsRef]);
+
 
   const isLoading = isUserLoading || usersLoading || appSettingsLoading || isLoadingMasterTasks;
 

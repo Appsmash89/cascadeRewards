@@ -140,7 +140,7 @@
                 "theme": {
                   "type": "string",
                   "description": "The user's preferred theme for the application.",
-                  "enum": ["default", "reactbits", "midnight", "sunrise", "forest", "ocean", "grape"]
+                  "enum": ["default", "dark", "midnight", "sunrise", "forest", "ocean", "grape"]
                 }
             },
             "required": ["notificationsEnabled", "darkMode", "theme"]
@@ -271,3 +271,5 @@
     ]
   }
 }
+
+    

@@ -18,9 +18,10 @@ export type UserProfile = {
   settings: {
     notificationsEnabled: boolean;
     darkMode: boolean;
-    theme: 'default' | 'reactbits' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape' | 'system' | 'light' | 'dark';
+    theme: 'dark' | 'default' | 'forest' | 'grape' | 'midnight' | 'ocean' | 'sunrise' | 'system' | 'light';
   };
   interests: TaskCategory[];
+  referrals?: number; // Optional field for simulation
 };
 
 export type AppSettings = {
@@ -93,3 +94,9 @@ export type Feedback = {
   content: string;
   createdAt: any; // Firestore Timestamp
 };
+
+
+// Constants
+export const POINTS_PER_LEVEL = 100;
+export const TIER_1_BONUS_RATE = 0.10; // 10%
+export const TIER_2_BONUS_RATE = 0.02; // 2%

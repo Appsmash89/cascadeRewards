@@ -13,6 +13,7 @@ import { AppContext } from '@/context/app-context';
  * @returns The context value, which includes:
  *  - `user`: The Firebase Auth user object, or null if not logged in.
  *  - `userProfile`: The real-time Firestore document for the user, or null.
+ *  - `isSimulated`: A boolean that is true if the current user is in simulation mode.
  *  - `isAdmin`: A boolean that is true if the current user has admin privileges.
  *  - `isUserLoading`: A boolean that is true during the initial auth check, profile fetch, and admin status check.
  *  - `error`: Any error that occurred during auth or Firestore subscription.

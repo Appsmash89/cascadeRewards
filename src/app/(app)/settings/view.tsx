@@ -18,6 +18,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import type { UserProfile } from "@/lib/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const SettingsSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="space-y-4">
@@ -134,7 +135,7 @@ const ReferrerCard = () => {
 function SettingsView() {
   const { user, userProfile } = useUser();
   const firestore = useFirestore();
-  const { setTheme, theme } = useTheme();
+  const { setTheme } = useTheme();
 
   if (!userProfile || !user) {
     return null;
@@ -142,7 +143,7 @@ function SettingsView() {
   
   const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('') : '';
 
-  const handleThemeChange = async (selectedTheme: 'light' | 'dark' | 'system') => {
+  const handleThemeChange = async (selectedTheme: 'default' | 'dark' | 'midnight' | 'sunrise' | 'forest' | 'ocean' | 'grape') => {
     setTheme(selectedTheme);
     if (firestore && user) {
         const userDocRef = doc(firestore, 'users', user.uid);
@@ -181,17 +182,26 @@ function SettingsView() {
         <ReferrerCard />
 
         <SettingsSection title="Preferences">
-             <div className="flex items-center justify-between p-3 gap-4">
-                <div className="flex items-center gap-3">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    <span className="font-medium text-sm">Theme</span>
-                </div>
-                <div className="flex items-center gap-1 bg-background p-1 rounded-lg border">
-                    <Button size="sm" variant={theme === 'light' ? 'default' : 'ghost'} onClick={() => handleThemeChange('light')}>Light</Button>
-                    <Button size="sm" variant={theme === 'dark' ? 'default' : 'ghost'} onClick={() => handleThemeChange('dark')}>Dark</Button>
-                    <Button size="sm" variant={theme === 'system' ? 'default' : 'ghost'} onClick={() => handleThemeChange('system')}>System</Button>
-                </div>
-            </div>
+            <SettingsRow 
+                icon={<Sparkles className="h-5 w-5 text-primary" />} 
+                label="Theme" 
+                action={
+                  <Select onValueChange={handleThemeChange} defaultValue={userProfile.settings.theme}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select a theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dark">Dark</SelectItem>
+                      <SelectItem value="default">Default</SelectItem>
+                      <SelectItem value="forest">Forest</SelectItem>
+                      <SelectItem value="grape">Grape</SelectItem>
+                      <SelectItem value="midnight">Midnight</SelectItem>
+                      <SelectItem value="ocean">Ocean</SelectItem>
+                      <SelectItem value="sunrise">Sunrise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                }
+            />
             <SettingsRow 
                 icon={<Bell className="h-5 w-5 text-primary" />} 
                 label="Notifications" 
@@ -247,5 +257,3 @@ function SettingsView() {
 
 
 export default SettingsView;
-
-    
